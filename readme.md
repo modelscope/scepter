@@ -1,4 +1,4 @@
-# 🪄SCPTER
+<h1 align="center">🪄SCEPTER</h1>
 
 <p align="center">
 <img src="https://img.shields.io/badge/python-%E2%89%A53.8-5be.svg">
