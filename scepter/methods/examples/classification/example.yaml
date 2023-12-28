@@ -1,0 +1,260 @@
+ENV:
+  USE_PL: False
+# SET GLOBAL SYSTEM
+SOLVER:
+  # NAME DESCRIPTION:  TYPE:  default: 'TrainValSolver'
+  NAME: TrainValSolver
+  # RESUME_FROM DESCRIPTION: Resume from some state of training! TYPE: str default: ''
+  RESUME_FROM:
+  # MAX_EPOCHS DESCRIPTION: Max epochs for training. TYPE: int default: 10
+  MAX_EPOCHS: 200
+  # NUM_FOLDS DESCRIPTION: Num folds for training. TYPE: int default: 0
+  NUM_FOLDS: 1
+  # WORK_DIR DESCRIPTION: Save dir of the training log or model. TYPE: str default: ''
+  WORK_DIR: ./exp12/
+  LOG_FILE: std_log.txt
+  # EVAL_INTERVAL DESCRIPTION: Eval the model interval. TYPE: int default: 1
+  EVAL_INTERVAL: 1
+  ACCU_STEP: 1
+  # DO_FINAL_EVAL DESCRIPTION: If do final evaluation or not. TYPE: bool default: False
+  DO_FINAL_EVAL: True
+  # SAVE_EVAL_DATA DESCRIPTION: If save the evaluation data or not. TYPE: bool default: False
+  SAVE_EVAL_DATA: True
+  # EXTRA_KEYS DESCRIPTION: The extra keys for metric. TYPE: list default: []
+  EXTRA_KEYS: []
+  # TRAIN_DATA DESCRIPTION: Train data config. TYPE:  default: ''
+  TRAIN_DATA:
+    # NAME DESCRIPTION:  TYPE:  default: 'ImageClassifyPublicDataset'
+    NAME: ImageClassifyPublicDataset
+    # DATASET DESCRIPTION: the public dataset name TYPE: str default: 'cifar10'
+    DATASET: cifar10
+    # DATA_ROOT DESCRIPTION: the download data save path TYPE: str default: ''
+    DATA_ROOT: cifar10
+    # MODE DESCRIPTION: test TYPE: str default: test
+    MODE: train
+    # PIN_MEMORY DESCRIPTION: pin_memory for data loader TYPE: bool default: False
+    PIN_MEMORY: True
+    # BATCH_SIZE DESCRIPTION: batch size for data TYPE: int default: 4
+    BATCH_SIZE: 96
+    # NUM_WORKERS DESCRIPTION: num workers for fetching data! TYPE: int default: 1
+    NUM_WORKERS: 4
+    # TRANSFORMS DESCRIPTION:  TYPE:  default:
+    TRANSFORMS:
+      # - DESCRIPTION:  TYPE:  default:
+      - # NAME DESCRIPTION:  TYPE:  default: 'RandomResizedCrop'
+        NAME: RandomResizedCrop
+        SIZE: 32
+        # RATIO DESCRIPTION: ratio TYPE: list default: [0.75, 1.3333333333333333]
+        RATIO: [0.75, 1.33]
+        # SCALE DESCRIPTION: scale TYPE: list default: [0.08, 1.0]
+        SCALE: [0.8, 1.0]
+        # INTERPOLATION DESCRIPTION: interpolation TYPE: str default: 'blilinear'
+        INTERPOLATION: bilinear
+        # INPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        INPUT_KEY: img
+        # OUTPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        OUTPUT_KEY: img
+        # BACKEND DESCRIPTION: backend, choose from pillow, cv2, torchvision TYPE: str default: 'pillow'
+        BACKEND: pillow
+      - # NAME DESCRIPTION:  TYPE:  default: 'RandomHorizontalFlip'
+        NAME: RandomHorizontalFlip
+        # P DESCRIPTION: P TYPE: float default: 0.5
+        P: 0.5
+        # INPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        INPUT_KEY: img
+        # OUTPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        OUTPUT_KEY: img
+        # BACKEND DESCRIPTION: backend, choose from pillow, cv2, torchvision TYPE: str default: 'pillow'
+        BACKEND: pillow
+      - # NAME DESCRIPTION:  TYPE:  default: 'ImageToTensor'
+        NAME: ImageToTensor
+        # INPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        INPUT_KEY: img
+        # OUTPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        OUTPUT_KEY: img
+        # BACKEND DESCRIPTION: backend, choose from pillow, cv2, torchvision TYPE: str default: 'pillow'
+        BACKEND: pillow
+      - # NAME DESCRIPTION:  TYPE:  default: 'Normalize'
+        NAME: Normalize
+        # MEAN DESCRIPTION: mean TYPE: list default: []
+        MEAN: [0.4914, 0.4822, 0.4465]
+        # STD DESCRIPTION: std TYPE: list default: []
+        STD: [0.2023, 0.1994, 0.2010]
+        # INPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        INPUT_KEY: img
+        # OUTPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        OUTPUT_KEY: img
+        # BACKEND DESCRIPTION: backend, choose from pillow, cv2, torchvision TYPE: str default: 'pillow'
+        BACKEND: pillow
+      - NAME: ToTensor
+        # KEYS DESCRIPTION: keys TYPE: list default: []
+        KEYS: ["img", "label"]
+      - # NAME DESCRIPTION:  TYPE:  default: 'Select'
+        NAME: Select
+        # KEYS DESCRIPTION: keys TYPE: list default: []
+        KEYS: ["img", "label"]
+        # META_KEYS DESCRIPTION: meta keys TYPE: list default: []
+        META_KEYS: []
+  # EVAL_DATA DESCRIPTION: Eval data config. TYPE:  default: ''
+  EVAL_DATA:
+    # NAME DESCRIPTION:  TYPE:  default: 'ImageClassifyPublicDataset'
+    NAME: ImageClassifyPublicDataset
+    # DATASET DESCRIPTION: the public dataset name TYPE: str default: 'cifar10'
+    DATASET: cifar10
+    # DATA_ROOT DESCRIPTION: the download data save path TYPE: str default: ''
+    DATA_ROOT: ./local_data/cifar10
+    # MODE DESCRIPTION: test TYPE: str default: test
+    MODE: test
+    # PIN_MEMORY DESCRIPTION: pin_memory for data loader TYPE: bool default: False
+    PIN_MEMORY: True
+    # BATCH_SIZE DESCRIPTION: batch size for data TYPE: int default: 4
+    BATCH_SIZE: 96
+    # NUM_WORKERS DESCRIPTION: num workers for fetching data! TYPE: int default: 1
+    NUM_WORKERS: 4
+    # TRANSFORMS DESCRIPTION:  TYPE:  default:
+    TRANSFORMS:
+      # - DESCRIPTION:  TYPE:  default:
+      - # NAME DESCRIPTION:  TYPE:  default: 'Resize'
+        NAME: Resize
+        SIZE: 32
+        # INTERPOLATION DESCRIPTION: interpolation TYPE: str default: 'blilinear'
+        INTERPOLATION: bilinear
+        # INPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        INPUT_KEY: img
+        # OUTPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        OUTPUT_KEY: img
+        # BACKEND DESCRIPTION: backend, choose from pillow, cv2, torchvision TYPE: str default: 'pillow'
+        BACKEND: pillow
+      - # NAME DESCRIPTION:  TYPE:  default: 'ImageToTensor'
+        NAME: ImageToTensor
+        # INPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        INPUT_KEY: img
+        # OUTPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        OUTPUT_KEY: img
+        # BACKEND DESCRIPTION: backend, choose from pillow, cv2, torchvision TYPE: str default: 'pillow'
+        BACKEND: pillow
+      - # NAME DESCRIPTION:  TYPE:  default: 'Normalize'
+        NAME: Normalize
+        # MEAN DESCRIPTION: mean TYPE: list default: []
+        MEAN: [0.4914, 0.4822, 0.4465]
+        # STD DESCRIPTION: std TYPE: list default: []
+        STD: [0.2023, 0.1994, 0.2010]
+        # INPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        INPUT_KEY: img
+        # OUTPUT_KEY DESCRIPTION: input key TYPE: str default: 'img'
+        OUTPUT_KEY: img
+        # BACKEND DESCRIPTION: backend, choose from pillow, cv2, torchvision TYPE: str default: 'pillow'
+        BACKEND: pillow
+      - NAME: ToTensor
+        # KEYS DESCRIPTION: keys TYPE: list default: []
+        KEYS: ["img", "label"]
+      - # NAME DESCRIPTION:  TYPE:  default: 'Select'
+        NAME: Select
+        # KEYS DESCRIPTION: keys TYPE: list default: []
+        KEYS: ["img", "label"]
+        # META_KEYS DESCRIPTION: meta keys TYPE: list default: []
+        META_KEYS: []
+  # TRAIN_HOOKS DESCRIPTION:  TYPE:  default: ''
+  TRAIN_HOOKS:
+    - # NAME DESCRIPTION:  TYPE:  default: 'LogHook'
+      NAME: LogHook
+      # LOG_INTERVAL DESCRIPTION: the interval for log print! TYPE: int default: 10
+      LOG_INTERVAL: 10
+  # EVAL_HOOKS DESCRIPTION:  TYPE:  default: ''
+  EVAL_HOOKS:
+    - # NAME DESCRIPTION:  TYPE:  default: 'LogHook'
+      NAME: LogHook
+      # LOG_INTERVAL DESCRIPTION: the interval for log print! TYPE: int default: 10
+      LOG_INTERVAL: 10
+  # TEST_HOOKS DESCRIPTION:  TYPE:  default: ''
+  MODEL:
+    # NAME DESCRIPTION:  TYPE:  default: 'Classifier'
+    NAME: Classifier
+    # ACT_NAME DESCRIPTION: the activation function for logits, select from [softmax, sigmoid]! TYPE: str default: 'softmax'
+    ACT_NAME: softmax
+    # FREEZE_BN DESCRIPTION: if freeze bn of not TYPE: bool default: False
+    FREEZE_BN: False
+    # BACKBONE DESCRIPTION:  TYPE:  default: ''
+    BACKBONE:
+      # NAME DESCRIPTION:  TYPE:  default: 'ResNet'
+      NAME: ResNet
+      # DEPTH DESCRIPTION: the depth of network for resnet! TYPE: int default: 18
+      DEPTH: 18
+      # PRETRAINED DESCRIPTION: if load the official pretrained model or not. TYPE: bool default: False
+      PRETRAINED: false
+      #
+      KERNEL_SIZE: 3
+      # USE_RELU DESCRIPTION: use relu or not! TYPE: bool default: True
+      USE_RELU: True
+      # USE_MAXPOOL DESCRIPTION: use maxpool or not! TYPE: bool default: True
+      USE_MAXPOOL: false
+      # FIRST_CONV_STRIDE DESCRIPTION: first conv stride 1 or 2! TYPE: int default: 1
+      FIRST_CONV_STRIDE: 1
+      # FIRST_MAX_POOL_STRIDE DESCRIPTION: first max pool stride 1 or 2! TYPE: int default: 1
+      FIRST_MAX_POOL_STRIDE: 1
+    # NECK DESCRIPTION:  TYPE:  default: ''
+    NECK:
+      # NAME DESCRIPTION:  TYPE:  default: 'GlobalAveragePooling'
+      NAME: GlobalAveragePooling
+      # DIM DESCRIPTION: GlobalAveragePooling dim! TYPE: int default: 2
+      DIM: 2
+    # HEAD DESCRIPTION:  TYPE:  default: ''
+    HEAD:
+      # NAME DESCRIPTION:  TYPE:  default: 'ClassifierHead'
+      NAME: ClassifierHead
+      # DIM DESCRIPTION: representation dim! TYPE: int default: 512
+      DIM: 512
+      # NUM_CLASSES DESCRIPTION: number of classes. TYPE: int default: 10
+      NUM_CLASSES: 10
+      # DROPOUT_RATE DESCRIPTION: dropout rate, default 0. TYPE: float default: 0.0
+      DROPOUT_RATE: 0.0
+    METRIC:
+      # NAME DESCRIPTION:  TYPE:  default: 'AccuracyMetric'
+      NAME: AccuracyMetric
+      # TOPK DESCRIPTION: topk accuracy! TYPE: int default: 1
+      TOPK: 1
+    # LOSS DESCRIPTION:  TYPE:  default: ''
+    LOSS:
+      # NAME DESCRIPTION:  TYPE:  default: 'CrossEntropy'
+      NAME: CrossEntropy
+      # REDUCE DESCRIPTION: reduce is False, returns a loss per batch element instead and ignores :attr: size_average. Default: True TYPE: NoneType default: None
+      # REDUCE: None
+      # SIZE_AVERAGE DESCRIPTION: Deprecated (see :attr: reduction). By default,the losses are averaged over each loss element in the batch. Note that forsome losses, there are multiple elements per sample. If the field :attr: size_averageis set to False, the losses are instead summed for each minibatch. Ignoredwhen :attr: reduce is False. Default: True TYPE: NoneType default: None
+      # SIZE_AVERAGE: None
+      # IGNORE_INDEX DESCRIPTION: Specifies a target value that is ignoredand does not contribute to the input gradient. When :attr: size_average isTrue, the loss is averaged over non-ignored targets. Note that:attr: ignore_index is only applicable when the target contains class indices. TYPE: int default: -100
+      # IGNORE_INDEX: -100
+      # REDUCTION DESCRIPTION: Specifies the reduction to apply to the output:'none' | 'mean' | 'sum'. 'none': no reduction willbe applied, 'mean': the weighted mean of the output is taken,'sum': the output will be summed. Note: :attr: size_averageand :attr:`reduce` are in the process of being deprecated, and inthe meantime, specifying either of those two args will override:attr:`reduction`. Default: 'mean' TYPE: str default: 'mean'
+      # REDUCTION: mean
+      # LABEL_SMOOTHING DESCRIPTION: A float in [0.0, 1.0]. Specifies the amountof smoothing when computing the loss, where 0.0 means no smoothing.  TYPE: float default: 0.0
+      # LABEL_SMOOTHING: 0.0
+  # OPTIMIZER DESCRIPTION:  TYPE:  default: ''
+  OPTIMIZER:
+    # NAME DESCRIPTION:  TYPE:  default: 'SGD'
+    NAME: SGD
+    # LEARNING_RATE DESCRIPTION: the initial learning rate! TYPE: float default: 0.1
+    LEARNING_RATE: 0.01
+    # MOMENTUM DESCRIPTION: the momentum! TYPE: int default: 0
+    MOMENTUM: 0.9
+    # DAMPENING DESCRIPTION: the dampening! TYPE: int default: 0
+    DAMPENING: 0
+    # WEIGHT_DECAY DESCRIPTION: the weight decay! TYPE: int default: 0
+    WEIGHT_DECAY: 5e-4
+    # NESTEROV DESCRIPTION: the nesterov! TYPE: bool default: False
+    NESTEROV: False
+  # LR_SCHEDULER DESCRIPTION:  TYPE:  default: ''
+  LR_SCHEDULER:
+    # NAME DESCRIPTION:  TYPE:  default: 'CosineAnnealingLR'
+    NAME: CosineAnnealingLR
+    # T_MAX DESCRIPTION: the T max! TYPE: float default: 1.0
+    T_MAX: 200.0
+    # ETA_MIN DESCRIPTION: the eta min! TYPE: int default: 0
+    ETA_MIN: 0
+    # LAST_EPOCH DESCRIPTION: the last epoch! TYPE: int default: -1
+    LAST_EPOCH: -1
+  # METRICS DESCRIPTION:  TYPE:  default: ''
+  METRICS:
+    - # NAME DESCRIPTION:  TYPE:  default: 'AccuracyMetric'
+       NAME: AccuracyMetric
+       # TOPK DESCRIPTION: topk accuracy! TYPE: int default: 1
+       TOPK: 1
+       KEYS: ["logits", "label"]
