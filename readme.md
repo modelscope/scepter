@@ -51,7 +51,7 @@ conda activate scepter
 - Install SCEPTER by the `pip` command:
 
 ```shell
-pip install scepter
+pip install -e .
 ```
 
 ## 🚀 Getting Started
