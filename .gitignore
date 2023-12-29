@@ -10,7 +10,7 @@
 *.bin
 *.idea
 *.csv
-*.txt
+#*.txt
 build
 dist
 dev
