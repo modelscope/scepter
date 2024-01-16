@@ -1,13 +1,12 @@
 einops
 modelscope
-ms_swift@git+https://github.com/modelscope/swift.git
+ms_swift==1.5.2
 numpy
 open_clip_torch
 opencv-python
 opencv_transforms>=0.0.6
 oss2>=2.15.0
 pyyaml>=5.3.1
-torch==2.0.1
 torchvision==0.15.2
 transformers
-xformers==0.0.22
+xformers>=0.0.21
