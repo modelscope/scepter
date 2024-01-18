@@ -190,6 +190,7 @@ class DiffusionUNet(BaseModel):
         super().__init__(cfg, logger=logger)
         self.init_params(cfg)
         self.construct_network()
+        self.control_blocks = None
 
     def init_params(self, cfg):
         self.in_channels = cfg.IN_CHANNELS
@@ -285,6 +286,7 @@ class DiffusionUNet(BaseModel):
         ])
         self._feature_size = model_channels
         input_block_chans = [model_channels]
+        input_down_flag = [False]
         ch = model_channels
         ds = 1
         for level, mult in enumerate(channel_mult):
@@ -323,6 +325,7 @@ class DiffusionUNet(BaseModel):
                 self.input_blocks.append(TimestepEmbedSequential(*layers))
                 self._feature_size += ch
                 input_block_chans.append(ch)
+                input_down_flag.append(False)
             if level != len(channel_mult) - 1:
                 out_ch = ch
                 self.input_blocks.append(
@@ -341,9 +344,11 @@ class DiffusionUNet(BaseModel):
                 )
                 ch = out_ch
                 input_block_chans.append(ch)
+                input_down_flag.append(True)
                 ds *= 2
                 self._feature_size += ch
         self._input_block_chans = copy.deepcopy(input_block_chans)
+        self._input_down_flag = input_down_flag
 
         if num_head_channels == -1:
             dim_head = ch // num_heads
@@ -479,22 +484,7 @@ class DiffusionUNet(BaseModel):
             if len(unexpected) > 0:
                 self.logger.info(f'\nUnexpected Keys:\n {unexpected}')
 
-    def forward(self, x, t=None, cond=dict()):
-        t_emb = timestep_embedding(t, self.model_channels, repeat_only=False)
-        emb = self.time_embed(t_emb)
-
-        if isinstance(cond, dict):
-            if 'y' in cond and cond['y'] is not None:
-                assert self.num_classes is not None
-                emb = emb + self.label_emb(cond['y'])
-            if 'concat' in cond:
-                c = cond['concat']
-                x = torch.cat([x, c], dim=1)
-
-            context = cond.get('crossattn', None)
-        else:
-            context = cond
-
+    def _forward_origin(self, x, emb, context, hint=None):
         hs = []
         h = x
         for module in self.input_blocks:
@@ -505,8 +495,76 @@ class DiffusionUNet(BaseModel):
             h = torch.cat([h, self.lsc_identity[m_id](hs.pop())], dim=1)
             target_size = hs[-1].shape[-2:] if len(hs) > 0 else None
             h = module(h, emb, context, target_size)
+        out = self.out(h)
+        return out
 
-        return self.out(h)
+    def _forward_control(self, x, emb, context, hint, alpha=0.5):
+        multi_csc_tuners = self.control_blocks
+        # hints
+        multi_hint_hs = []
+        for sc_id, csc_tuners in enumerate(multi_csc_tuners):
+            hint_input = hint[sc_id] if isinstance(hint, list) else hint
+            hint_h = csc_tuners.pre_hint_blocks(hint_input)
+            hint_hs = []
+            for dsh_blk in csc_tuners.dense_hint_blocks:
+                hint_h = dsh_blk(hint_h)
+                hint_hs.append(hint_h)
+            multi_hint_hs.append(hint_hs)
+        # unet
+        hs = []
+        h = x
+        for module in self.input_blocks:
+            h = module(h, emb, context)
+            hs.append(h)
+        h = self.middle_block(h, emb, context)
+        for m_id, module in enumerate(self.output_blocks):
+            skip_h = hs.pop()
+            multi_control_h = 0
+            for sc_id, csc_tuners in enumerate(multi_csc_tuners):
+                hint_h = multi_hint_hs[sc_id][::-1][m_id]
+                control_h = csc_tuners.lsc_tuner_blocks[m_id](
+                    skip_h + hint_h, x_shortcut=hint_h)
+                multi_control_h += csc_tuners.scale * control_h
+            tuner_h = self.lsc_identity[m_id](skip_h) - skip_h
+            if torch.all(
+                    torch.isclose(tuner_h,
+                                  torch.zeros_like(tuner_h),
+                                  atol=1e-6)):
+                # csc-tuner
+                skip_h_new = skip_h + multi_control_h
+            else:
+                # csc-tuner + sc-tuner
+                skip_h_new = skip_h + alpha * multi_control_h + (
+                    1 - alpha) * tuner_h
+            h = torch.cat([h, skip_h_new], dim=1)
+            target_size = hs[-1].shape[-2:] if len(hs) > 0 else None
+            h = module(h, emb, context, target_size)
+        out = self.out(h)
+        return out
+
+    def forward(self, x, t=None, cond=dict(), **kwargs):
+        t_emb = timestep_embedding(t, self.model_channels, repeat_only=False)
+        emb = self.time_embed(t_emb)
+        hint = None
+        if isinstance(cond, dict):
+            if 'y' in cond and cond['y'] is not None:
+                assert self.num_classes is not None
+                emb = emb + self.label_emb(cond['y'])
+            if 'concat' in cond:
+                c = cond['concat']
+                x = torch.cat([x, c], dim=1)
+            if 'hint' in cond:
+                hint = cond['hint']
+            context = cond.get('crossattn', None)
+        else:
+            context = cond
+            hint = kwargs.pop('hint', None)
+
+        if self.control_blocks is not None:
+            out = self._forward_control(x, emb, context, hint)
+        else:
+            out = self._forward_origin(x, emb, context)
+        return out
 
     @staticmethod
     def get_config_template():
@@ -602,6 +660,7 @@ class DiffusionUNetXL(DiffusionUNet):
         ])
         self._feature_size = model_channels
         input_block_chans = [model_channels]
+        input_down_flag = [False]
         ch = model_channels
         ds = 1
         for level, mult in enumerate(channel_mult):
@@ -640,6 +699,7 @@ class DiffusionUNetXL(DiffusionUNet):
                 self.input_blocks.append(TimestepEmbedSequential(*layers))
                 self._feature_size += ch
                 input_block_chans.append(ch)
+                input_down_flag.append(False)
             if level != len(channel_mult) - 1:
                 out_ch = ch
                 self.input_blocks.append(
@@ -658,9 +718,11 @@ class DiffusionUNetXL(DiffusionUNet):
                 )
                 ch = out_ch
                 input_block_chans.append(ch)
+                input_down_flag.append(True)
                 ds *= 2
                 self._feature_size += ch
         self._input_block_chans = copy.deepcopy(input_block_chans)
+        self._input_down_flag = input_down_flag
 
         if num_head_channels == -1:
             dim_head = ch // num_heads
@@ -760,25 +822,7 @@ class DiffusionUNetXL(DiffusionUNet):
                 conv_nd(dims, model_channels, out_channels, 3, padding=1)),
         )
 
-    def forward(self, x, t=None, cond=dict()):
-        t_emb = timestep_embedding(t,
-                                   self.model_channels,
-                                   repeat_only=False,
-                                   legacy=True)
-        emb = self.time_embed(t_emb)
-
-        if isinstance(cond, dict):
-            if 'y' in cond:
-                assert self.num_classes is not None
-                emb = emb + self.label_emb(cond['y'])
-            if 'concat' in cond:
-                c = cond['concat']
-                x = torch.cat([x, c], dim=1)
-
-            context = cond.get('crossattn', None)
-        else:
-            context = cond
-
+    def _forward_origin(self, x, emb, context, hint=None):
         hs = []
         h = x
         for module in self.input_blocks:
@@ -789,8 +833,79 @@ class DiffusionUNetXL(DiffusionUNet):
             h = torch.cat([h, self.lsc_identity[m_id](hs.pop())], dim=1)
             target_size = hs[-1].shape[-2:] if len(hs) > 0 else None
             h = module(h, emb, context, target_size)
+        out = self.out(h)
+        return out
 
-        return self.out(h)
+    def _forward_control(self, x, emb, context, hint, alpha=0.5):
+        multi_csc_tuners = self.control_blocks
+        # hints
+        multi_hint_hs = []
+        for sc_id, csc_tuners in enumerate(multi_csc_tuners):
+            hint_input = hint[sc_id] if isinstance(hint, list) else hint
+            hint_h = csc_tuners.pre_hint_blocks(hint_input)
+            hint_hs = []
+            for dsh_blk in csc_tuners.dense_hint_blocks:
+                hint_h = dsh_blk(hint_h)
+                hint_hs.append(hint_h)
+            multi_hint_hs.append(hint_hs)
+        # unet
+        hs = []
+        h = x
+        for module in self.input_blocks:
+            h = module(h, emb, context)
+            hs.append(h)
+        h = self.middle_block(h, emb, context)
+        for m_id, module in enumerate(self.output_blocks):
+            skip_h = hs.pop()
+            multi_control_h = 0
+            for sc_id, csc_tuners in enumerate(multi_csc_tuners):
+                hint_h = multi_hint_hs[sc_id][::-1][m_id]
+                control_h = csc_tuners.lsc_tuner_blocks[m_id](
+                    skip_h + hint_h, x_shortcut=hint_h)
+                multi_control_h += csc_tuners.scale * control_h
+            tuner_h = self.lsc_identity[m_id](skip_h) - skip_h
+            if torch.all(
+                    torch.isclose(tuner_h,
+                                  torch.zeros_like(tuner_h),
+                                  atol=1e-6)):
+                # csc-tuner
+                skip_h_new = skip_h + multi_control_h
+            else:
+                # csc-tuner + sc-tuner
+                skip_h_new = skip_h + alpha * multi_control_h + (
+                    1 - alpha) * tuner_h
+            h = torch.cat([h, skip_h_new], dim=1)
+            target_size = hs[-1].shape[-2:] if len(hs) > 0 else None
+            h = module(h, emb, context, target_size)
+        out = self.out(h)
+        return out
+
+    def forward(self, x, t=None, cond=dict(), **kwargs):
+        t_emb = timestep_embedding(t,
+                                   self.model_channels,
+                                   repeat_only=False,
+                                   legacy=True)
+        emb = self.time_embed(t_emb)
+        hint = None
+        if isinstance(cond, dict):
+            if 'y' in cond:
+                assert self.num_classes is not None
+                emb = emb + self.label_emb(cond['y'])
+            if 'concat' in cond:
+                c = cond['concat']
+                x = torch.cat([x, c], dim=1)
+            if 'hint' in cond:
+                hint = cond['hint']
+            context = cond.get('crossattn', None)
+        else:
+            context = cond
+            hint = kwargs.pop('hint', None)
+
+        if self.control_blocks is not None:
+            out = self._forward_control(x, emb, context, hint)
+        else:
+            out = self._forward_origin(x, emb, context)
+        return out
 
     def convert_to_fp16(self):
         """

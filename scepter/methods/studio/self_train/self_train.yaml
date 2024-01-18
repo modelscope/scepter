@@ -1,0 +1,10 @@
+WORK_DIR: "self_train"
+SCRIPT_DIR: "scepter/studio/self_train/scripts"
+DEFAULT_FOLDER: sd_xl
+SAMPLERS:
+  -
+    NAME: 'ddim'
+  -
+    NAME: 'dpmpp_2m_sde'
+  -
+    NAME: 'dpmpp_2s_ancestral'

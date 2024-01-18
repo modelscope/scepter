@@ -1,0 +1,19 @@
+CONTROLLERS:
+  - NAME: canny
+    NAME_ZH:
+    DESCRIPTION:
+    BASE_MODEL: SD2.1
+    TYPE: Canny
+    MODEL_PATH: ms://damo/scepter_scedit@controllable_model/SD2.1/canny_control/0_SwiftSCETuning
+  - NAME: openpose
+    NAME_ZH:
+    DESCRIPTION:
+    BASE_MODEL: SD2.1
+    TYPE: Openpose
+    MODEL_PATH: ms://damo/scepter_scedit@controllable_model/SD2.1/pose_control/0_SwiftSCETuning
+  - NAME: color
+    NAME_ZH:
+    DESCRIPTION:
+    BASE_MODEL: SD2.1
+    TYPE: Color
+    MODEL_PATH: ms://damo/scepter_scedit@controllable_model/SD2.1/color_control/0_SwiftSCETuning

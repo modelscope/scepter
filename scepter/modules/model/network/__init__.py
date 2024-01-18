@@ -4,4 +4,4 @@ from scepter.modules.model.network.autoencoder import ae_kl
 from scepter.modules.model.network.classifier import Classifier
 from scepter.modules.model.network.diffusion import (diffusion, schedules,
                                                      solvers)
-from scepter.modules.model.network.ldm import ldm, ldm_xl
+from scepter.modules.model.network.ldm import ldm, ldm_sce, ldm_xl

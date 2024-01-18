@@ -15,7 +15,7 @@ SOLVER:
   ACCU_STEP: 1
   EVAL_INTERVAL: 100
   #
-  WORK_DIR: ./cache/sd15_512_full
+  WORK_DIR: ./cache/save_data/sd15_512_full
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:

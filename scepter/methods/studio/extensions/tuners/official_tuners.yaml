@@ -1,0 +1,721 @@
+TUNERS:
+  -
+    NAME: Caricature
+    NAME_ZH: 夸张漫画
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/894f40ed44b37c3372e6a22b8ae577a4.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Caricature
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Caricature
+    NAME_ZH: 夸张漫画
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/894f40ed44b37c3372e6a22b8ae577a4.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Caricature
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Caricature
+    NAME_ZH: 夸张漫画
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/894f40ed44b37c3372e6a22b8ae577a4.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Caricature
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Color Field Painting
+    NAME_ZH: 色域绘画
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/80e5b4075c572c04cbb4e48c37b8366b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/ColorFieldPainting
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Color Field Painting
+    NAME_ZH: 色域绘画
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/80e5b4075c572c04cbb4e48c37b8366b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/ColorFieldPainting
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Color Field Painting
+    NAME_ZH: 色域绘画
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/80e5b4075c572c04cbb4e48c37b8366b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/ColorFieldPainting
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Colored Pencil Art
+    NAME_ZH: 彩色铅笔艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/9ae235d7f1a7c2a4edab52a5e9f9cbae.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/ColoredPencilArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Colored Pencil Art
+    NAME_ZH: 彩色铅笔艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/9ae235d7f1a7c2a4edab52a5e9f9cbae.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/ColoredPencilArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Colored Pencil Art
+    NAME_ZH: 彩色铅笔艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/9ae235d7f1a7c2a4edab52a5e9f9cbae.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/ColoredPencilArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dark Moody Atmosphere
+    NAME_ZH: 暗色忧郁氛围
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/3da915da2f5cedaf243e57e08163f35b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/DarkMoodyAtmosphere
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dark Moody Atmosphere
+    NAME_ZH: 暗色忧郁氛围
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/3da915da2f5cedaf243e57e08163f35b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/DarkMoodyAtmosphere
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dark Moody Atmosphere
+    NAME_ZH: 暗色忧郁氛围
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/3da915da2f5cedaf243e57e08163f35b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/DarkMoodyAtmosphere
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dripping Paint Splatter Art
+    NAME_ZH: 滴漆溅画艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/69fd81f5983107acc3d334af62915851.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/DrippingPaintSplatterArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dripping Paint Splatter Art
+    NAME_ZH: 滴漆溅画艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/69fd81f5983107acc3d334af62915851.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/DrippingPaintSplatterArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dripping Paint Splatter Art
+    NAME_ZH: 滴漆溅画艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/69fd81f5983107acc3d334af62915851.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/DrippingPaintSplatterArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Faded Polaroid Photo
+    NAME_ZH: 褪色的宝丽来照片
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/f152edb4b3ca6248758b48115258ddfa.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/FadedPolaroidPhoto
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Faded Polaroid Photo
+    NAME_ZH: 褪色的宝丽来照片
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/f152edb4b3ca6248758b48115258ddfa.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/FadedPolaroidPhoto
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Faded Polaroid Photo
+    NAME_ZH: 褪色的宝丽来照片
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/f152edb4b3ca6248758b48115258ddfa.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/FadedPolaroidPhoto
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Flat 2D Art
+    NAME_ZH: 扁平2D艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/940cfd34155634cf051e1b2942cca426.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Flat2DArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Flat 2D Art
+    NAME_ZH: 扁平2D艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/940cfd34155634cf051e1b2942cca426.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Flat2DArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Flat 2D Art
+    NAME_ZH: 扁平2D艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/940cfd34155634cf051e1b2942cca426.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Flat2DArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Graffiti Art
+    NAME_ZH: 涂鸦艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/57b751b11564cb22cd49ef21f2004a5f.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/GraffitiArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Graffiti Art
+    NAME_ZH: 涂鸦艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/57b751b11564cb22cd49ef21f2004a5f.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/GraffitiArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Graffiti Art
+    NAME_ZH: 涂鸦艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/57b751b11564cb22cd49ef21f2004a5f.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/GraffitiArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Impressionism
+    NAME_ZH: 印象主义
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/0312b673dc6858a9864d7f45f0c5c1fc.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Impressionism
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Impressionism
+    NAME_ZH: 印象主义
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/0312b673dc6858a9864d7f45f0c5c1fc.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Impressionism
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Impressionism
+    NAME_ZH: 印象主义
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/0312b673dc6858a9864d7f45f0c5c1fc.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Impressionism
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Logo Design
+    NAME_ZH: 标志设计
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/9aa040b0c60d289da9610c91ad9b7c7e.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/LogoDesign
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Logo Design
+    NAME_ZH: 标志设计
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/9aa040b0c60d289da9610c91ad9b7c7e.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/LogoDesign
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Logo Design
+    NAME_ZH: 标志设计
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/9aa040b0c60d289da9610c91ad9b7c7e.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/LogoDesign
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Pencil Sketch Drawing
+    NAME_ZH: 铅笔素描
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/a9056e1eac85e5e4fe96a93917d4cce4.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/PencilSketchDrawing
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Pencil Sketch Drawing
+    NAME_ZH: 铅笔素描
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/a9056e1eac85e5e4fe96a93917d4cce4.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/PencilSketchDrawing
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Pencil Sketch Drawing
+    NAME_ZH: 铅笔素描
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/a9056e1eac85e5e4fe96a93917d4cce4.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/PencilSketchDrawing
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Silhouette Art
+    NAME_ZH: 剪影艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/568777f447fc02510b618152726d5002.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/SilhouetteArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Silhouette Art
+    NAME_ZH: 剪影艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/568777f447fc02510b618152726d5002.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/SilhouetteArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Silhouette Art
+    NAME_ZH: 剪影艺术
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/568777f447fc02510b618152726d5002.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/SilhouetteArt
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Steampunk 2
+    NAME_ZH: 蒸汽朋克
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/07d7b27cd73f2d43684003563511c15b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Steampunk2
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Steampunk 2
+    NAME_ZH: 蒸汽朋克
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/07d7b27cd73f2d43684003563511c15b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Steampunk2
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Steampunk 2
+    NAME_ZH: 蒸汽朋克
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/07d7b27cd73f2d43684003563511c15b.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Steampunk2
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Sticker Designs
+    NAME_ZH: 贴纸设计
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/2d1e9867058db2c57f2fe47530de3243.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/StickerDesigns
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Sticker Designs
+    NAME_ZH: 贴纸设计
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/2d1e9867058db2c57f2fe47530de3243.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/StickerDesigns
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Sticker Designs
+    NAME_ZH: 贴纸设计
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/2d1e9867058db2c57f2fe47530de3243.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/StickerDesigns
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Watercolor 2
+    NAME_ZH: 水彩
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/8859d532ae5901cc8457d6118fb9b7da.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Watercolor2
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Watercolor 2
+    NAME_ZH: 水彩
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/8859d532ae5901cc8457d6118fb9b7da.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Watercolor2
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Watercolor 2
+    NAME_ZH: 水彩
+    DESCRIPTION:
+    SOURCE: diva
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/8859d532ae5901cc8457d6118fb9b7da.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Watercolor2
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-elemental-art
+    NAME_ZH: MRE元素艺术
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/5895d78cf58c1ca05178991f37cc48ff.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/mre-elemental-art
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-elemental-art
+    NAME_ZH: MRE元素艺术
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/5895d78cf58c1ca05178991f37cc48ff.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/mre-elemental-art
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-elemental-art
+    NAME_ZH: MRE元素艺术
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/5895d78cf58c1ca05178991f37cc48ff.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/mre-elemental-art
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-anime
+    NAME_ZH: MRE动漫
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/a08149bc8e50f6bc65c0010d4cd416f8.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/mre-anime
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-anime
+    NAME_ZH: MRE动漫
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/a08149bc8e50f6bc65c0010d4cd416f8.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/mre-anime
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-anime
+    NAME_ZH: MRE动漫
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/a08149bc8e50f6bc65c0010d4cd416f8.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/mre-anime
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-comic
+    NAME_ZH: MRE漫画书
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/48c65cebf1fa4284d7b8feb619412e65.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/mre-comic
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-comic
+    NAME_ZH: MRE漫画书
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/48c65cebf1fa4284d7b8feb619412e65.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/mre-comic
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-comic
+    NAME_ZH: MRE漫画书
+    DESCRIPTION:
+    SOURCE: mre
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/48c65cebf1fa4284d7b8feb619412e65.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/mre-comic
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-craft clay
+    NAME_ZH: SAI手工粘土
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/8fc51113f725f27326c4398a7457cd6d.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-craftclay
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-craft clay
+    NAME_ZH: SAI手工粘土
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/8fc51113f725f27326c4398a7457cd6d.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-craftclay
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-craft clay
+    NAME_ZH: SAI手工粘土
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/8fc51113f725f27326c4398a7457cd6d.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-craftclay
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-fantasy art
+    NAME_ZH: SAI幻想艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/a6f8d92afcd5803dfb2ebecbc92091b6.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-fantasyart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-fantasy art
+    NAME_ZH: SAI幻想艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/a6f8d92afcd5803dfb2ebecbc92091b6.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-fantasyart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-fantasy art
+    NAME_ZH: SAI幻想艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/a6f8d92afcd5803dfb2ebecbc92091b6.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-fantasyart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-line art
+    NAME_ZH: SAI线条艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/034a51b0dd34b018be8859bf45b4f7ed.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-lineart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-line art
+    NAME_ZH: SAI线条艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/034a51b0dd34b018be8859bf45b4f7ed.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-lineart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-line art
+    NAME_ZH: SAI线条艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/034a51b0dd34b018be8859bf45b4f7ed.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-lineart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-neonpunk
+    NAME_ZH: SAI霓虹朋克
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/7e9ed25bb34008beb5f417df63c4b2fe.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-neonpunk
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-neonpunk
+    NAME_ZH: SAI霓虹朋克
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/7e9ed25bb34008beb5f417df63c4b2fe.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-neonpunk
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-neonpunk
+    NAME_ZH: SAI霓虹朋克
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/7e9ed25bb34008beb5f417df63c4b2fe.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-neonpunk
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-origami
+    NAME_ZH: SAI折纸
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/924f46a8f276011a0953d7988e90ee25.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-origami
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-origami
+    NAME_ZH: SAI折纸
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/924f46a8f276011a0953d7988e90ee25.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-origami
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-origami
+    NAME_ZH: SAI折纸
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/924f46a8f276011a0953d7988e90ee25.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-origami
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-pixel art
+    NAME_ZH: SAI像素艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD_XL1.0
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/a5ab89c0960be8c1216e65c98d92ae4a.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-pixelart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-pixel art
+    NAME_ZH: SAI像素艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD2.1
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/a5ab89c0960be8c1216e65c98d92ae4a.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-pixelart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-pixel art
+    NAME_ZH: SAI像素艺术
+    DESCRIPTION:
+    SOURCE: sai
+    BASE_MODEL: SD1.5
+    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/a5ab89c0960be8c1216e65c98d92ae4a.png
+    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-pixelart
+    TUNER_TYPE: SwiftSCE
+    PROMPT_EXAMPLE: a boy wearing green jacket

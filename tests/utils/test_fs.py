@@ -45,6 +45,11 @@ class FSTest(unittest.TestCase):
             print(f'Download from {path} to {local_path}')
             self.assertTrue(os.path.exists(local_path))
 
+        path = 'ms://AI-ModelScope/clip-vit-large-patch14'
+        with FS.get_dir_to_local_dir(path, wait_finish=True) as local_path:
+            print(f'Download from {path} to {local_path}')
+            self.assertTrue(os.path.exists(local_path))
+
 
 if __name__ == '__main__':
     unittest.main()

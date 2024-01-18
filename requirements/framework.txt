@@ -1,12 +1,11 @@
 einops
 modelscope
-ms_swift==1.5.2
+ms-swift>=1.5.2
 numpy
 open_clip_torch
 opencv-python
 opencv_transforms>=0.0.6
 oss2>=2.15.0
 pyyaml>=5.3.1
-torchvision==0.15.2
 transformers
 xformers>=0.0.21

@@ -176,7 +176,14 @@ class LatentDiffusionXL(LatentDiffusion):
                     continue
                 batch[key] = kwargs[key].to(we.device_id)
             context = getattr(self.cond_stage_model, 'encode')(batch)
-
+        if 'hint' in kwargs and kwargs['hint'] is not None:
+            hint = kwargs.pop('hint')
+            if isinstance(context, dict):
+                context['hint'] = hint
+            else:
+                context = {'crossattn': context, 'hint': hint}
+        else:
+            hint = None
         if self.min_snr_gamma is not None:
             alphas = self.diffusion.alphas.to(we.device_id)[t]
             sigmas = self.diffusion.sigmas.pow(2).to(we.device_id)[t]
@@ -190,7 +197,8 @@ class LatentDiffusionXL(LatentDiffusion):
                                    t=t,
                                    model=self.model,
                                    model_kwargs={'cond': context},
-                                   noise=noise)
+                                   noise=noise,
+                                   **kwargs)
         loss = loss * weights
         loss = loss.mean()
         ret = {'loss': loss, 'probe_data': {'prompt': prompt}}
@@ -272,6 +280,19 @@ class LatentDiffusionXL(LatentDiffusion):
 
         context = getattr(self.cond_stage_model, 'encode')(batch)
         null_context = getattr(self.cond_stage_model, 'encode')(batch_uc)
+
+        if 'hint' in kwargs and kwargs['hint'] is not None:
+            hint = kwargs.pop('hint')
+            if isinstance(context, dict):
+                context['hint'] = hint
+            else:
+                context = {'crossattn': context, 'hint': hint}
+            if isinstance(null_context, dict):
+                null_context['hint'] = hint
+            else:
+                null_context = {'crossattn': null_context, 'hint': hint}
+        else:
+            hint = None
 
         if 'index' in kwargs:
             kwargs.pop('index')
@@ -482,15 +503,18 @@ class LatentDiffusionXL(LatentDiffusion):
             before_refiner_t_samples = [None for _ in prompt]
 
         outputs = list()
-        for p, np, tnp, img, r_img, t_img, r_t_img in zip(
-                prompt, n_prompt, train_n_prompt, x_samples,
-                before_refiner_samples, t_x_samples, before_refiner_t_samples):
+        for i, (p, np, tnp, img, r_img, t_img, r_t_img) in enumerate(
+                zip(prompt, n_prompt, train_n_prompt, x_samples,
+                    before_refiner_samples, t_x_samples,
+                    before_refiner_t_samples)):
             one_tup = {
                 'prompt': p,
                 'n_prompt': np,
                 'image': img,
                 'before_refiner_image': r_img
             }
+            if hint is not None:
+                one_tup.update({'hint': hint[i]})
             if t_img is not None:
                 one_tup['train_n_prompt'] = tnp
                 one_tup['train_n_image'] = t_img

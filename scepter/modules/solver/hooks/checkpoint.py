@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+import json
+import os
 import os.path as osp
+import shutil
 import sys
 import warnings
 
 import torch
 import torch.distributed as du
+from swift import push_to_hub
 
 from scepter.modules.solver.hooks.hook import Hook
 from scepter.modules.solver.hooks.registry import HOOKS
@@ -56,6 +60,9 @@ class CheckpointHook(Hook):
         self.save_last = cfg.get('SAVE_LAST', False)
         self.save_best = cfg.get('SAVE_BEST', False)
         self.save_best_by = cfg.get('SAVE_BEST_BY', '')
+        self.push_to_hub = cfg.get('PUSH_TO_HUB', False)
+        self.hub_model_id = cfg.get('HUB_MODEL_ID', None)
+        self.last_ckpt = None
         if self.save_best and not self.save_best_by:
             warnings.warn(
                 "CheckpointHook: Parameter 'save_best_by' is not set, turn off save_best function."
@@ -96,7 +103,6 @@ class CheckpointHook(Hook):
         if solver.total_iter != 0 and (
             (solver.total_iter + 1) % self.interval == 0
                 or solver.total_iter == solver.max_steps - 1):
-            checkpoint = solver.save_checkpoint()
             solver.logger.info(
                 f'Saving checkpoint after {solver.total_iter + 1} steps')
             if we.rank == 0:
@@ -106,11 +112,44 @@ class CheckpointHook(Hook):
                                                    solver.total_iter + 1))
                 with FS.put_to(save_path) as local_path:
                     with open(local_path, 'wb') as f:
+                        checkpoint = solver.save_checkpoint()
                         torch.save(checkpoint, f)
+
+                from swift import SwiftModel
+                if isinstance(solver.model, SwiftModel):
+                    save_path = osp.join(
+                        solver.work_dir,
+                        'checkpoints/{}-{}'.format(self.save_name_prefix,
+                                                   solver.total_iter + 1))
+                    local_folder, _ = FS.map_to_local(save_path)
+                    solver.model.save_pretrained(local_folder)
+                    FS.put_dir_from_local_dir(local_folder, save_path)
+                else:
+                    if hasattr(solver, 'save_pretrained'):
+                        save_path = osp.join(
+                            solver.work_dir, 'checkpoints/{}-{}-bin'.format(
+                                self.save_name_prefix, solver.total_iter + 1))
+                        local_folder, _ = FS.map_to_local(save_path)
+                        FS.make_dir(local_folder)
+                        ckpt, cfg = solver.save_pretrained()
+                        with FS.put_to(
+                                os.path.join(
+                                    local_folder,
+                                    'pytorch_model.bin')) as local_path:
+                            with open(local_path, 'wb') as f:
+                                torch.save(ckpt, f)
+                        with FS.put_to(
+                                os.path.join(
+                                    local_folder,
+                                    'configuration.json')) as local_path:
+                            json.dump(cfg, open(local_path, 'w'))
+                        FS.put_dir_from_local_dir(local_folder, save_path)
+
                 if self.save_last and solver.total_iter == solver.max_steps - 1:
                     with FS.get_fs_client(save_path) as client:
                         last_path = osp.join(solver.work_dir, 'checkpoint.pth')
                         client.make_link(last_path, save_path)
+                self.last_ckpt = save_path
 
             torch.cuda.synchronize()
             if we.is_distributed:
@@ -172,6 +211,48 @@ class CheckpointHook(Hook):
                     with open(local_file, 'wb') as f:
                         torch.save(checkpoint['pre_state_dict'], f)
                     client.put_object_from_local_file(local_file, save_path)
+
+    def create_or_update_model_card(self, model, output_dir: str):
+        """
+        Updates or create the model card.
+        """
+        if not os.path.exists(os.path.join(output_dir, 'README.md')):
+            lines = []
+        else:
+            with open(os.path.join(output_dir, 'README.md'), 'r') as f:
+                lines = f.readlines()
+
+        # write the lines back to README.md
+        with open(os.path.join(output_dir, 'README.md'), 'w') as f:
+            f.writelines(lines)
+
+    def after_all_iter(self, solver):
+        if we.rank == 0:
+            if self.push_to_hub and self.last_ckpt:
+                if os.path.isfile(self.last_ckpt):
+                    base_dir = os.path.dirname(self.last_ckpt)
+                    base_file = os.path.basename(self.last_ckpt)
+                    save_path = os.path.join(base_dir, 'after_all_iter')
+                    os.makedirs(save_path)
+                    self.create_or_update_model_card(solver.model, save_path)
+                    try:
+                        os.link(self.last_ckpt,
+                                os.path.join(save_path, base_file))
+                    except OSError:
+                        shutil.copyfile(self.last_ckpt,
+                                        os.path.join(save_path, base_file))
+
+                push_to_hub(repo_name=self.hub_model_id,
+                            output_dir=self.last_ckpt,
+                            private=False)
+                current_dir = os.path.dirname(__file__)
+                base_path = os.sep.join(current_dir.split(os.sep)[:-4])
+                base_path = os.path.join(base_path, 'config')
+                file_name = self.hub_model_id.replace(os.sep, '_')
+                content = {'name': self.hub_model_id}
+                import json
+                with open(os.path.join(base_path, file_name), 'w') as f:
+                    json.dump(content, f)
 
     @staticmethod
     def get_config_template():

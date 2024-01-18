@@ -358,7 +358,7 @@ input_type 一一对应。
 ```python
 from scepter.utils.logger import get_logger, init_logger
 
-std_logger = get_logger(name="std_torch")
+std_logger = get_logger(name="scepter")
 init_logger(std_logger, log_file="", dist_launcher="pytorch")
 ```
 <hr/>

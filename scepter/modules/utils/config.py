@@ -3,6 +3,7 @@
 import argparse
 import copy
 import json
+import numbers
 import os
 import sys
 
@@ -579,7 +580,7 @@ class Config(object):
             for key, val in cfg_dict.items():
                 if isinstance(val, (Config, dict, list)):
                     cfg_new[key] = Config.get_plain_cfg(val)
-                else:
+                elif isinstance(val, (str, numbers.Number)):
                     cfg_new[key] = val
             return cfg_new
         elif isinstance(cfg, dict):
@@ -588,7 +589,7 @@ class Config(object):
             for key, val in cfg_dict.items():
                 if isinstance(val, (Config, dict, list)):
                     cfg_new[key] = Config.get_plain_cfg(val)
-                else:
+                elif isinstance(val, (str, numbers.Number)):
                     cfg_new[key] = val
             return cfg_new
         elif isinstance(cfg, list):
@@ -597,7 +598,7 @@ class Config(object):
             for val in cfg_list:
                 if isinstance(val, (Config, dict, list)):
                     cfg_new.append(Config.get_plain_cfg(val))
-                else:
+                elif isinstance(val, (str, numbers.Number)):
                     cfg_new.append(val)
             return cfg_new
         else:

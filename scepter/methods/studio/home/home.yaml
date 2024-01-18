@@ -1,0 +1,95 @@
+WORK_DIR: home
+FILE_SYSTEM:
+  -
+    NAME: LocalFs
+    AUTO_CLEAN: False
+DESC_INFO:
+  ZH_INFO: |
+    <h2><center>基本介绍</center><h2>
+    <p align="center">
+    <table align="center">
+      <tr>
+      <td>
+        <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_studio_banner.jpg">
+        <h3><center>SCEPTER Studio是基于开源基模型和自研微调编辑算法构建的生成定制和编辑工具箱，提供围绕生成、微调、编辑、数据处理等一系列的工具和插件。</center><h3>
+      </td>
+      </tr>
+    </table>
+    </p>
+  EN_INFO: |
+    <h2><center>Introduction</center><h2>
+    <p align="center">
+    <table align="center">
+      <tr>
+      <td>
+        <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_studio_banner.jpg">
+        <h3><center>SCEPTER Studio is a customized generation and editing toolkit built on the open-source base models and proprietary fine-tuning editing algorithms, offering a range of tools and plugins centered around generation, fine-tuning, editing, and data processing.</center><h3>
+      </td>
+      </tr>
+    </table>
+    </p>
+GUIDE_INFO:
+  ZH_INFO: |
+    <h2><center>用户指南</center><h2>
+    <style>
+    .video-container {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .video-wrapper {
+      width: 75%; 
+    }
+    video {
+      width: 100%; 
+      display: block; 
+    }
+    .description {
+      text-align: center; 
+      margin-top: 10px; 
+      font-size: 0.8em;
+    }
+    </style>
+    </head>
+    <body>
+    <div class="video-container">
+      <div class="video-wrapper">
+        <video controls>
+          <source src="https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_studio_train_inference.webm" type="video/webm">
+        </video>
+        <div class="description">训练与推理演示</div>
+      </div>
+    </div>
+    </body>
+  EN_INFO: |
+    <h2><center>User Guide</center><h2>
+    <style>
+    .video-container {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .video-wrapper {
+      width: 75%; 
+    }
+    video {
+      width: 100%; 
+      display: block; 
+    }
+    .description {
+      text-align: center; 
+      margin-top: 10px; 
+      font-size: 0.8em;
+    }
+    </style>
+    </head>
+    <body>
+    <div class="video-container">
+      <div class="video-wrapper">
+        <video controls>
+          <source src="https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_studio_train_inference.webm" type="video/webm">
+        </video>
+        <div class="description">Train & Inference Video</div>
+      </div>
+    </div>
+    </body>

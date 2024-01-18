@@ -15,7 +15,7 @@ SOLVER:
   ACCU_STEP: 1
   EVAL_INTERVAL: 100
   #
-  WORK_DIR: ./cache/sd21_768_full
+  WORK_DIR: ./cache/save_data/sd21_768_full
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:

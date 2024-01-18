@@ -104,6 +104,7 @@ class SwiftAdapter(BaseTuner):
                             SwiftAdapter.para_dict,
                             set_name=True)
 
+
 @TUNERS.register_class()
 class SwiftSCETuning(BaseTuner):
     para_dict = {

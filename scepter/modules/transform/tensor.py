@@ -3,6 +3,7 @@
 
 import numpy as np
 import torch
+from PIL import Image
 
 from scepter.modules.transform.registry import TRANSFORMS
 from scepter.modules.utils.config import dict_to_yaml
@@ -20,6 +21,17 @@ def to_tensor(data):
         return torch.LongTensor([data])
     elif isinstance(data, float):
         return torch.FloatTensor([data])
+    else:
+        raise TypeError(f'Unsupported type {type(data)}')
+
+
+def to_numpy(data):
+    if isinstance(data, torch.Tensor):
+        return data.detach().cpu().numpy()
+    elif isinstance(data, (int, float, list, tuple, dict, Image.Image)):
+        return np.array(data)
+    elif isinstance(data, np.ndarray):
+        return data
     else:
         raise TypeError(f'Unsupported type {type(data)}')
 
@@ -48,6 +60,50 @@ class ToTensor(object):
         :return:
         '''
         para_dict = [{'KEYS': {'value': [], 'description': 'keys'}}]
+        return dict_to_yaml('TRANSFORM',
+                            __class__.__name__,
+                            para_dict,
+                            set_name=True)
+
+
+@TRANSFORMS.register_class()
+class ToNumpy(object):
+    def __init__(self, cfg, logger=None):
+        self.input_key = cfg.get('INPUT_KEY', 'img')
+        self.output_key = cfg.get('OUTPUT_KEY', 'img')
+
+    def __call__(self, item):
+        if isinstance(self.input_key, str):
+            self.input_key = [self.input_key]
+        if isinstance(self.output_key, str):
+            self.output_key = [self.output_key]
+        for idx, key in enumerate(self.input_key):
+            item[self.output_key[idx]] = to_numpy(item[key])
+        return item
+
+    @staticmethod
+    def get_config_template():
+        '''
+        { "ENV" :
+            { "description" : "",
+              "A" : {
+                    "value": 1.0,
+                    "description": ""
+               }
+            }
+        }
+        :return:
+        '''
+        para_dict = [{
+            'INPUT_KEY': {
+                'value': [],
+                'description': 'input_key'
+            },
+            'OUTPUT_KEY': {
+                'value': [],
+                'description': 'output_key'
+            }
+        }]
         return dict_to_yaml('TRANSFORM',
                             __class__.__name__,
                             para_dict,
@@ -107,14 +163,14 @@ class Select(object):
 @TRANSFORMS.register_class()
 class Rename(object):
     def __init__(self, cfg, logger=None):
-        self.in_keys = cfg.IN_KEYS
-        self.out_keys = cfg.OUT_KEYS
+        self.input_key = cfg.INPUT_KEY
+        self.output_key = cfg.OUTPUT_KEY
 
     def __call__(self, item):
         data = {}
-        for idx, key in enumerate(self.in_keys):
-            data[self.out_keys[idx]] = item[key]
-        have_key_set = set(self.in_keys)
+        for idx, key in enumerate(self.input_key):
+            data[self.output_key[idx]] = item[key]
+        have_key_set = set(self.input_key)
         for k, v in item.items():
             if k not in have_key_set:
                 data[k] = v
@@ -134,12 +190,12 @@ class Rename(object):
         :return:
         '''
         para_dict = [{
-            'IN_KEYS': {
+            'INPUT_KEY': {
                 'value': [],
                 'description':
                 'The keys need to rename, the other keys are outputed by default.'
             },
-            'OUT_KEYS': {
+            'OUTPUT_KEY': {
                 'value': [],
                 'description':
                 'The keys need to rename, the other keys are outputed by default.'

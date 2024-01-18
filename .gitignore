@@ -3,14 +3,12 @@
 *.pt
 *.pkl
 *.ckpt
-*.png
 *.DS_Store
 *__pycache__*
 *.cache*
 *.bin
 *.idea
 *.csv
-#*.txt
 build
 dist
 dev

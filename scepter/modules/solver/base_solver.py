@@ -110,7 +110,7 @@ try:
             self.solver.after_epoch(self.solver.hooks_dict['test'])
 
         def setup(self, stage: str) -> None:
-            self.solver.logger = get_logger(name='std_torch')
+            self.solver.logger = get_logger(name='scepter')
             self.solver._prefix = FS.init_fs_client(self.solver.file_system,
                                                     logger=self.solver.logger)
             self.solver._local_rank = self.global_rank
