@@ -15,7 +15,7 @@ SOLVER:
   ACCU_STEP: 1
   EVAL_INTERVAL: 100
   #
-  WORK_DIR: ./cache/sdxl_1024_full
+  WORK_DIR: ./cache/save_data/sdxl_1024_full
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:
@@ -120,7 +120,7 @@ SOLVER:
           UCG_RATE: 0.0
           INPUT_KEYS: [ "prompt" ]
           LEGACY_UCG_VALUE:
-        - 
+        -
           NAME: FrozenOpenCLIPEmbedder2
           ARCH: ViT-bigG-14
           PRETRAINED_MODEL:
@@ -133,21 +133,21 @@ SOLVER:
           UCG_RATE: 0.0
           INPUT_KEYS: [ "prompt" ]
           LEGACY_UCG_VALUE:
-        - 
+        -
           NAME: ConcatTimestepEmbedderND
           OUT_DIM: 256
           IS_TRAINABLE: False
           UCG_RATE: 0.0
           INPUT_KEYS: [ "original_size_as_tuple" ]
           LEGACY_UCG_VALUE:
-        - 
+        -
           NAME: ConcatTimestepEmbedderND
           OUT_DIM: 256
           IS_TRAINABLE: False
           UCG_RATE: 0.0
           INPUT_KEYS: [ "crop_coords_top_left" ]
           LEGACY_UCG_VALUE:
-        - 
+        -
           NAME: ConcatTimestepEmbedderND
           OUT_DIM: 256
           IS_TRAINABLE: False
@@ -200,21 +200,21 @@ SOLVER:
             UCG_RATE: 0.0
             INPUT_KEYS: [ "prompt" ]
             LEGACY_UCG_VALUE:
-          - 
+          -
             NAME: ConcatTimestepEmbedderND
             OUT_DIM: 256
             IS_TRAINABLE: False
             UCG_RATE: 0.0
             INPUT_KEYS: [ "original_size_as_tuple" ]
             LEGACY_UCG_VALUE:
-          - 
+          -
             NAME: ConcatTimestepEmbedderND
             OUT_DIM: 256
             IS_TRAINABLE: False
             UCG_RATE: 0.0
             INPUT_KEYS: [ "crop_coords_top_left" ]
             LEGACY_UCG_VALUE:
-          - 
+          -
             NAME: ConcatTimestepEmbedderND
             OUT_DIM: 256
             IS_TRAINABLE: False
@@ -287,8 +287,8 @@ SOLVER:
         KEYS: [ 'img', 'prompt', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
         META_KEYS: [ 'data_key', 'img_path' ]
       - NAME: Rename
-        IN_KEYS: [ 'img', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
-        OUT_KEYS: [ 'image', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
+        INPUT_KEY: [ 'img', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
+        OUTPUT_KEY: [ 'image', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
   #
   EVAL_DATA:
     NAME: ImageTextPairMSDataset

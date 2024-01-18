@@ -1,0 +1,7 @@
+WORK_DIR: datasets
+EXPORT_DIR: export_datasets
+FILE_SYSTEM:
+  -
+    # NAME DESCRIPTION:  TYPE:  default: ''
+    NAME: LocalFs
+    AUTO_CLEAN: False

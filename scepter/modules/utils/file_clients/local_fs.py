@@ -239,7 +239,7 @@ class LocalFs(BaseFs):
         return True
 
     def walk_dir(self, file_dir, recurse=True):
-        for root, dirs, files in os.walk(file_dir, topdown=True):
+        for root, dirs, files in os.walk(file_dir, topdown=recurse):
             sub_files = files + dirs
             for name in sub_files:
                 yield os.path.join(root, name)

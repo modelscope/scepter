@@ -224,16 +224,13 @@ class FrozenOpenCLIPEmbedder(BaseEmbedder):
         super().__init__(cfg, logger=logger)
 
         arch = cfg.get('ARCH', 'ViT-H-14')
-        if cfg.PRETRAINED_MODEL is None:
-            model, _, _ = open_clip.create_model_and_transforms(
-                arch, device=torch.device('cpu'), pretrained=None)
-            del model.visual
-        else:
+        model, _, _ = open_clip.create_model_and_transforms(
+            arch, device=torch.device('cpu'), pretrained=None)
+        del model.visual
+        if cfg.PRETRAINED_MODEL is not None:
             with FS.get_from(cfg.PRETRAINED_MODEL,
                              wait_finish=True) as local_path:
-                model, _, _ = open_clip.create_model_and_transforms(
-                    arch, device=torch.device('cpu'), pretrained=local_path)
-                del model.visual
+                model.load_state_dict(torch.load(local_path), strict=False)
         self.model = model
 
         self.use_grad = cfg.get('USE_GRAD', False)
@@ -362,7 +359,7 @@ class FrozenOpenCLIPEmbedder2(BaseEmbedder):
     def __init__(self, cfg, logger=None):
         super().__init__(cfg, logger=logger)
         arch = cfg.get('ARCH', 'ViT-H-14')
-        if cfg.PRETRAINED_MODEL is None:
+        if cfg.get('PRETRAINED_MODEL', None) is None:
             model, _, _ = open_clip.create_model_and_transforms(
                 arch, device=torch.device('cpu'), pretrained=None)
             del model.visual

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+import copy
 import os
 from collections import OrderedDict, defaultdict
 
@@ -97,6 +98,8 @@ class LatentDiffusionSolver(BaseSolver):
     def __init__(self, cfg, logger=None):
         super().__init__(cfg, logger=logger)
         self.max_steps = cfg.MAX_STEPS
+        if self.max_steps > 0:
+            self.max_epochs = -1
         self.use_amp = cfg.get('USE_AMP', False)
         self.dtype = getattr(torch, cfg.DTYPE)
         self.use_fairscale = cfg.get('USE_FAIRSCALE', False)
@@ -297,6 +300,25 @@ class LatentDiffusionSolver(BaseSolver):
             ckpt['scaler'] = self.scaler.state_dict()
         return ckpt
 
+    def save_pretrained(self):
+        if hasattr(self.model, 'save_pretrained'):
+            ckpt = self.model.save_pretrained()
+        elif hasattr(self.model, 'module') and hasattr(self.model.module,
+                                                       'save_pretrained'):
+            ckpt = self.model.module.save_pretrained()
+        else:
+            ckpt = dict()
+        if hasattr(self.model, 'save_pretrained_config'):
+            cfg = self.model.save_pretrained_config()
+        elif hasattr(self.model, 'module') and hasattr(
+                self.model.module, 'save_pretrained_config'):
+            cfg = self.model.module.save_pretrained_config()
+        else:
+            cfg = copy.deepcopy(self.cfg.MODEL.cfg_dict)
+        if 'FILE_SYSTEM' in cfg:
+            cfg.pop('FILE_SYSTEM')
+        return ckpt, cfg
+
     def solve(self):
         self.before_solve()
         if 'train' in self._mode_set:
@@ -366,8 +388,17 @@ class LatentDiffusionSolver(BaseSolver):
         log_data, log_label, ori_label = [], [], []
         for result in all_results:
             # the inference image use
-            log_data.append((result['image'].permute(1, 2, 0).cpu().numpy() *
-                             255).astype(np.uint8))
+            if 'hint' in result:
+                merge_image = torch.cat([
+                    result['hint'][:result['image'].shape[0]], result['image']
+                ],
+                                        dim=2)
+                log_data.append((merge_image.permute(1, 2, 0).cpu().numpy() *
+                                 255).astype(np.uint8))
+            else:
+                log_data.append(
+                    (result['image'].permute(1, 2, 0).cpu().numpy() *
+                     255).astype(np.uint8))
             log_label.append(result['prompt'] + ' NegPrompt: ' +
                              result['n_prompt'])
             ori_label.append(result['prompt'])
@@ -385,9 +416,18 @@ class LatentDiffusionSolver(BaseSolver):
         for result in all_results:
             # the inference image use
             if 'train_n_image' in result:
-                log_data.append(
-                    (result['train_n_image'].permute(1, 2, 0).cpu().numpy() *
-                     255).astype(np.uint8))
+                if 'hint' in result:
+                    merge_image = torch.cat([
+                        result['hint'][:result['train_n_image'].shape[0]],
+                        result['train_n_image']
+                    ],
+                                            dim=2)
+                    log_data.append(
+                        (merge_image.permute(1, 2, 0).cpu().numpy() *
+                         255).astype(np.uint8))
+                else:
+                    log_data.append((result['train_n_image'].permute(
+                        1, 2, 0).cpu().numpy() * 255).astype(np.uint8))
                 log_label.append(result['prompt'] + 'NegPrompt' +
                                  result['train_n_prompt'])
                 ori_label.append(result['prompt'])
@@ -578,8 +618,16 @@ class LatentDiffusionSolver(BaseSolver):
                     transfer_data_to_cuda(self.current_batch_data[self.mode]))
             log_data, log_label = [], []
             for result in outputs:
-                merge_image = torch.cat([result['orig'], result['recon']],
-                                        dim=2)
+                if 'hint' in result:
+                    merge_image = torch.cat([
+                        result['orig'],
+                        result['hint'][:result['orig'].shape[0]],
+                        result['recon']
+                    ],
+                                            dim=2)
+                else:
+                    merge_image = torch.cat([result['orig'], result['recon']],
+                                            dim=2)
                 log_data.append((merge_image.permute(1, 2, 0).cpu().numpy() *
                                  255).astype(np.uint8))
                 log_label.append('recon image: ' + result['prompt'] +
@@ -599,8 +647,16 @@ class LatentDiffusionSolver(BaseSolver):
             log_data, log_label = [], []
             for result in outputs:
                 if 'train_n_image' in result:
-                    merge_image = torch.cat(
-                        [result['orig'], result['train_n_image']], dim=2)
+                    if 'hint' in result:
+                        merge_image = torch.cat([
+                            result['orig'],
+                            result['hint'][:result['orig'].shape[0]],
+                            result['train_n_image']
+                        ],
+                                                dim=2)
+                    else:
+                        merge_image = torch.cat(
+                            [result['orig'], result['train_n_image']], dim=2)
                     log_data.append(
                         (merge_image.permute(1, 2, 0).cpu().numpy() *
                          255).astype(np.uint8))

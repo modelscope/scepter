@@ -1,0 +1,85 @@
+HOST: "localhost"
+PORT: 2024
+ROOT: ""
+TITLE: SCEPTER Studio
+BANNER: |
+  <style>
+    .banner {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f0f0f0;
+        color: #2a2a2a;
+        padding: 35px;
+        font-family: Arial, sans-serif;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+    }
+    .title {
+        text-align: center;
+        z-index: 1;
+    }
+    .qr-codes {
+        position: absolute;
+        right: 20px;
+        display: flex;
+        gap: 15px;
+    }
+    .qr-code-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .qr-codes img {
+        height: 80px;
+        width: 80px;
+    }
+    .caption {
+        color: #2a2a2a;
+        font-size: 0.8em;
+        margin-top: 5px;
+    }
+  </style>
+  <body>
+  <div class="banner">
+      <div class="title">
+          <h1>🪄SCEPTER Studio</h1>
+      </div>
+      <div class="qr-codes">
+          <div class="qr-code-container">
+              <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/ms_scepter_studio_qr.png" alt="ms_scepter_studio_qr">
+              <div class="caption">Modelscope Studio</div>
+          </div>
+          <div class="qr-code-container">
+              <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_github_qr.png" alt="scepter_github_qr">
+              <div class="caption">Github</div>
+          </div>
+      </div>
+  </div>
+  </body>
+WORK_DIR: "cache/scepter_ui"
+FILE_SYSTEM:
+  -
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "cache/cache_data"
+  -
+    NAME: "HttpFs"
+    TEMP_DIR: "cache/cache_data"
+INTERFACE:
+  - NAME: 首页
+    NAME_EN: Home
+    IFID: home
+    CONFIG: scepter/methods/studio/home/home.yaml
+  - NAME: 数据管理
+    NAME_EN: Dataset Management
+    IFID: preprocess
+    CONFIG: scepter/methods/studio/preprocess/preprocess.yaml
+  - NAME: 训练
+    NAME_EN: Train
+    IFID: self_train
+    CONFIG: scepter/methods/studio/self_train/self_train.yaml
+  - NAME: 推理
+    NAME_EN: Inference
+    IFID: inference
+    CONFIG: scepter/methods/studio/inference/inference.yaml

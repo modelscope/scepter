@@ -327,7 +327,7 @@ class Workenv(object):
         self.seed = 2023
         self.debug = False
         self.use_pl = False
-        self.launcher = 'spawn'
+        self.launcher = 'spawn' if torch.cuda.device_count() > 1 else None
         self.data_online = False
         self.share_storage = False
 
@@ -358,7 +358,7 @@ class Workenv(object):
             fn(config)
             return
 
-        if (os.environ.get('WORLD_SIZE') is None or os.environ.get('WORLD_SIZE') == 1) \
+        if (os.environ.get('WORLD_SIZE') is None or int(os.environ.get('WORLD_SIZE')) == 1) \
                 and torch.cuda.device_count() == 1 and not self.launcher == 'dist':
             self.device_id = 0
             fn(config)

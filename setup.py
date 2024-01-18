@@ -131,7 +131,10 @@ def restorefile(contents):
 required = parse_requirements()
 
 contents = backupfile()
-
+print([
+    pkg for pkg in setuptools.find_packages()
+    if '__pycache__' not in pkg and 'scepter' in pkg
+])
 setuptools.setup(
     name='scepter',
     version=get_version(),
@@ -146,6 +149,8 @@ setuptools.setup(
         pkg for pkg in setuptools.find_packages()
         if '__pycache__' not in pkg and 'scepter' in pkg
     ],
+    include_package_data=True,
+    # package_data={'': ['*.yaml']},
     data_files=[('lib/docs', glob.glob('docs/*.md') + glob.glob('docs/*/*.md'))
                 ],
     classifiers=[

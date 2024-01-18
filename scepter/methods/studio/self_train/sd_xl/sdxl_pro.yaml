@@ -1,0 +1,600 @@
+ENV:
+  BACKEND: nccl
+
+META:
+  VERSION: 'SD_XL1.0'
+  DESCRIPTION: "Stable Diffusion XL1.0"
+  IS_DEFAULT: True
+  INFERENCE_PARAS:
+    INFERENCE_BATCH_SIZE: 1
+    INFERENCE_PREFIX: ""
+    DEFAULT_SAMPLER: "dpmpp_2s_ancestral"
+    DEFAULT_SAMPLE_STEPS: 40
+    INFERENCE_N_PROMPT: ""
+    RESOLUTION: 1024
+  PARAS:
+    -
+      TRAIN_BATCH_SIZE: 2
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: 1024
+      MEMORY: 29000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 0.0001
+      IS_DEFAULT: False
+      TUNER: FULL
+    -
+      TRAIN_BATCH_SIZE: 2
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: 1024
+      MEMORY: 29000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 0.0001
+      IS_DEFAULT: False
+      TUNER: LORA
+    -
+      TRAIN_BATCH_SIZE: 2
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: 1024
+      MEMORY: 29000
+      EPOCHS: 200
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 0.0001
+      IS_DEFAULT: False
+      TUNER: SCE
+    -
+      TRAIN_BATCH_SIZE: 2
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: 1024
+      MEMORY: 29000
+      EPOCHS: 200
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 0.0001
+      IS_DEFAULT: True
+      TUNER: TEXT_SCE
+    -
+      TRAIN_BATCH_SIZE: 2
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: 1024
+      MEMORY: 29000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 0.0001
+      IS_DEFAULT: False
+      TUNER: TEXT_LORA
+
+  TUNERS:
+    LORA:
+      -
+        NAME: SwiftLoRA
+        R: 256
+        LORA_ALPHA: 256
+        LORA_DROPOUT: 0.0
+        BIAS: "none"
+        TARGET_MODULES: "model.*(to_q|to_k|to_v|to_out.0|net.0.proj|net.2)$"
+    TEXT_LORA:
+      -
+        NAME: SwiftLoRA
+        R: 256
+        LORA_ALPHA: 256
+        LORA_DROPOUT: 0.0
+        BIAS: "none"
+        TARGET_MODULES: "(cond_stage_model.embedders.0.*(q_proj|k_proj|v_proj|out_proj|mlp.fc1|mlp.fc2))|(model.*(to_q|to_k|to_v|to_out.0|net.0.proj|net.2))$"
+    SCE:
+      -
+        NAME: SwiftSCETuning
+        DIMS: [1280, 1280, 640, 640, 640, 320, 320, 320, 320]
+        TARGET_MODULES: model.lsc_identity\.\d+$
+        DOWN_RATIO: 1.0
+        TUNER_MODE: identity
+    TEXT_SCE:
+      -
+        NAME: SwiftSCETuning
+        DIMS: [ 1280, 1280, 640, 640, 640, 320, 320, 320, 320 ]
+        TARGET_MODULES: model.lsc_identity\.\d+$
+        DOWN_RATIO: 1.0
+        TUNER_MODE: identity
+      -
+        NAME: SwiftLoRA
+        R: 256
+        LORA_ALPHA: 256
+        LORA_DROPOUT: 0.0
+        BIAS: "none"
+        TARGET_MODULES: "cond_stage_model.embedders.0.*(q_proj|k_proj|v_proj|out_proj|mlp.fc1|mlp.fc2)$"
+
+  MODIFY_PARAS:
+    TEXT_LORA:
+      TRAIN:
+        SOLVER.MODEL.COND_STAGE_MODEL.USE_GRAD: True
+    TEXT_SCE:
+      TRAIN:
+        SOLVER.MODEL.COND_STAGE_MODEL.USE_GRAD: True
+
+SOLVER:
+  # NAME DESCRIPTION:  TYPE:  default: 'LatentDiffusionSolver'
+  NAME: LatentDiffusionSolver
+  # MAX_STEPS DESCRIPTION: The total steps for training. TYPE: int default: 100000
+  MAX_STEPS: 2000
+  # USE_AMP DESCRIPTION: Use amp to surpport mix precision or not, default is False. TYPE: bool default: False
+  USE_AMP: False
+  # DTYPE DESCRIPTION: The precision for training. TYPE: str default: 'float32'
+  DTYPE: float16
+  # USE_FAIRSCALE DESCRIPTION: Use fairscale as the backend of ddp, default False. TYPE: bool default: False
+  USE_FAIRSCALE: False
+  # USE_FSDP DESCRIPTION: Use fsdp as the backend of ddp, default False. TYPE: bool default: False
+  USE_FSDP: False
+  # SHARDING_STRATEGY DESCRIPTION: The shard strategy for fsdp, select from ['full_shard', 'shard_grad_op'] TYPE: str default: 'shard_grad_op'
+  SHARDING_STRATEGY:
+  # LOAD_MODEL_ONLY DESCRIPTION: Only load the model rather than the optimizer and schedule, default is False. TYPE: bool default: False
+  LOAD_MODEL_ONLY: False
+  # CHANNELS_LAST DESCRIPTION: The channels last, default is False. TYPE: bool default: False
+  CHANNELS_LAST: False
+  # RESUME_FROM DESCRIPTION: Resume from some state of training! TYPE: str default: ''
+  RESUME_FROM:
+  # MAX_EPOCHS DESCRIPTION: Max epochs for training. TYPE: int default: 10
+  MAX_EPOCHS: -1
+  # NUM_FOLDS DESCRIPTION: Num folds for training. TYPE: int default: 1
+  NUM_FOLDS: 1
+  # WORK_DIR DESCRIPTION: Save dir of the training log or model. TYPE: str default: ''
+  WORK_DIR:
+  # LOG_FILE DESCRIPTION: Save log path. TYPE: str default: ''
+  LOG_FILE: stg_log.txt
+  FILE_SYSTEM:
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "./cache/data"
+  TUNER:
+  # MODEL DESCRIPTION:  TYPE:  default: ''
+  MODEL:
+    # NAME DESCRIPTION:
+    NAME: LatentDiffusionXL
+    # PARAMETERIZATION DESCRIPTION: The prediction type, you can choose from 'eps' and 'x0' and 'v' TYPE: str default: 'v'
+    PARAMETERIZATION: eps
+    # TIMESTEPS DESCRIPTION: The schedule steps for diffusion. TYPE: int default: 1000
+    TIMESTEPS: 1000
+    # MIN_SNR_GAMMA DESCRIPTION: The minimum snr gamma, default is None. TYPE: NoneType default: None
+    # MIN_SNR_GAMMA: None
+    # ZERO_TERMINAL_SNR DESCRIPTION: Whether zero terminal snr, default is False. TYPE: bool default: False
+    ZERO_TERMINAL_SNR: False
+    # PRETRAINED_MODEL DESCRIPTION: Whole model's pretrained model path. TYPE: NoneType default: None
+    PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-xl-base-1.0@sd_xl_base_1.0.safetensors
+    # IGNORE_KEYS DESCRIPTION: The ignore keys for pretrain model loaded. TYPE: list default: []
+    IGNORE_KEYS: [ ]
+    # SCALE_FACTOR DESCRIPTION: The vae embeding scale. TYPE: float default: 0.18215
+    SCALE_FACTOR: 0.13025
+    # SIZE_FACTOR DESCRIPTION: The vae size factor. TYPE: int default: 8
+    SIZE_FACTOR: 8
+    # DEFAULT_N_PROMPT DESCRIPTION: The default negtive prompt. TYPE: str default: ''
+    DEFAULT_N_PROMPT: ""
+    # TRAIN_N_PROMPT DESCRIPTION: The negtive prompt used in train phase. TYPE: str default: ''
+    TRAIN_N_PROMPT: ""
+    # P_ZERO DESCRIPTION: The prob for zero or negtive prompt. TYPE: float default: 0.0
+    P_ZERO: 0.1
+    # USE_EMA DESCRIPTION: Use Ema or not. Default True TYPE: bool default: True
+    USE_EMA: False
+    LOAD_REFINER: False
+    # SCHEDULE_ARGS DESCRIPTION:  TYPE:  default: ''
+    SCHEDULE_ARGS:
+      # NAME DESCRIPTION:  TYPE:  default: ''
+      "NAME": "scaled_linear"
+      "BETA_MIN": 0.00085
+      "BETA_MAX": 0.0120
+    # DIFFUSION_MODEL DESCRIPTION:  TYPE:  default: ''
+    DIFFUSION_MODEL:
+      # NAME DESCRIPTION:  TYPE:  default: 'DiffusionUNetXL'
+      NAME: DiffusionUNetXL
+      # PRETRAINED_MODEL DESCRIPTION: Whole model's pretrained model path. TYPE: NoneType default: None
+      PRETRAINED_MODEL:
+      # IN_CHANNELS DESCRIPTION: Unet channels for input, considering the input image's channels. TYPE: int default: 4
+      IN_CHANNELS: 4
+      # OUT_CHANNELS DESCRIPTION: Unet channels for output, considering the input image's channels. TYPE: int default: 4
+      OUT_CHANNELS: 4
+      # NUM_RES_BLOCKS DESCRIPTION: The blocks's number of res. TYPE: int default: 2
+      NUM_RES_BLOCKS: 2
+      # MODEL_CHANNELS DESCRIPTION: base channel count for the model. TYPE: int default: 320
+      MODEL_CHANNELS: 320
+      # ATTENTION_RESOLUTIONS DESCRIPTION: A collection of downsample rates at which attention will take place. May be a set, list, or tuple. For example, if this contains 4, then at 4x downsampling, attentio will be used. TYPE: list default: [4, 2]
+      ATTENTION_RESOLUTIONS: [4, 2]
+      # DROPOUT DESCRIPTION: The dropout rate. TYPE: int default: 0
+      DROPOUT: 0
+      # CHANNEL_MULT DESCRIPTION: channel multiplier for each level of the UNet. TYPE: list default: [1, 2, 4]
+      CHANNEL_MULT: [1, 2, 4]
+      # CONV_RESAMPLE DESCRIPTION: Use conv to resample when downsample. TYPE: bool default: True
+      CONV_RESAMPLE: True
+      # DIMS DESCRIPTION: The Conv dims which 2 represent Conv2D. TYPE: int default: 2
+      DIMS: 2
+      # NUM_CLASSES DESCRIPTION: The class num for class guided setting, also can be set as continuous. TYPE: str default: 'sequential'
+      NUM_CLASSES: sequential
+      # USE_CHECKPOINT DESCRIPTION: Use gradient checkpointing to reduce memory usage. TYPE: bool default: False
+      USE_CHECKPOINT: False
+      # NUM_HEADS DESCRIPTION: The number of attention heads in each attention layer. TYPE: int default: -1
+      NUM_HEADS: -1
+      # NUM_HEADS_CHANNELS DESCRIPTION: If specified, ignore num_heads and instead use a fixed channel width per attention head. TYPE: int default: 64
+      NUM_HEADS_CHANNELS: 64
+      # USE_SCALE_SHIFT_NORM DESCRIPTION: The scale and shift for the outnorm of RESBLOCK, use a FiLM-like conditioning mechanism. TYPE: bool default: False
+      USE_SCALE_SHIFT_NORM: False
+      # RESBLOCK_UPDOWN DESCRIPTION: Use residual blocks for up/downsampling, if False use Conv. TYPE: bool default: False
+      RESBLOCK_UPDOWN: False
+      # USE_NEW_ATTENTION_ORDER DESCRIPTION: Whether use new attention(qkv before split heads or not) or not. TYPE: bool default: True
+      USE_NEW_ATTENTION_ORDER: True
+      # USE_SPATIAL_TRANSFORMER DESCRIPTION: Custom transformer which support the context, if context_dim is not None, the parameter must set True TYPE: bool default: True
+      USE_SPATIAL_TRANSFORMER: True
+      # TRANSFORMER_DEPTH DESCRIPTION: Custom transformer's depth, valid when USE_SPATIAL_TRANSFORMER is True. TYPE: list default: [1, 2, 10]
+      TRANSFORMER_DEPTH: [1, 2, 10]
+      # TRANSFORMER_DEPTH_MIDDLE DESCRIPTION: Custom transformer's depth of middle block, If set None, use TRANSFORMER_DEPTH last value. TYPE: NoneType default: None
+      # TRANSFORMER_DEPTH_MIDDLE: None
+      # CONTEXT_DIM DESCRIPTION: Custom context info, if set, USE_SPATIAL_TRANSFORMER also set True. TYPE: int default: 2048
+      CONTEXT_DIM: 2048
+      # DISABLE_SELF_ATTENTIONS DESCRIPTION: Whether disable the self-attentions on some level, should be a list, [False, True, ...] TYPE: NoneType default: None
+      # DISABLE_SELF_ATTENTIONS: None
+      # NUM_ATTENTION_BLOCKS DESCRIPTION: The number of attention blocks for attention layer. TYPE: NoneType default: None
+      # NUM_ATTENTION_BLOCKS: None
+      # DISABLE_MIDDLE_SELF_ATTN DESCRIPTION: Whether disable the self-attentions in middle blocks. TYPE: bool default: False
+      DISABLE_MIDDLE_SELF_ATTN: False
+      # USE_LINEAR_IN_TRANSFORMER DESCRIPTION: Custom transformer's parameter, valid when USE_SPATIAL_TRANSFORMER is True. TYPE: bool default: True
+      USE_LINEAR_IN_TRANSFORMER: True
+      # ADM_IN_CHANNELS DESCRIPTION: Used when num_classes == 'sequential' or 'timestep'. TYPE: int default: 2816
+      ADM_IN_CHANNELS: 2816
+      # USE_SENTENCE_EMB DESCRIPTION: Used sentence emb or not, default False. TYPE: bool default: False
+      USE_SENTENCE_EMB: False
+      # USE_WORD_MAPPING DESCRIPTION: Used word mapping or not, default False. TYPE: bool default: False
+      USE_WORD_MAPPING: False
+    # DIFFUSION_MODEL_EMA DESCRIPTION:  TYPE:  default: ''
+    DIFFUSION_MODEL_EMA:
+      # NAME DESCRIPTION:  TYPE:  default: 'DiffusionUNetXL'
+      NAME: DiffusionUNetXL
+      # IN_CHANNELS DESCRIPTION: Unet channels for input, considering the input image's channels. TYPE: int default: 4
+      IN_CHANNELS: 4
+      # OUT_CHANNELS DESCRIPTION: Unet channels for output, considering the input image's channels. TYPE: int default: 4
+      OUT_CHANNELS: 4
+      # NUM_RES_BLOCKS DESCRIPTION: The blocks's number of res. TYPE: int default: 2
+      NUM_RES_BLOCKS: 2
+      # MODEL_CHANNELS DESCRIPTION: base channel count for the model. TYPE: int default: 320
+      MODEL_CHANNELS: 320
+      # ATTENTION_RESOLUTIONS DESCRIPTION: A collection of downsample rates at which attention will take place. May be a set, list, or tuple. For example, if this contains 4, then at 4x downsampling, attentio will be used. TYPE: list default: [4, 2]
+      ATTENTION_RESOLUTIONS: [4, 2]
+      # DROPOUT DESCRIPTION: The dropout rate. TYPE: int default: 0
+      DROPOUT: 0
+      # CHANNEL_MULT DESCRIPTION: channel multiplier for each level of the UNet. TYPE: list default: [1, 2, 4]
+      CHANNEL_MULT: [1, 2, 4]
+      # CONV_RESAMPLE DESCRIPTION: Use conv to resample when downsample. TYPE: bool default: True
+      CONV_RESAMPLE: True
+      # DIMS DESCRIPTION: The Conv dims which 2 represent Conv2D. TYPE: int default: 2
+      DIMS: 2
+      # NUM_CLASSES DESCRIPTION: The class num for class guided setting, also can be set as continuous. TYPE: str default: 'sequential'
+      NUM_CLASSES: sequential
+      # USE_CHECKPOINT DESCRIPTION: Use gradient checkpointing to reduce memory usage. TYPE: bool default: False
+      USE_CHECKPOINT: False
+      # NUM_HEADS DESCRIPTION: The number of attention heads in each attention layer. TYPE: int default: -1
+      NUM_HEADS: -1
+      # NUM_HEADS_CHANNELS DESCRIPTION: If specified, ignore num_heads and instead use a fixed channel width per attention head. TYPE: int default: 64
+      NUM_HEADS_CHANNELS: 64
+      # USE_SCALE_SHIFT_NORM DESCRIPTION: The scale and shift for the outnorm of RESBLOCK, use a FiLM-like conditioning mechanism. TYPE: bool default: False
+      USE_SCALE_SHIFT_NORM: False
+      # RESBLOCK_UPDOWN DESCRIPTION: Use residual blocks for up/downsampling, if False use Conv. TYPE: bool default: False
+      RESBLOCK_UPDOWN: False
+      # USE_NEW_ATTENTION_ORDER DESCRIPTION: Whether use new attention(qkv before split heads or not) or not. TYPE: bool default: True
+      USE_NEW_ATTENTION_ORDER: True
+      # USE_SPATIAL_TRANSFORMER DESCRIPTION: Custom transformer which support the context, if context_dim is not None, the parameter must set True TYPE: bool default: True
+      USE_SPATIAL_TRANSFORMER: True
+      # TRANSFORMER_DEPTH DESCRIPTION: Custom transformer's depth, valid when USE_SPATIAL_TRANSFORMER is True. TYPE: list default: [1, 2, 10]
+      TRANSFORMER_DEPTH: [1, 2, 10]
+      # TRANSFORMER_DEPTH_MIDDLE DESCRIPTION: Custom transformer's depth of middle block, If set None, use TRANSFORMER_DEPTH last value. TYPE: NoneType default: None
+      # TRANSFORMER_DEPTH_MIDDLE: None
+      # CONTEXT_DIM DESCRIPTION: Custom context info, if set, USE_SPATIAL_TRANSFORMER also set True. TYPE: int default: 2048
+      CONTEXT_DIM: 2048
+      # DISABLE_SELF_ATTENTIONS DESCRIPTION: Whether disable the self-attentions on some level, should be a list, [False, True, ...] TYPE: NoneType default: None
+      # DISABLE_SELF_ATTENTIONS: None
+      # NUM_ATTENTION_BLOCKS DESCRIPTION: The number of attention blocks for attention layer. TYPE: NoneType default: None
+      # NUM_ATTENTION_BLOCKS: None
+      # DISABLE_MIDDLE_SELF_ATTN DESCRIPTION: Whether disable the self-attentions in middle blocks. TYPE: bool default: False
+      DISABLE_MIDDLE_SELF_ATTN: False
+      # USE_LINEAR_IN_TRANSFORMER DESCRIPTION: Custom transformer's parameter, valid when USE_SPATIAL_TRANSFORMER is True. TYPE: bool default: True
+      USE_LINEAR_IN_TRANSFORMER: True
+      # ADM_IN_CHANNELS DESCRIPTION: Used when num_classes == 'sequential' or 'timestep'. TYPE: int default: 2816
+      ADM_IN_CHANNELS: 2816
+      # USE_SENTENCE_EMB DESCRIPTION: Used sentence emb or not, default False. TYPE: bool default: False
+      USE_SENTENCE_EMB: False
+      # USE_WORD_MAPPING DESCRIPTION: Used word mapping or not, default False. TYPE: bool default: False
+      USE_WORD_MAPPING: False
+    # FIRST_STAGE_MODEL DESCRIPTION:  TYPE:  default: ''
+    FIRST_STAGE_MODEL:
+      NAME: AutoencoderKL
+      EMBED_DIM: 4
+      PRETRAINED_MODEL:
+      IGNORE_KEYS: [ ]
+      BATCH_SIZE: 1
+      #
+      ENCODER:
+        NAME: Encoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DOUBLE_Z: True
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+      #
+      DECODER:
+        NAME: Decoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+        GIVE_PRE_END: False
+        TANH_OUT: False
+    # COND_STAGE_MODEL DESCRIPTION:  TYPE:  default: ''
+    COND_STAGE_MODEL:
+      # NAME DESCRIPTION:  TYPE:  default: 'GeneralConditioner'
+      NAME: GeneralConditioner
+      PRETRAINED_MODEL:
+      USE_GRAD: False
+      # EMBEDDERS DESCRIPTION:  TYPE:  default: ''
+      EMBEDDERS:
+        -
+          # NAME DESCRIPTION:  TYPE:  default: 'FrozenCLIPEmbedder'
+          NAME: FrozenCLIPEmbedder
+          PRETRAINED_MODEL: ms://AI-ModelScope/clip-vit-large-patch14
+          TOKENIZER_PATH: ms://AI-ModelScope/clip-vit-large-patch14
+          # MAX_LENGTH DESCRIPTION:  TYPE: int default: 77
+          MAX_LENGTH: 77
+          # FREEZE DESCRIPTION:  TYPE: bool default: True
+          FREEZE: True
+          # LAYER DESCRIPTION:  TYPE: str default: 'last'
+          LAYER: hidden
+          # LAYER_IDX DESCRIPTION:  TYPE: NoneType default: None
+          LAYER_IDX: 11
+          # USE_FINAL_LAYER_NORM DESCRIPTION:  TYPE: bool default: False
+          USE_FINAL_LAYER_NORM: False
+          UCG_RATE: 0.0
+          INPUT_KEYS: ["prompt"]
+          LEGACY_UCG_VALUE:
+        -
+          # NAME DESCRIPTION:  TYPE:  default: 'FrozenOpenCLIPEmbedder2'
+          NAME: FrozenOpenCLIPEmbedder2
+          # ARCH DESCRIPTION:  TYPE: str default: 'ViT-H-14'
+          ARCH: ViT-bigG-14
+          # MAX_LENGTH DESCRIPTION:  TYPE: int default: 77
+          MAX_LENGTH: 77
+          # FREEZE DESCRIPTION:  TYPE: bool default: True
+          FREEZE: True
+          # ALWAYS_RETURN_POOLED DESCRIPTION: Whether always return pooled results or not ,default False. TYPE: bool default: False
+          ALWAYS_RETURN_POOLED: True
+          # LEGACY DESCRIPTION: Whether use legacy returnd feature or not ,default True. TYPE: bool default: True
+          LEGACY: False
+          # LAYER DESCRIPTION:  TYPE: str default: 'last'
+          LAYER: penultimate
+          UCG_RATE: 0.0
+          INPUT_KEYS: ["prompt"]
+          LEGACY_UCG_VALUE:
+        -
+          # NAME DESCRIPTION:  TYPE:  default: 'ConcatTimestepEmbedderND'
+          NAME: ConcatTimestepEmbedderND
+          # OUT_DIM DESCRIPTION: Output dim TYPE: int default: 256
+          OUT_DIM: 256
+          UCG_RATE: 0.0
+          INPUT_KEYS: ["original_size_as_tuple"]
+          LEGACY_UCG_VALUE:
+        -
+          # NAME DESCRIPTION:  TYPE:  default: 'ConcatTimestepEmbedderND'
+          NAME: ConcatTimestepEmbedderND
+          # OUT_DIM DESCRIPTION: Output dim TYPE: int default: 256
+          OUT_DIM: 256
+          UCG_RATE: 0.0
+          INPUT_KEYS: ["crop_coords_top_left"]
+          LEGACY_UCG_VALUE:
+        -
+          # NAME DESCRIPTION:  TYPE:  default: 'ConcatTimestepEmbedderND'
+          NAME: ConcatTimestepEmbedderND
+          # OUT_DIM DESCRIPTION: Output dim TYPE: int default: 256
+          OUT_DIM: 256
+          UCG_RATE: 0.0
+          INPUT_KEYS: ["target_size_as_tuple"]
+          LEGACY_UCG_VALUE:
+      # APPLY REFINER
+      REFINER_MODEL:
+       # NAME DESCRIPTION:  TYPE:  default: 'DiffusionUNetXL'
+       NAME: DiffusionUNetXL
+       # PRETRAINED_MODEL DESCRIPTION: Whole model's pretrained model path. TYPE: NoneType default: None
+       PRETRAINED_MODEL:
+       # IN_CHANNELS DESCRIPTION: Unet channels for input, considering the input image's channels. TYPE: int default: 4
+       IN_CHANNELS: 4
+       # OUT_CHANNELS DESCRIPTION: Unet channels for output, considering the input image's channels. TYPE: int default: 4
+       OUT_CHANNELS: 4
+       # NUM_RES_BLOCKS DESCRIPTION: The blocks's number of res. TYPE: int default: 2
+       NUM_RES_BLOCKS: 2
+       # MODEL_CHANNELS DESCRIPTION: base channel count for the model. TYPE: int default: 320
+       MODEL_CHANNELS: 384
+       # ATTENTION_RESOLUTIONS DESCRIPTION: A collection of downsample rates at which attention will take place. May be a set, list, or tuple. For example, if this contains 4, then at 4x downsampling, attentio will be used. TYPE: list default: [4, 2]
+       ATTENTION_RESOLUTIONS: [ 4, 2 ]
+       # DROPOUT DESCRIPTION: The dropout rate. TYPE: int default: 0
+       DROPOUT: 0
+       # CHANNEL_MULT DESCRIPTION: channel multiplier for each level of the UNet. TYPE: list default: [1, 2, 4]
+       CHANNEL_MULT: [ 1, 2, 4, 4 ]
+       # CONV_RESAMPLE DESCRIPTION: Use conv to resample when downsample. TYPE: bool default: True
+       CONV_RESAMPLE: True
+       # DIMS DESCRIPTION: The Conv dims which 2 represent Conv2D. TYPE: int default: 2
+       DIMS: 2
+       # NUM_CLASSES DESCRIPTION: The class num for class guided setting, also can be set as continuous. TYPE: str default: 'sequential'
+       NUM_CLASSES: sequential
+       # USE_CHECKPOINT DESCRIPTION: Use gradient checkpointing to reduce memory usage. TYPE: bool default: False
+       USE_CHECKPOINT: False
+       # NUM_HEADS DESCRIPTION: The number of attention heads in each attention layer. TYPE: int default: -1
+       NUM_HEADS: -1
+       # NUM_HEADS_CHANNELS DESCRIPTION: If specified, ignore num_heads and instead use a fixed channel width per attention head. TYPE: int default: 64
+       NUM_HEADS_CHANNELS: 64
+       # USE_SCALE_SHIFT_NORM DESCRIPTION: The scale and shift for the outnorm of RESBLOCK, use a FiLM-like conditioning mechanism. TYPE: bool default: False
+       USE_SCALE_SHIFT_NORM: False
+       # RESBLOCK_UPDOWN DESCRIPTION: Use residual blocks for up/downsampling, if False use Conv. TYPE: bool default: False
+       RESBLOCK_UPDOWN: False
+       # USE_NEW_ATTENTION_ORDER DESCRIPTION: Whether use new attention(qkv before split heads or not) or not. TYPE: bool default: True
+       USE_NEW_ATTENTION_ORDER: True
+       # USE_SPATIAL_TRANSFORMER DESCRIPTION: Custom transformer which support the context, if context_dim is not None, the parameter must set True TYPE: bool default: True
+       USE_SPATIAL_TRANSFORMER: True
+       # TRANSFORMER_DEPTH DESCRIPTION: Custom transformer's depth, valid when USE_SPATIAL_TRANSFORMER is True. TYPE: list default: [1, 2, 10]
+       TRANSFORMER_DEPTH: 4
+       # TRANSFORMER_DEPTH_MIDDLE DESCRIPTION: Custom transformer's depth of middle block, If set None, use TRANSFORMER_DEPTH last value. TYPE: NoneType default: None
+       # TRANSFORMER_DEPTH_MIDDLE: None
+       # CONTEXT_DIM DESCRIPTION: Custom context info, if set, USE_SPATIAL_TRANSFORMER also set True. TYPE: int default: 2048
+       CONTEXT_DIM: [ 1280, 1280, 1280, 1280 ]
+       # DISABLE_SELF_ATTENTIONS DESCRIPTION: Whether disable the self-attentions on some level, should be a list, [False, True, ...] TYPE: NoneType default: None
+       # DISABLE_SELF_ATTENTIONS: None
+       # NUM_ATTENTION_BLOCKS DESCRIPTION: The number of attention blocks for attention layer. TYPE: NoneType default: None
+       # NUM_ATTENTION_BLOCKS: None
+       # DISABLE_MIDDLE_SELF_ATTN DESCRIPTION: Whether disable the self-attentions in middle blocks. TYPE: bool default: False
+       DISABLE_MIDDLE_SELF_ATTN: False
+       # USE_LINEAR_IN_TRANSFORMER DESCRIPTION: Custom transformer's parameter, valid when USE_SPATIAL_TRANSFORMER is True. TYPE: bool default: True
+       USE_LINEAR_IN_TRANSFORMER: True
+       # ADM_IN_CHANNELS DESCRIPTION: Used when num_classes == 'sequential' or 'timestep'. TYPE: int default: 2816
+       ADM_IN_CHANNELS: 2560
+       # USE_SENTENCE_EMB DESCRIPTION: Used sentence emb or not, default False. TYPE: bool default: False
+       USE_SENTENCE_EMB: False
+       # USE_WORD_MAPPING DESCRIPTION: Used word mapping or not, default False. TYPE: bool default: False
+       USE_WORD_MAPPING: False
+      # COND_STAGE_MODEL DESCRIPTION:  TYPE:  default: ''
+      REFINER_COND_MODEL:
+       # NAME DESCRIPTION:  TYPE:  default: 'GeneralConditioner'
+       NAME: GeneralConditioner
+       PRETRAINED_MODEL:
+       # EMBEDDERS DESCRIPTION:  TYPE:  default: ''
+       EMBEDDERS:
+         -
+           # NAME DESCRIPTION:  TYPE:  default: 'FrozenOpenCLIPEmbedder2'
+           NAME: FrozenOpenCLIPEmbedder2
+           # ARCH DESCRIPTION:  TYPE: str default: 'ViT-H-14'
+           ARCH: ViT-bigG-14
+           # MAX_LENGTH DESCRIPTION:  TYPE: int default: 77
+           MAX_LENGTH: 77
+           # FREEZE DESCRIPTION:  TYPE: bool default: True
+           FREEZE: True
+           # ALWAYS_RETURN_POOLED DESCRIPTION: Whether always return pooled results or not ,default False. TYPE: bool default: False
+           ALWAYS_RETURN_POOLED: True
+           # LEGACY DESCRIPTION: Whether use legacy returnd feature or not ,default True. TYPE: bool default: True
+           LEGACY: False
+           # LAYER DESCRIPTION:  TYPE: str default: 'last'
+           LAYER: penultimate
+           IS_TRAINABLE: False
+           UCG_RATE: 0.0
+           INPUT_KEYS: ["prompt"]
+           LEGACY_UCG_VALUE:
+         -
+           # NAME DESCRIPTION:  TYPE:  default: 'ConcatTimestepEmbedderND'
+           NAME: ConcatTimestepEmbedderND
+           # OUT_DIM DESCRIPTION: Output dim TYPE: int default: 256
+           OUT_DIM: 256
+           IS_TRAINABLE: False
+           UCG_RATE: 0.0
+           INPUT_KEYS: ["original_size_as_tuple"]
+           LEGACY_UCG_VALUE:
+         -
+           # NAME DESCRIPTION:  TYPE:  default: 'ConcatTimestepEmbedderND'
+           NAME: ConcatTimestepEmbedderND
+           # OUT_DIM DESCRIPTION: Output dim TYPE: int default: 256
+           OUT_DIM: 256
+           IS_TRAINABLE: False
+           UCG_RATE: 0.0
+           INPUT_KEYS: ["crop_coords_top_left"]
+           LEGACY_UCG_VALUE:
+         -
+           # NAME DESCRIPTION:  TYPE:  default: 'ConcatTimestepEmbedderND'
+           NAME: ConcatTimestepEmbedderND
+           # OUT_DIM DESCRIPTION: Output dim TYPE: int default: 256
+           OUT_DIM: 256
+           IS_TRAINABLE: False
+           UCG_RATE: 0.0
+           INPUT_KEYS: ["aesthetic_score"]
+           LEGACY_UCG_VALUE:
+
+  SAMPLE_ARGS:
+    SAMPLER: ddim
+    SAMPLE_STEPS: 50
+    SEED: 2023
+    GUIDE_SCALE: 5.0
+    GUIDE_RESCALE:
+    DISCRETIZATION: linspace
+    IMAGE_SIZE: [ 1024, 1024]
+    RUN_TRAIN_N: False
+  # OPTIMIZER DESCRIPTION:  TYPE:  default: ''
+  OPTIMIZER:
+    # NAME DESCRIPTION:  TYPE:  default: ''
+    NAME: AdamW
+    LEARNING_RATE: 0.0064
+    EPS: 1e-8
+    AMSGRAD: False
+  #
+  TRAIN_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: train
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_DATASET_SPLIT: train
+    MS_REMAP_KEYS: { 'Image:FILE': 'Target:FILE' }
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    SAMPLER:
+      NAME: LoopSampler
+      #
+    TRANSFORMS:
+      - NAME: LoadImageFromFile
+        RGB_ORDER: RGB
+        BACKEND: pillow
+      - NAME: FlexibleResize
+        INTERPOLATION: bicubic
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: FlexibleCropXL
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: Normalize
+        MEAN: [ 0.5,  0.5,  0.5 ]
+        STD: [ 0.5,  0.5,  0.5 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: torchvision
+      - NAME: Select
+        KEYS: [ 'img', 'prompt', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
+        META_KEYS: ['data_key', 'img_path']
+      - NAME: Rename
+        INPUT_KEY: [ 'img', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left']
+        OUTPUT_KEY: [ 'image', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
+  #
+  TRAIN_HOOKS:
+    - NAME: BackwardHook
+      # GRADIENT_CLIP: 1.0
+      PRIORITY: 0
+    - NAME: LogHook
+      LOG_INTERVAL: 50
+      SHOW_GPU_MEM: True
+    -
+      NAME: CheckpointHook
+      SAVE_LAST: True
+      INTERVAL: 10000
+      PRIORITY: 200

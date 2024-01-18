@@ -2,6 +2,7 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import numbers
+import os
 import sys
 from collections.abc import Iterable
 
@@ -235,6 +236,7 @@ class Text2ImageDataset(BaseDataset):
         delimiter = cfg.get('DELIMITER', ',')
         fields = cfg.get('FIELDS', ['row_key', 'prompt'])
         prompt_prefix = cfg.get('PROMPT_PREFIX', '')
+        path_prefix = cfg.get('PATH_PREFIX', '')
         use_num = cfg.get('USE_NUM', -1)
 
         image_size = cfg.get('IMAGE_SIZE', 1024)
@@ -257,11 +259,14 @@ class Text2ImageDataset(BaseDataset):
                 if key in ['prompt', 'caption', 'text']:
                     item['ori_prompt'] = value
                     item['prompt'] = prompt_prefix + value
+                elif key in ['oss_key', 'path', 'img_path', 'target_img_path']:
+                    item['meta']['img_path'] = os.path.join(path_prefix, value)
+                elif key in ['width', 'height']:
+                    item['meta'][key] = int(value)
                 elif key != 'meta':
                     item[key] = value
                 else:
                     continue
-
             self.items.append(item)
         if use_num > 0:
             self.items = self.items[:use_num]

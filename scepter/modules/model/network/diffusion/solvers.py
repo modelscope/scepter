@@ -54,7 +54,8 @@ def sample_euler(noise,
                  s_tmax=float('inf'),
                  s_noise=1.,
                  seed=None,
-                 show_progress=True):
+                 show_progress=True,
+                 **kwargs):
     """
     Implements Algorithm 2 (Euler steps) from Karras et al. (2022).
     """
@@ -87,7 +88,8 @@ def sample_euler_ancestral(noise,
                            eta=1.,
                            s_noise=1.,
                            seed=None,
-                           show_progress=True):
+                           show_progress=True,
+                           **kwargs):
     """
     Ancestral sampling with Euler method steps.
     """
@@ -120,7 +122,8 @@ def sample_heun(noise,
                 s_tmax=float('inf'),
                 s_noise=1.,
                 seed=None,
-                show_progress=True):
+                show_progress=True,
+                **kwargs):
     """
     Implements Algorithm 2 (Heun steps) from Karras et al. (2022).
     """
@@ -165,7 +168,8 @@ def sample_dpm_2(noise,
                  s_tmax=float('inf'),
                  s_noise=1.,
                  seed=None,
-                 show_progress=True):
+                 show_progress=True,
+                 **kwargs):
     """
     A sampler inspired by DPM-Solver-2 and Algorithm 2 from Karras et al. (2022).
     """
@@ -211,7 +215,8 @@ def sample_dpm_2_ancestral(noise,
                            eta=1.,
                            s_noise=1.,
                            seed=None,
-                           show_progress=True):
+                           show_progress=True,
+                           **kwargs):
     """
     Ancestral sampling with DPM-Solver second-order steps.
     """
@@ -253,7 +258,8 @@ def sample_dpmpp_2s_ancestral(noise,
                               eta=1.,
                               s_noise=1.,
                               seed=None,
-                              show_progress=True):
+                              show_progress=True,
+                              **kwargs):
     """
     Ancestral sampling with DPM-Solver++ (2S) second-order steps.
     """
@@ -372,7 +378,8 @@ def sample_dpmpp_sde(noise,
                      s_noise=1.,
                      r=1 / 2,
                      seed=None,
-                     show_progress=True):
+                     show_progress=True,
+                     **kwargs):
     """
     DPM-Solver++ (stochastic).
     """
@@ -429,7 +436,12 @@ def sample_dpmpp_sde(noise,
 
 
 @torch.no_grad()
-def sample_dpmpp_2m(noise, model, sigmas, seed=None, show_progress=True):
+def sample_dpmpp_2m(noise,
+                    model,
+                    sigmas,
+                    seed=None,
+                    show_progress=True,
+                    **kwargs):
     """
     DPM-Solver++ (2M).
     """
@@ -475,7 +487,8 @@ def sample_dpmpp_2m_sde(noise,
                         s_noise=1.,
                         solver_type='midpoint',
                         seed=None,
-                        show_progress=True):
+                        show_progress=True,
+                        **kwargs):
     """
     DPM-Solver++ (2M) SDE.
     """
@@ -527,7 +540,13 @@ def sample_dpmpp_2m_sde(noise,
 
 # -------------------- variation preserving (VP) solver --------------------#
 @torch.no_grad()
-def sample_ddim(noise, model, sigmas, eta=0., seed=None, show_progress=True):
+def sample_ddim(noise,
+                model,
+                sigmas,
+                eta=0.,
+                seed=None,
+                show_progress=True,
+                **kwargs):
     """
     DDIM solver steps.
     """
@@ -556,7 +575,8 @@ def sample_img2img_euler(noise,
                          s_tmax=float('inf'),
                          s_noise=1.,
                          seed=None,
-                         show_progress=True):
+                         show_progress=True,
+                         **kwargs):
     """
     Implements Algorithm 2 (Euler steps) from Karras et al. (2022).
     """
@@ -588,7 +608,8 @@ def sample_img2img_euler_ancestral(noise,
                                    eta=1.,
                                    s_noise=1.,
                                    seed=None,
-                                   show_progress=True):
+                                   show_progress=True,
+                                   **kwargs):
     """
     Ancestral sampling with Euler method steps.
     """

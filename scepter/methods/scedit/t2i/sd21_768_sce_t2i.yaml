@@ -1,0 +1,224 @@
+ENV:
+  BACKEND: nccl
+SOLVER:
+  NAME: LatentDiffusionSolver
+  RESUME_FROM:
+  LOAD_MODEL_ONLY: True
+  USE_FSDP: False
+  SHARDING_STRATEGY:
+  USE_AMP: True
+  DTYPE: float16
+  CHANNELS_LAST: True
+  MAX_STEPS: 2000
+  MAX_EPOCHS: -1
+  NUM_FOLDS: 1
+  ACCU_STEP: 1
+  EVAL_INTERVAL: 100
+  #
+  WORK_DIR: ./cache/save_data/sd21_768_sce_t2i
+  LOG_FILE: std_log.txt
+  #
+  FILE_SYSTEM:
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "./cache/data"
+  #
+  FREEZE:
+    FREEZE_PART: [ "first_stage_model", "cond_stage_model", "model" ]
+    TRAIN_PART: [ "lsc_identity" ]
+  #
+  MODEL:
+    NAME: LatentDiffusionSCETuning
+    PARAMETERIZATION: v
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-2-1@v2-1_768-ema-pruned.safetensors
+    IGNORE_KEYS: [ ]
+    SCALE_FACTOR: 0.18215
+    SIZE_FACTOR: 8
+    DEFAULT_N_PROMPT:
+    SCHEDULE_ARGS:
+       "NAME": "scaled_linear"
+       "BETA_MIN": 0.00085
+       "BETA_MAX": 0.012
+    USE_EMA: False
+    #
+    DIFFUSION_MODEL:
+      NAME: DiffusionUNet
+      IN_CHANNELS: 4
+      OUT_CHANNELS: 4
+      MODEL_CHANNELS: 320
+      NUM_HEADS_CHANNELS: 64
+      NUM_RES_BLOCKS: 2
+      ATTENTION_RESOLUTIONS: [ 4, 2, 1 ]
+      CHANNEL_MULT: [ 1, 2, 4, 4 ]
+      CONV_RESAMPLE: True
+      DIMS: 2
+      USE_CHECKPOINT: False
+      USE_SCALE_SHIFT_NORM: False
+      RESBLOCK_UPDOWN: False
+      USE_SPATIAL_TRANSFORMER: True
+      TRANSFORMER_DEPTH: 1
+      CONTEXT_DIM: 1024
+      DISABLE_MIDDLE_SELF_ATTN: False
+      USE_LINEAR_IN_TRANSFORMER: True
+      PRETRAINED_MODEL:
+    #
+    FIRST_STAGE_MODEL:
+      NAME: AutoencoderKL
+      EMBED_DIM: 4
+      PRETRAINED_MODEL:
+      IGNORE_KEYS: [ ]
+      BATCH_SIZE: 4
+      #
+      ENCODER:
+        NAME: Encoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DOUBLE_Z: True
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+      #
+      DECODER:
+        NAME: Decoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+        GIVE_PRE_END: False
+        TANH_OUT: False
+    #
+    TOKENIZER:
+      NAME: OpenClipTokenizer
+      LENGTH: 77
+    #
+    COND_STAGE_MODEL:
+      NAME: FrozenOpenCLIPEmbedder
+      ARCH: ViT-H-14
+      PRETRAINED_MODEL:
+      LAYER: penultimate
+    #
+    LOSS:
+      NAME: ReconstructLoss
+      LOSS_TYPE: l2
+    #
+    TUNER_MODEL:
+      SC_TUNER_CFG:
+          NAME: SCTuner
+          TUNER_NAME: SCEAdapter
+          DOWN_RATIO: 1.0
+  #
+  SAMPLE_ARGS:
+    SAMPLER: ddim
+    SAMPLE_STEPS: 50
+    SEED: 2023
+    GUIDE_SCALE: 7.5
+    GUIDE_RESCALE: 0.5
+    DISCRETIZATION: trailing
+    IMAGE_SIZE: [768, 768]
+    RUN_TRAIN_N: False
+  #
+  OPTIMIZER:
+    NAME: AdamW
+    LEARNING_RATE: 0.064
+    BETAS: [ 0.9, 0.999 ]
+    EPS: 1e-8
+    WEIGHT_DECAY: 1e-2
+    AMSGRAD: False
+  #
+  TRAIN_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: train
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_DATASET_SPLIT: train_short
+    MS_REMAP_KEYS: { 'Image:FILE': 'Target:FILE' }
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    SAMPLER:
+      NAME: LoopSampler
+    TRANSFORMS:
+      - NAME: LoadImageFromFile
+        RGB_ORDER: RGB
+        BACKEND: pillow
+      - NAME: Resize
+        SIZE: 768
+        INTERPOLATION: bilinear
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: CenterCrop
+        SIZE: 768
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: Normalize
+        MEAN: [ 0.5,  0.5,  0.5 ]
+        STD: [ 0.5,  0.5,  0.5 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'image' ]
+        BACKEND: torchvision
+      - NAME: Select
+        KEYS: [ 'image', 'prompt' ]
+        META_KEYS: [ 'data_key' ]
+  #
+  EVAL_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: eval
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_REMAP_KEYS: { 'Image': 'Target:FILE' }
+    MS_DATASET_SPLIT: test_short
+    OUTPUT_SIZE: [768, 768]
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 4
+    NUM_WORKERS: 4
+    FILE_SYSTEM:
+      NAME: "ModelscopeFs"
+      TEMP_DIR: "./cache/data"
+    #
+    TRANSFORMS:
+      -
+        NAME: Select
+        KEYS: ['prompt']
+        META_KEYS: ['image_size']
+  #
+  TRAIN_HOOKS:
+    -
+      NAME: BackwardHook
+      PRIORITY: 0
+    -
+      NAME: LogHook
+      LOG_INTERVAL: 50
+    -
+      NAME: CheckpointHook
+      INTERVAL: 1000
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+  #
+  EVAL_HOOKS:
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100

@@ -15,14 +15,14 @@ SOLVER:
   ACCU_STEP: 1
   EVAL_INTERVAL: 100
   #
-  WORK_DIR: ./cache/sd21_768_lora
+  WORK_DIR: ./cache/save_data/sd21_768_lora
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:
     NAME: "ModelscopeFs"
     TEMP_DIR: "./cache/data"
   #
-  TUNER: 
+  TUNER:
     -
       NAME: SwiftLoRA
       R: 64

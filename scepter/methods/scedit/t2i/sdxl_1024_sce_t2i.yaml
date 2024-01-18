@@ -15,23 +15,19 @@ SOLVER:
   ACCU_STEP: 1
   EVAL_INTERVAL: 100
   #
-  WORK_DIR: ./cache/t2i_sdxl_1024_sce
+  WORK_DIR: ./cache/save_data/sdxl_1024_sce_t2i
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:
     NAME: "ModelscopeFs"
     TEMP_DIR: "./cache/data"
-  # 
-  TUNER: 
-    -
-      NAME: SwiftSCETuning
-      DIMS: [1280, 1280, 640, 640, 640, 320, 320, 320, 320]
-      TARGET_MODULES: model.lsc_identity\.\d+$
-      DOWN_RATIO: 1.0
-      TUNER_MODE: identity
+  #
+  FREEZE:
+    FREEZE_PART: [ "first_stage_model", "cond_stage_model", "model" ]
+    TRAIN_PART: [ "lsc_identity" ]
   #
   MODEL:
-    NAME: LatentDiffusionXL
+    NAME: LatentDiffusionXLSCETuning
     PARAMETERIZATION: eps
     TIMESTEPS: 1000
     MIN_SNR_GAMMA:
@@ -128,7 +124,7 @@ SOLVER:
           UCG_RATE: 0.0
           INPUT_KEYS: [ "prompt" ]
           LEGACY_UCG_VALUE:
-        - 
+        -
           NAME: FrozenOpenCLIPEmbedder2
           ARCH: ViT-bigG-14
           PRETRAINED_MODEL:
@@ -141,21 +137,21 @@ SOLVER:
           UCG_RATE: 0.0
           INPUT_KEYS: [ "prompt" ]
           LEGACY_UCG_VALUE:
-        - 
+        -
           NAME: ConcatTimestepEmbedderND
           OUT_DIM: 256
           IS_TRAINABLE: False
           UCG_RATE: 0.0
           INPUT_KEYS: [ "original_size_as_tuple" ]
           LEGACY_UCG_VALUE:
-        - 
+        -
           NAME: ConcatTimestepEmbedderND
           OUT_DIM: 256
           IS_TRAINABLE: False
           UCG_RATE: 0.0
           INPUT_KEYS: [ "crop_coords_top_left" ]
           LEGACY_UCG_VALUE:
-        - 
+        -
           NAME: ConcatTimestepEmbedderND
           OUT_DIM: 256
           IS_TRAINABLE: False
@@ -207,21 +203,21 @@ SOLVER:
             UCG_RATE: 0.0
             INPUT_KEYS: [ "prompt" ]
             LEGACY_UCG_VALUE:
-          - 
+          -
             NAME: ConcatTimestepEmbedderND
             OUT_DIM: 256
             IS_TRAINABLE: False
             UCG_RATE: 0.0
             INPUT_KEYS: [ "original_size_as_tuple" ]
             LEGACY_UCG_VALUE:
-          - 
+          -
             NAME: ConcatTimestepEmbedderND
             OUT_DIM: 256
             IS_TRAINABLE: False
             UCG_RATE: 0.0
             INPUT_KEYS: [ "crop_coords_top_left" ]
             LEGACY_UCG_VALUE:
-          - 
+          -
             NAME: ConcatTimestepEmbedderND
             OUT_DIM: 256
             IS_TRAINABLE: False
@@ -232,13 +228,19 @@ SOLVER:
     LOSS:
       NAME: ReconstructLoss
       LOSS_TYPE: l2
+    #
+    TUNER_MODEL:
+      SC_TUNER_CFG:
+          NAME: SCTuner
+          TUNER_NAME: SCEAdapter
+          DOWN_RATIO: 1.0
   #
   SAMPLE_ARGS:
     SAMPLER: ddim
     SAMPLE_STEPS: 50
     SEED: 2023
-    GUIDE_SCALE: 5.0
-    GUIDE_RESCALE:
+    GUIDE_SCALE: 7.5
+    GUIDE_RESCALE: 0.5
     DISCRETIZATION: trailing
     IMAGE_SIZE: [1024, 1024]
     RUN_TRAIN_N: False
@@ -294,8 +296,8 @@ SOLVER:
         KEYS: [ 'img', 'prompt', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
         META_KEYS: [ 'data_key', 'img_path' ]
       - NAME: Rename
-        IN_KEYS: [ 'img', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
-        OUT_KEYS: [ 'image', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
+        INPUT_KEY: [ 'img', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
+        OUTPUT_KEY: [ 'image', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
   #
   EVAL_DATA:
     NAME: ImageTextPairMSDataset
@@ -321,15 +323,20 @@ SOLVER:
         META_KEYS: [ 'image_size' ]
   #
   TRAIN_HOOKS:
-    - NAME: BackwardHook
+    -
+      NAME: BackwardHook
       PRIORITY: 0
-    - NAME: LogHook
+    -
+      NAME: LogHook
       LOG_INTERVAL: 50
-    - NAME: CheckpointHook
+    -
+      NAME: CheckpointHook
       INTERVAL: 1000
-    - NAME: ProbeDataHook
+    -
+      NAME: ProbeDataHook
       PROB_INTERVAL: 100
   #
   EVAL_HOOKS:
-    - NAME: ProbeDataHook
+    -
+      NAME: ProbeDataHook
       PROB_INTERVAL: 100

@@ -1,0 +1,117 @@
+WORK_DIR: "inference"
+DIFFUSION_PARAS:
+  SAMPLE:
+    VALUES: ['ddim', 'euler', 'euler_ancestral', 'heun', 'dpm2',
+             'dpm2_ancestral', 'dpmpp_2m', 'dpmpp_sde', 'dpmpp_2m_sde', 'dpmpp_2s_ancestral',
+             'dpm2_karras', 'dpm2_ancestral_karras', 'dpmpp_2s_ancestral_karras', 'dpmpp_2m_karras',
+             'dpmpp_sde_karras', 'dpmpp_2m_sde_karras']
+    DEFAULT: 'dpmpp_2s_ancestral'
+  NEGATIVE_PROMPT:
+    DEFAULT:
+  PROMPT_PREFIX:
+    DEFAULT:
+  SAMPLES:
+    MIN: 1
+    MAX: 4
+    DEFAULT: 1
+  SAMPLE_STEPS:
+    MIN: 1
+    MAX: 100
+    DEFAULT: 30
+  GUIDE_SCALE:
+    MIN: 0
+    MAX: 10
+    DEFAULT: 5.0
+  GUIDE_RESCALE:
+    MIN: 0
+    MAX: 1.0
+    DEFAULT: 0.5
+  DISCRETIZATION:
+    VALUES: ["trailing", "leading", "linspace"]
+    DEFAULT: "linspace"
+  REFINE_SAMPLERS:
+    VALUES: [ 'ddim', 'euler', 'euler_ancestral', 'heun', 'dpm2',
+              'dpm2_ancestral', 'dpmpp_2m', 'dpmpp_sde', 'dpmpp_2m_sde', 'dpmpp_2s_ancestral',
+              'dpm2_karras', 'dpm2_ancestral_karras', 'dpmpp_2s_ancestral_karras', 'dpmpp_2m_karras',
+              'dpmpp_sde_karras', 'dpmpp_2m_sde_karras' ]
+    DEFAULT: 'dpmpp_2s_ancestral'
+  REFINE_SAMPLE_STEPS:
+    MIN: 0
+    MAX: 100
+    DEFAULT: 30
+  REFINE_GUIDE_SCALE:
+    MIN: 0
+    MAX: 10
+    DEFAULT: 5.0
+  REFINE_GUIDE_RESCALE:
+    MIN: 0
+    MAX: 1.0
+    DEFAULT: 0.5
+  REFINE_DISCRETIZATION:
+    VALUES: [ "trailing", "leading", "linspace" ]
+    DEFAULT: "linspace"
+  AESTHETIC_SCORE:
+    MIN: 0.0
+    MAX: 10.0
+    DEFAULT: 6.0
+  NEGATIVE_AESTHETIC_SCORE:
+    MIN: 0.0
+    MAX: 10.0
+    DEFAULT: 2.5
+  REFINE_STRENGTH:
+    MIN: 0
+    MAX: 1.0
+    DEFAULT: 0.15
+  RESOLUTIONS:
+    VALUES: [[704, 1408], [704, 1344], [768, 1344],
+             [720, 1280],
+             [768, 1280], [832, 1216], [832, 1152],
+             [896, 1152], [896, 1088], [960, 1088],
+             [960, 1024], [1024, 1024], [1024, 960],
+             [1088, 960], [1088, 896], [1152, 896],
+             [1152, 832], [1216, 832], [1280, 720],
+             [1280, 768],
+             [1344, 768], [1344, 704], [1408, 704],
+             [1472, 704], [1536, 640], [1600, 640],
+             [1664, 576], [1728, 576]]
+    DEFAULT: [1024, 1024]
+EXTENSION_PARAS:
+  MANTRA_BOOK: scepter/methods/studio/extensions/mantra_book/mantra_book.yaml
+  OFFICIAL_TUNERS: scepter/methods/studio/extensions/tuners/official_tuners.yaml
+  OFFICIAL_CONTROLLERS: scepter/methods/studio/extensions/controllers/official_controllers.yaml
+CONTROLABLE_ANNOTATORS:
+  -
+    NAME: "CannyAnnotator"
+    LOW_THRESHOLD: 100
+    HIGH_THRESHOLD: 200
+    TYPE: Canny
+    IS_DEFAULT: True
+  -
+    NAME: "HedAnnotator"
+    PRETRAINED_MODEL: "ms://damo/scepter_scedit@annotator/ckpts/ControlNetHED.pth"
+    TYPE: Hed
+    IS_DEFAULT: False
+  -
+    NAME: "OpenposeAnnotator"
+    BODY_MODEL_PATH: "ms://damo/scepter_scedit@annotator/ckpts/body_pose_model.pth"
+    HAND_MODEL_PATH: "ms://damo/scepter_scedit@annotator/ckpts/hand_pose_model.pth"
+    TYPE: Openpose
+    IS_DEFAULT: False
+  -
+    NAME: "MidasDetector"
+    PRETRAINED_MODEL: "ms://damo/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt"
+    A: 6.2
+    BG_TH: 0.1
+    TYPE: Midas
+    IS_DEFAULT: False
+  -
+    NAME: "ColorAnnotator"
+    TYPE: Color
+    IS_DEFAULT: False
+  -
+    NAME: "MLSDdetector"
+    PRETRAINED_MODEL: "ms://damo/scepter_scedit@annotator/ckpts/mlsd_large_512_fp32.pth"
+    THR_V: 0.1
+    THR_D: 0.1
+    TYPE: MLSD
+    IS_DEFAULT: False

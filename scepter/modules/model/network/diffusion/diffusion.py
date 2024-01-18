@@ -159,7 +159,8 @@ class GaussianDiffusion(object):
              model,
              model_kwargs={},
              reduction='mean',
-             noise=None):
+             noise=None,
+             **kwargs):
         # hyperparams
         sigmas = _i(self.sigmas, t, x0)
         alphas = _i(self.alphas, t, x0)
@@ -168,7 +169,7 @@ class GaussianDiffusion(object):
         if noise is None:
             noise = torch.randn_like(x0)
         xt = self.diffuse(x0, t, noise)
-        out = model(xt, t=t, **model_kwargs)
+        out = model(xt, t=t, **model_kwargs, **kwargs)
 
         # mse loss
         target = {

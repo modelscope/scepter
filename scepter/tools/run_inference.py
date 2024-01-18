@@ -7,6 +7,8 @@ import cv2
 import numpy as np
 import torch
 import torch.cuda.amp as amp
+import torchvision.transforms as TT
+from PIL import Image
 
 from scepter.modules.solver.registry import SOLVERS
 from scepter.modules.utils.config import Config
@@ -41,7 +43,7 @@ def run_task(cfg):
             image_size = [int(h), int(w)]
         else:
             image_size = [int(image_size), int(image_size)]
-    
+
     batch_data = {}
     if solver.sample_args:
         batch_data.update(solver.sample_args.get_lowercase_dict())
@@ -56,7 +58,7 @@ def run_task(cfg):
         'guide_scale': guide_scale,
         'guide_rescale': guide_rescale,
     })
-    
+
     dtype = getattr(torch, cfg.SOLVER.DTYPE)
     with amp.autocast(enabled=True, dtype=dtype):
         batch_data = transfer_data_to_cuda(batch_data)
@@ -74,8 +76,98 @@ def run_task(cfg):
             cv2.imwrite(local_path, image)
 
 
+def run_task_control(cfg):
+    from scepter.modules.annotator.utils import AnnotatorProcessor
+
+    std_logger = get_logger(name='scepter')
+    solver = SOLVERS.build(cfg.SOLVER, logger=std_logger)
+    solver.set_up()
+    if not cfg.args.pretrained_model == '':
+        with FS.get_from(cfg.args.pretrained_model,
+                         wait_finish=True) as local_path:
+            state = torch.load(local_path, map_location='cuda')
+            state = state['model'] if 'model' in state else state
+            missing, unexpected = solver.model.model.control_blocks[
+                0].load_state_dict(state, strict=False)
+            if we.rank == 0:
+                std_logger.info(
+                    f'Restored from {cfg.args.pretrained_model} with '
+                    f'{len(missing)} missing and {len(unexpected)} unexpected keys'
+                )
+
+    solver.test_mode()
+    num_samples = cfg.args.num_samples
+    prompt = [cfg.args.prompt] * num_samples
+    n_prompt = [cfg.args.n_prompt] * num_samples
+    sampler = cfg.args.sampler
+    sample_steps = cfg.args.sample_steps
+    seed = cfg.args.seed
+    guide_scale = cfg.args.guide_scale
+    guide_rescale = cfg.args.guide_rescale
+    image_size = cfg.args.image_size
+    if image_size is not None:
+        if ',' in image_size:
+            h, w = image_size.split(',')
+            image_size = [int(h), int(w)]
+        else:
+            image_size = int(image_size)
+
+    with FS.get_from(cfg.args.image, wait_finish=True) as local_path:
+        image = Image.open(local_path)
+        if not image.mode == 'RGB':
+            image = image.convert('RGB')
+        image = TT.CenterCrop(image_size)(TT.Resize(image_size)(image))
+
+    if cfg.args.control_mode != 'source':
+        anno_processor = AnnotatorProcessor(anno_type=cfg.args.control_mode)
+        hint = anno_processor.run(image, cfg.args.control_mode)
+    else:
+        hint = image
+    hint = TT.ToTensor()(hint)[None, ...].repeat(num_samples, 1, 1,
+                                                 1).to(we.device_id)
+
+    batch_data = {}
+    if solver.sample_args:
+        batch_data.update(solver.sample_args.get_lowercase_dict())
+    if image_size is not None:
+        batch_data.update({'image_size': image_size})
+    batch_data.update({
+        'prompt': prompt,
+        'n_prompt': n_prompt,
+        'sampler': sampler,
+        'sample_steps': sample_steps,
+        'seed': seed,
+        'guide_scale': guide_scale,
+        'guide_rescale': guide_rescale,
+        'hint': hint
+    })
+
+    dtype = getattr(torch, cfg.SOLVER.DTYPE)
+    with amp.autocast(enabled=True, dtype=dtype):
+        batch_data = transfer_data_to_cuda(batch_data)
+        ret = solver.run_step_test(batch_data)
+    save_folder = os.path.join(solver.work_dir, cfg.args.save_folder)
+    for idx, out in enumerate(ret):
+        for name in ['image', 'hint']:
+            img = out[name]
+            img = img.permute(1, 2, 0).cpu().numpy()
+            img = (img * 255).astype(np.uint8)
+            filename = '{}_{}_{}.png'.format('inference', name, idx)
+            save_file = os.path.join(save_folder, filename)
+            with FS.put_to(save_file) as local_path:
+                image = img.copy()
+                cv2.cvtColor(image, cv2.COLOR_RGB2BGR, image)
+                cv2.imwrite(local_path, image)
+                std_logger.info(f'Processed {filename} save to {local_path}')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Argparser for Scepter:\n')
+    parser.add_argument('--task',
+                        dest='task',
+                        help='Running task!',
+                        default='t2i',
+                        choices=['t2i', 'control'])
     parser.add_argument(
         '--prompt',
         dest='prompt',
@@ -128,5 +220,18 @@ if __name__ == '__main__':
                         dest='pretrained_model',
                         help='The pretrained model for our network!',
                         default='')
+    parser.add_argument('--image',
+                        dest='image',
+                        help='For image-guided task (control, upsample)',
+                        default='')
+    parser.add_argument('--control_mode',
+                        dest='control_mode',
+                        help='For controllable image synthesis task',
+                        choices=['source', 'canny', 'pose'],
+                        default=None)
     cfg = Config(load=True, parser_ins=parser)
-    we.init_env(cfg, logger=None, fn=run_task)
+    if cfg.args.task == 'control':
+        task_fn = run_task_control
+    else:
+        task_fn = run_task
+    we.init_env(cfg, logger=None, fn=task_fn)

@@ -356,7 +356,7 @@ Used to instantiate a standard logging instance for printing information.
 ```python
 from scepter.utils.logger import get_logger, init_logger
 
-std_logger = get_logger(name="std_torch")
+std_logger = get_logger(name="scepter")
 init_logger(std_logger, log_file="", dist_launcher="pytorch")
 ```
 <hr/>
