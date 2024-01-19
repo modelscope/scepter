@@ -152,4 +152,5 @@ class MantraUI(UIBase):
                               self.style_template,
                               self.style_negative_template, self.style_example,
                               self.style_example_prompt
-                          ])
+                          ],
+                          queue=False)

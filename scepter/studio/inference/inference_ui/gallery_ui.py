@@ -198,4 +198,5 @@ class GalleryUI(UIBase):
             outputs=[
                 self.before_refine_panel, self.before_refine_gallery,
                 self.output_gallery
-            ])
+            ],
+            queue=True)

@@ -196,4 +196,5 @@ class ModelManageUI(UIBase):
                 diffusion_ui.sampler, diffusion_ui.discretization,
                 diffusion_ui.sample_steps, diffusion_ui.guide_scale,
                 diffusion_ui.guide_rescale
-            ])
+            ],
+            queue=False)

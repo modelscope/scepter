@@ -116,7 +116,8 @@ class DatasetGalleryUI(UIBase):
 
         self.gallery_state.change(change_gallery,
                                   inputs=[create_dataset.user_data_name],
-                                  outputs=[self.gl_dataset_images])
+                                  outputs=[self.gl_dataset_images],
+                                  queue=False)
 
         def select_image(dataset_name, evt: gr.SelectData):
             meta_data = create_dataset.meta_dict[dataset_name]
@@ -167,16 +168,19 @@ class DatasetGalleryUI(UIBase):
                                           self.gl_dataset_images,
                                           self.ori_caption, self.edit_caption,
                                           self.info
-                                      ])
+                                      ],
+                                      queue=False)
         self.gl_dataset_images.change(
             change_image,
             inputs=[create_dataset.user_data_name],
-            outputs=[self.ori_caption, self.edit_caption, self.info])
+            outputs=[self.ori_caption, self.edit_caption, self.info],
+            queue=False)
 
         self.modify_button.click(
             change_caption,
             inputs=[create_dataset.user_data_name, self.edit_caption],
-            outputs=[self.ori_caption])
+            outputs=[self.ori_caption],
+            queue=False)
 
         def delete_file(dataset_name):
             cursor = create_dataset.meta_dict[dataset_name]['cursor']
@@ -218,7 +222,8 @@ class DatasetGalleryUI(UIBase):
                                  outputs=[
                                      self.gl_dataset_images, self.ori_caption,
                                      self.edit_caption, self.info
-                                 ])
+                                 ],
+                                 queue=False)
 
         def add_file(dataset_name, upload_image, caption):
             if 'image' in upload_image:
@@ -275,7 +280,8 @@ class DatasetGalleryUI(UIBase):
                                  outputs=[
                                      self.gl_dataset_images, self.ori_caption,
                                      self.edit_caption, self.info
-                                 ])
+                                 ],
+                                 queue=False)
 
         def edit_caption_change(dataset_name, edit_caption):
             meta = create_dataset.meta_dict[dataset_name]
@@ -285,4 +291,5 @@ class DatasetGalleryUI(UIBase):
 
         self.edit_caption.change(
             edit_caption_change,
-            inputs=[create_dataset.user_data_name, self.edit_caption])
+            inputs=[create_dataset.user_data_name, self.edit_caption],
+            queue=False)

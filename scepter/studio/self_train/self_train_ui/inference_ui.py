@@ -140,4 +140,5 @@ class InferenceUI(UIBase):
                 manager.tabs, manager.inference.tuner_ui.custom_tuner_model,
                 manager.inference.model_manage_ui.diffusion_model,
                 manager.inference.setting_tab
-            ])
+            ],
+            queue=False)

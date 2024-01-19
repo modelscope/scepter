@@ -165,7 +165,9 @@ class DiffusionUI(UIBase):
                                 outputs=[self.seed_panel, self.image_seed],
                                 queue=False,
                                 show_progress=False)
-        self.refresh_seed.click(refresh_seed, outputs=[self.image_seed])
+        self.refresh_seed.click(refresh_seed,
+                                outputs=[self.image_seed],
+                                queue=False)
 
         def change_height(h):
             if h not in self.cur_h_level_dict:
@@ -179,4 +181,5 @@ class DiffusionUI(UIBase):
 
         self.output_height.change(change_height,
                                   inputs=[self.output_height],
-                                  outputs=[self.output_width])
+                                  outputs=[self.output_width],
+                                  queue=False)

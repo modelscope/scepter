@@ -116,4 +116,5 @@ class TunerUI(UIBase):
             outputs=[
                 self.tuner_type, self.base_model, self.tuner_desc,
                 self.tuner_example, self.tuner_prompt_example
-            ])
+            ],
+            queue=False)
