@@ -72,7 +72,8 @@ class ExportDatasetUI(UIBase):
 
         self.export_to_zip.click(export_zip,
                                  inputs=[create_dataset.user_data_name],
-                                 outputs=[self.export_url])
+                                 outputs=[self.export_url],
+                                 queue=False)
 
         def export_csv(dataset_name):
             meta = create_dataset.meta_dict[dataset_name]
@@ -136,4 +137,5 @@ class ExportDatasetUI(UIBase):
         self.go_to_train.click(
             go_to_train,
             inputs=[create_dataset.user_data_name],
-            outputs=[manager.tabs, manager.self_train.trainer_ui.ms_data_name])
+            outputs=[manager.tabs, manager.self_train.trainer_ui.ms_data_name],
+            queue=False)

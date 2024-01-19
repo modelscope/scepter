@@ -158,7 +158,8 @@ class InferenceUI():
         self.check_box_for_setting.change(
             change_setting_tab,
             inputs=[self.check_box_for_setting],
-            outputs=[self.mantra_state, self.tuner_state, self.control_state])
+            outputs=[self.mantra_state, self.tuner_state, self.control_state],
+            queue=False)
 
 
 if __name__ == '__main__':

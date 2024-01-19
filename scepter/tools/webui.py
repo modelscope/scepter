@@ -34,7 +34,9 @@ if __name__ == '__main__':
     parser.add_argument('--cfg',
                         dest='config',
                         type=str,
-                        default='/config/config.yaml')
+                        default=os.path.join(
+                            os.path.dirname(scepter.dirname),
+                            'scepter/methods/studio/scepter_ui.yaml'))
     parser.add_argument('--debug',
                         dest='debug',
                         action='store_true',

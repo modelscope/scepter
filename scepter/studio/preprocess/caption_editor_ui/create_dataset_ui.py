@@ -410,7 +410,9 @@ class CreateDatasetUI(UIBase):
                                if len(self.dataset_list) > 0 else '',
                                choices=self.dataset_list)
 
-        self.refresh_dataset_name.click(refresh, outputs=[self.dataset_name])
+        self.refresh_dataset_name.click(refresh,
+                                        outputs=[self.dataset_name],
+                                        queue=False)
 
         def confirm_create_dataset(user_name, create_mode, file_url, file_path,
                                    panel_state):
@@ -491,25 +493,31 @@ class CreateDatasetUI(UIBase):
         self.btn_create_datasets.click(show_dataset_panel, [], [
             self.file_panel, self.dataset_panel, self.btn_panel,
             self.panel_state, self.user_data_name, self.create_mode
-        ])
+        ],
+                                       queue=False)
 
         self.btn_create_datasets_from_file.click(show_file_panel, [], [
             self.file_panel, self.dataset_panel, self.btn_panel,
             self.panel_state, self.user_data_name, self.file_path,
             self.file_path_url, self.create_mode
-        ])
+        ],
+                                                 queue=False)
 
         # Click Refresh
         self.random_data_button.click(get_random_dataset_name, [],
-                                      [self.user_data_name])
+                                      [self.user_data_name],
+                                      queue=False)
 
-        self.file_path.clear(clear_file, outputs=[self.file_path_url])
+        self.file_path.clear(clear_file,
+                             outputs=[self.file_path_url],
+                             queue=False)
 
         # Click Confirm
         self.confirm_data_button.click(confirm_create_dataset, [
             self.user_data_name, self.create_mode, self.file_path_url,
             self.file_path, self.panel_state
-        ], [self.panel_state, self.dataset_name])
+        ], [self.panel_state, self.dataset_name],
+                                       queue=False)
 
         def show_edit_panel(panel_state, data_name):
             if panel_state:
@@ -527,7 +535,8 @@ class CreateDatasetUI(UIBase):
                 gallery_dataset.gallery_panel, gallery_dataset.upload_panel,
                 export_dataset.export_panel, self.modify_panel,
                 self.file_panel, self.btn_panel, self.user_data_name_state
-            ])
+            ],
+            queue=False)
 
         def modify_data_name(user_name, prev_data_name):
             print(
@@ -583,7 +592,8 @@ class CreateDatasetUI(UIBase):
         self.modify_data_button.click(
             modify_data_name,
             inputs=[self.user_data_name, self.user_data_name_state],
-            outputs=[self.user_data_name_state, self.dataset_name])
+            outputs=[self.user_data_name_state, self.dataset_name],
+            queue=False)
 
         def dataset_change(user_name):
             if user_name is None or user_name == '':
@@ -602,4 +612,5 @@ class CreateDatasetUI(UIBase):
                                      self.dataset_panel, self.file_panel,
                                      self.panel_state, self.user_data_name,
                                      gallery_dataset.gallery_state
-                                 ])
+                                 ],
+                                 queue=False)

@@ -131,7 +131,8 @@ class ControlUI(UIBase):
                                    self.crop_type, diffusion_ui.output_height,
                                    diffusion_ui.output_width
                                ],
-                               outputs=[self.cond_image])
+                               outputs=[self.cond_image],
+                               queue=False)
 
         def change_control_mode(control_mode, diffusion_model):
             default_choices = self.pipe_manager.module_level_choices
@@ -153,4 +154,5 @@ class ControlUI(UIBase):
         self.control_mode.change(
             change_control_mode,
             inputs=[self.control_mode, model_manage_ui.diffusion_model],
-            outputs=[self.control_model])
+            outputs=[self.control_model],
+            queue=False)
