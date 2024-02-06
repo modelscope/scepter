@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import copy
 import random
 
@@ -152,7 +153,7 @@ class DiffusionUI(UIBase):
             with gr.Column(scale=1):
                 self.refresh_seed = gr.Button(value=refresh_symbol)
 
-    def set_callbacks(self, model_manage_ui):
+    def set_callbacks(self, model_manage_ui, **kwargs):
         def random_checked(r):
             value = -1
             return (gr.Row(visible=not r), gr.Textbox(value=value))

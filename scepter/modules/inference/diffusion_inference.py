@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import copy
-import hashlib
-import json
 import os.path
 import random
 from collections import OrderedDict
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.transforms as TT
-from peft.utils import CONFIG_NAME, SAFETENSORS_WEIGHTS_NAME, WEIGHTS_NAME
 from PIL.Image import Image
-from swift import Swift, SwiftModel
 
 from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, MODELS,
-                                            TOKENIZERS, TUNERS)
-from scepter.modules.utils.config import Config
+                                            TOKENIZERS)
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
+
+from .control_inference import ControlInference
+from .tuner_inference import TunerInference
 
 
 def get_model(model_tuple):
@@ -36,6 +33,12 @@ class DiffusionInference():
     '''
     def __init__(self, logger=None):
         self.logger = logger
+        self.loaded_model = {}
+        self.loaded_model_name = [
+            'diffusion_model', 'first_stage_model', 'cond_stage_model'
+        ]
+        self.tuner_infer = TunerInference(self.logger)
+        self.control_infer = ControlInference(self.logger)
 
     def init_from_cfg(self, cfg):
         self.name = cfg.NAME
@@ -75,248 +78,6 @@ class DiffusionInference():
             self.cond_stage_model['cfg'].KWARGS = {
                 'vocab_size': self.tokenizer.vocab_size
             }
-
-    def register_tuner(self, tuner_model_list):
-        if len(tuner_model_list) < 1:
-            if isinstance(self.diffusion_model['model'], SwiftModel):
-                for adapter_name in self.diffusion_model['model'].adapters:
-                    self.diffusion_model['model'].deactivate_adapter(
-                        adapter_name, offload='cpu')
-            if isinstance(self.cond_stage_model['model'], SwiftModel):
-                for adapter_name in self.cond_stage_model['model'].adapters:
-                    self.cond_stage_model['model'].deactivate_adapter(
-                        adapter_name, offload='cpu')
-            return
-        all_diffusion_tuner = {}
-        all_cond_tuner = {}
-        save_root_dir = '.cache_tuner'
-        for tuner_model in tuner_model_list:
-            tunner_model_folder = tuner_model.MODEL_PATH
-            local_tuner_model = FS.get_dir_to_local_dir(tunner_model_folder)
-            all_tuner_datas = os.listdir(local_tuner_model)
-            cur_tuner_md5 = hashlib.md5(
-                tunner_model_folder.encode('utf-8')).hexdigest()
-
-            local_diffusion_cache = os.path.join(
-                save_root_dir, cur_tuner_md5 + '_' + 'diffusion')
-            local_cond_cache = os.path.join(save_root_dir,
-                                            cur_tuner_md5 + '_' + 'cond')
-
-            meta_file = os.path.join(save_root_dir,
-                                     cur_tuner_md5 + '_meta.json')
-            if not os.path.exists(meta_file):
-                diffusion_tuner = {}
-                cond_tuner = {}
-                for sub in all_tuner_datas:
-                    sub_file = os.path.join(local_tuner_model, sub)
-                    config_file = os.path.join(sub_file, CONFIG_NAME)
-                    safe_file = os.path.join(sub_file,
-                                             SAFETENSORS_WEIGHTS_NAME)
-                    bin_file = os.path.join(sub_file, WEIGHTS_NAME)
-                    if os.path.isdir(sub_file) and os.path.isfile(config_file):
-                        # diffusion or cond
-                        cfg = json.load(open(config_file, 'r'))
-                        if 'cond_stage_model.' in cfg['target_modules']:
-                            cond_cfg = copy.deepcopy(cfg)
-                            if 'cond_stage_model.*' in cond_cfg[
-                                    'target_modules']:
-                                cond_cfg['target_modules'] = cond_cfg[
-                                    'target_modules'].replace(
-                                        'cond_stage_model.*', '.*')
-                            else:
-                                cond_cfg['target_modules'] = cond_cfg[
-                                    'target_modules'].replace(
-                                        'cond_stage_model.', '')
-                            if cond_cfg['target_modules'].startswith('*'):
-                                cond_cfg['target_modules'] = '.' + cond_cfg[
-                                    'target_modules']
-                            os.makedirs(local_cond_cache + '_' + sub,
-                                        exist_ok=True)
-                            cond_tuner[os.path.basename(local_cond_cache) +
-                                       '_' + sub] = hashlib.md5(
-                                           (local_cond_cache + '_' +
-                                            sub).encode('utf-8')).hexdigest()
-                            os.makedirs(local_cond_cache + '_' + sub,
-                                        exist_ok=True)
-
-                            json.dump(
-                                cond_cfg,
-                                open(
-                                    os.path.join(local_cond_cache + '_' + sub,
-                                                 CONFIG_NAME), 'w'))
-                        if 'model.' in cfg['target_modules'].replace(
-                                'cond_stage_model.', ''):
-                            diffusion_cfg = copy.deepcopy(cfg)
-                            if 'model.*' in diffusion_cfg['target_modules']:
-                                diffusion_cfg[
-                                    'target_modules'] = diffusion_cfg[
-                                        'target_modules'].replace(
-                                            'model.*', '.*')
-                            else:
-                                diffusion_cfg[
-                                    'target_modules'] = diffusion_cfg[
-                                        'target_modules'].replace(
-                                            'model.', '')
-                            if diffusion_cfg['target_modules'].startswith('*'):
-                                diffusion_cfg[
-                                    'target_modules'] = '.' + diffusion_cfg[
-                                        'target_modules']
-                            os.makedirs(local_diffusion_cache + '_' + sub,
-                                        exist_ok=True)
-                            diffusion_tuner[
-                                os.path.basename(local_diffusion_cache) + '_' +
-                                sub] = hashlib.md5(
-                                    (local_diffusion_cache + '_' +
-                                     sub).encode('utf-8')).hexdigest()
-                            json.dump(
-                                diffusion_cfg,
-                                open(
-                                    os.path.join(
-                                        local_diffusion_cache + '_' + sub,
-                                        CONFIG_NAME), 'w'))
-
-                        state_dict = {}
-                        is_bin_file = True
-                        if os.path.isfile(bin_file):
-                            state_dict = torch.load(bin_file)
-                        elif os.path.isfile(safe_file):
-                            is_bin_file = False
-                            from safetensors.torch import \
-                                load_file as safe_load_file
-                            state_dict = safe_load_file(
-                                safe_file,
-                                device='cuda'
-                                if torch.cuda.is_available() else 'cpu')
-                        save_diffusion_state_dict = {}
-                        save_cond_state_dict = {}
-                        for key, value in state_dict.items():
-                            if key.startswith('model.'):
-                                save_diffusion_state_dict[
-                                    key[len('model.'):].replace(
-                                        sub,
-                                        os.path.basename(local_diffusion_cache)
-                                        + '_' + sub)] = value
-                            elif key.startswith('cond_stage_model.'):
-                                save_cond_state_dict[
-                                    key[len('cond_stage_model.'):].replace(
-                                        sub,
-                                        os.path.basename(local_cond_cache) +
-                                        '_' + sub)] = value
-
-                        if is_bin_file:
-                            if len(save_diffusion_state_dict) > 0:
-                                torch.save(
-                                    save_diffusion_state_dict,
-                                    os.path.join(
-                                        local_diffusion_cache + '_' + sub,
-                                        WEIGHTS_NAME))
-                            if len(save_cond_state_dict) > 0:
-                                torch.save(
-                                    save_cond_state_dict,
-                                    os.path.join(local_cond_cache + '_' + sub,
-                                                 WEIGHTS_NAME))
-                        else:
-                            from safetensors.torch import \
-                                save_file as safe_save_file
-                            if len(save_diffusion_state_dict) > 0:
-                                safe_save_file(
-                                    save_diffusion_state_dict,
-                                    os.path.join(
-                                        local_diffusion_cache + '_' + sub,
-                                        SAFETENSORS_WEIGHTS_NAME),
-                                    metadata={'format': 'pt'})
-                            if len(save_cond_state_dict) > 0:
-                                safe_save_file(
-                                    save_cond_state_dict,
-                                    os.path.join(local_cond_cache + '_' + sub,
-                                                 SAFETENSORS_WEIGHTS_NAME),
-                                    metadata={'format': 'pt'})
-                json.dump(
-                    {
-                        'diffusion_tuner': diffusion_tuner,
-                        'cond_tuner': cond_tuner
-                    }, open(meta_file, 'w'))
-            else:
-                meta_conf = json.load(open(meta_file, 'r'))
-                diffusion_tuner = meta_conf['diffusion_tuner']
-                cond_tuner = meta_conf['cond_tuner']
-            all_diffusion_tuner.update(diffusion_tuner)
-            all_cond_tuner.update(cond_tuner)
-        if len(all_diffusion_tuner) > 0:
-            self.load(self.diffusion_model)
-            self.diffusion_model['model'] = Swift.from_pretrained(
-                self.diffusion_model['model'],
-                save_root_dir,
-                adapter_name=all_diffusion_tuner)
-            self.diffusion_model['model'].set_active_adapters(
-                list(all_diffusion_tuner.values()))
-            self.unload(self.diffusion_model)
-        if len(all_cond_tuner) > 0:
-            self.load(self.cond_stage_model)
-            self.cond_stage_model['model'] = Swift.from_pretrained(
-                self.cond_stage_model['model'],
-                save_root_dir,
-                adapter_name=all_cond_tuner)
-            self.cond_stage_model['model'].set_active_adapters(
-                list(all_cond_tuner.values()))
-            self.unload(self.cond_stage_model)
-
-    def register_controllers(self, control_model_ins):
-        if control_model_ins is None or control_model_ins == '':
-            if isinstance(self.diffusion_model['model'], SwiftModel):
-                if (hasattr(self.diffusion_model['model'].base_model,
-                            'control_blocks') and
-                        self.diffusion_model['model'].base_model.control_blocks
-                    ):  # noqa
-                    del self.diffusion_model['model'].base_model.control_blocks
-                    self.diffusion_model[
-                        'model'].base_model.control_blocks = None
-                    self.diffusion_model['model'].base_model.control_name = []
-            else:
-                del self.diffusion_model['model'].control_blocks
-                self.diffusion_model['model'].control_blocks = None
-                self.diffusion_model['model'].control_name = []
-            return
-        if not isinstance(control_model_ins, list):
-            control_model_ins = [control_model_ins]
-        control_model = nn.ModuleList([])
-        control_model_folder = []
-        for one_control in control_model_ins:
-            one_control_model_folder = one_control.MODEL_PATH
-            control_model_folder.append(one_control_model_folder)
-            have_list = getattr(self.diffusion_model['model'], 'control_name',
-                                [])
-            if one_control_model_folder in have_list:
-                ind = have_list.index(one_control_model_folder)
-                csc_tuners = copy.deepcopy(
-                    self.diffusion_model['model'].control_blocks[ind])
-            else:
-                one_local_control_model = FS.get_dir_to_local_dir(
-                    one_control_model_folder)
-                control_cfg = Config(cfg_file=os.path.join(
-                    one_local_control_model, 'configuration.json'))
-                assert hasattr(control_cfg, 'CONTROL_MODEL')
-                control_cfg.CONTROL_MODEL[
-                    'INPUT_BLOCK_CHANS'] = self.diffusion_model[
-                        'model']._input_block_chans
-                control_cfg.CONTROL_MODEL[
-                    'INPUT_DOWN_FLAG'] = self.diffusion_model[
-                        'model']._input_down_flag
-                control_cfg.CONTROL_MODEL.PRETRAINED_MODEL = os.path.join(
-                    one_local_control_model, 'pytorch_model.bin')
-                csc_tuners = TUNERS.build(control_cfg.CONTROL_MODEL,
-                                          logger=self.logger)
-            control_model.append(csc_tuners)
-        if isinstance(self.diffusion_model['model'], SwiftModel):
-            del self.diffusion_model['model'].base_model.control_blocks
-            self.diffusion_model[
-                'model'].base_model.control_blocks = control_model
-            self.diffusion_model[
-                'model'].base_model.control_name = control_model_folder
-        else:
-            del self.diffusion_model['model'].control_blocks
-            self.diffusion_model['model'].control_blocks = control_model
-            self.diffusion_model['model'].control_name = control_model_folder
 
     def redefine_paras(self, cfg):
         if cfg.get('PRETRAINED_MODEL', None):
@@ -480,11 +241,54 @@ class DiffusionInference():
         return module
 
     def unload(self, module):
+        if module is None:
+            return module
         module['model'] = module['model'].to('cpu')
         module['device'] = 'cpu'
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
         return module
+
+    def dynamic_load(self, module=None, name=''):
+        self.logger.info('Loading {} model'.format(name))
+        if name == 'all':
+            for subname in self.loaded_model_name:
+                self.loaded_model[subname] = self.dynamic_load(
+                    getattr(self, subname), subname)
+        elif name in self.loaded_model_name:
+            if name in self.loaded_model:
+                if module['cfg'] != self.loaded_model[name]['cfg']:
+                    self.unload(self.loaded_model[name])
+                    module = self.load(module)
+                    self.loaded_model[name] = module
+                    return module
+                elif module['device'] == 'cpu':
+                    module = self.load(module)
+                    return module
+                else:
+                    return module
+            else:
+                module = self.load(module)
+                self.loaded_model[name] = module
+                return module
+        else:
+            return self.load(module)
+
+    def dynamic_unload(self, module=None, name='', skip_loaded=False):
+        self.logger.info('Unloading {} model'.format(name))
+        if name == 'all':
+            for name, module in self.loaded_model.items():
+                module = self.unload(self.loaded_model[name])
+                self.loaded_model[name] = module
+        elif name in self.loaded_model_name:
+            if name in self.loaded_model:
+                if not skip_loaded:
+                    module = self.unload(self.loaded_model[name])
+                    self.loaded_model[name] = module
+            else:
+                self.unload(module)
+        else:
+            self.unload(module)
 
     def load_default(self, cfg):
         module_paras = {}
@@ -616,35 +420,34 @@ class DiffusionInference():
         height, width = value_input['target_size_as_tuple']
         value_output = copy.deepcopy(self.output)
         batch, batch_uc = self.get_batch(value_input, num_samples=1)
-        #
-        if not isinstance(tuner_model, list):
-            tuner_model = [tuner_model]
-        for tuner in tuner_model:
-            if tuner is None or tuner == '':
-                tuner_model.remove(tuner)
-        self.register_tuner(tuner_model)
-        # control_cond_image
-        control_cond_image = kwargs.pop('control_cond_image', None)
-        # crop_type = kwargs.pop('crop_type', 'center_crop')
-        hints = []
-        if control_cond_image and control_model:
-            if not isinstance(control_model, list):
-                control_model = [control_model]
-            if not isinstance(control_cond_image, list):
-                control_cond_image = [control_cond_image]
-            assert len(control_cond_image) == len(control_model)
-            for img in control_cond_image:
-                if isinstance(img, Image):
-                    w, h = img.size
-                    if not h == height or not w == width:
-                        img = TT.Resize(min(height, width))(img)
-                        img = TT.CenterCrop((height, width))(img)
-                    hint = TT.ToTensor()(img)
-                    hints.append(hint)
-                else:
-                    raise NotImplementedError
-        if len(hints) > 0:
-            hints = torch.stack(hints).to(we.device_id)
+
+        # register tuner
+        if tuner_model is not None and tuner_model != '' and len(
+                tuner_model) > 0:
+            if not isinstance(tuner_model, list):
+                tuner_model = [tuner_model]
+            self.dynamic_load(self.diffusion_model, 'diffusion_model')
+            self.dynamic_load(self.cond_stage_model, 'cond_stage_model')
+            self.tuner_infer.register_tuner(tuner_model, self.diffusion_model,
+                                            self.cond_stage_model)
+            self.dynamic_unload(self.diffusion_model,
+                                'diffusion_model',
+                                skip_loaded=True)
+            self.dynamic_unload(self.cond_stage_model,
+                                'cond_stage_model',
+                                skip_loaded=True)
+
+        # register control
+        if control_model is not None and control_model != '':
+            self.dynamic_load(self.diffusion_model, 'diffusion_model')
+            hints = ControlInference.get_control_input(
+                control_model, kwargs.pop('control_cond_image', None), height,
+                width)
+            self.control_infer.register_controllers(control_model,
+                                                    self.diffusion_model)
+            self.dynamic_unload(self.diffusion_model,
+                                'diffusion_model',
+                                skip_loaded=True)
         else:
             hints = None
 
@@ -655,15 +458,17 @@ class DiffusionInference():
             b, c, ori_width, ori_height = image.shape
             if not (ori_width == width and ori_height == height):
                 image = F.interpolate(image, (width, height), mode='bicubic')
-            self.first_stage_model = self.load(self.first_stage_model)
+            self.dynamic_load(self.first_stage_model, 'first_stage_model')
             input_latent = self.encode_first_stage(image)
-            self.first_stage_model = self.unload(self.first_stage_model)
+            self.dynamic_unload(self.first_stage_model,
+                                'first_stage_model',
+                                skip_loaded=True)
         else:
             input_latent = None
         if 'input_latent' in value_output and input_latent is not None:
             value_output['input_latent'] = input_latent
         # cond stage
-        self.cond_stage_model = self.load(self.cond_stage_model)
+        self.dynamic_load(self.cond_stage_model, 'cond_stage_model')
         function_name, dtype = self.get_function_info(self.cond_stage_model)
         with torch.autocast('cuda',
                             enabled=dtype == 'float16',
@@ -678,7 +483,9 @@ class DiffusionInference():
                                   function_name)(batch)
                 null_context = getattr(get_model(self.cond_stage_model),
                                        function_name)(batch_uc)
-        self.cond_stage_model = self.unload(self.cond_stage_model)
+        self.dynamic_unload(self.cond_stage_model,
+                            'cond_stage_model',
+                            skip_loaded=True)
 
         if refine_strength > 0 and self.refiner_diffusion_model is not None:
             assert self.refiner_cond_model is not None
@@ -703,9 +510,7 @@ class DiffusionInference():
                         get_model(self.refiner_cond_model),
                         function_name)(batch_uc)
             self.refiner_cond_model = self.unload(self.refiner_cond_model)
-        self.load(self.diffusion_model)
-        self.register_controllers(control_model)
-        self.unload(self.diffusion_model)
+
         # get noise
         seed = kwargs.pop('seed', -1)
         g = torch.Generator(device=we.device_id)
@@ -721,8 +526,8 @@ class DiffusionInference():
                     height // self.first_stage_model['paras']['size_factor'],
                     width // self.first_stage_model['paras']['size_factor'],
                     device=we.device_id).normal_(generator=g)
-                #
-                self.load(self.diffusion_model)
+
+                self.dynamic_load(self.diffusion_model, 'diffusion_model')
                 # UNet use input n_prompt
                 function_name, dtype = self.get_function_info(
                     self.diffusion_model)
@@ -760,7 +565,10 @@ class DiffusionInference():
                         intermediate_callback=intermediate_callback,
                         cat_uc=cat_uc,
                         **kwargs)
-                self.diffusion_model = self.unload(self.diffusion_model)
+
+                self.dynamic_unload(self.diffusion_model,
+                                    'diffusion_model',
+                                    skip_loaded=True)
 
             # apply refiner
             if refine_strength > 0 and self.refiner_diffusion_model is not None:
@@ -828,10 +636,11 @@ class DiffusionInference():
                     value_output['latent'] = []
                 value_output['latent'].append(latent)
 
-            self.first_stage_model = self.load(self.first_stage_model)
+            self.dynamic_load(self.first_stage_model, 'first_stage_model')
             x_samples = self.decode_first_stage(latent).float()
-            self.first_stage_model = self.unload(self.first_stage_model)
-
+            self.dynamic_unload(self.first_stage_model,
+                                'first_stage_model',
+                                skip_loaded=True)
             images = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
             if 'images' in value_output:
                 if value_output['images'] is None or (
@@ -845,4 +654,17 @@ class DiffusionInference():
                 value_output[k] = torch.cat(v, dim=0)
             if isinstance(v, torch.Tensor):
                 value_output[k] = v.cpu()
+
+        # unregister tuner
+        if tuner_model is not None and tuner_model != '' and len(
+                tuner_model) > 0:
+            self.tuner_infer.unregister_tuner(tuner_model,
+                                              self.diffusion_model,
+                                              self.cond_stage_model)
+
+        # unregister control
+        if control_model is not None and control_model != '':
+            self.control_infer.unregister_controllers(control_model,
+                                                      self.diffusion_model)
+
         return value_output

@@ -36,13 +36,14 @@ Main Feature:
   - Training
   - Inference
 
-Currently supported approches (and counting):
+Currently supported approaches (and counting):
 
 1. SD Series: [Stable Diffusion v1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5) / [Stable Diffusion v2.1](https://huggingface.co/runwayml/stable-diffusion-v1-5) / [Stable Diffusion XL](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
 2. SCEdit: [SCEdit: Efficient and Controllable Image Diffusion Generation via Skip Connection Editing](https://arxiv.org/abs/2312.11392)  [![Arxiv link](https://img.shields.io/static/v1?label=arXiv&message=SCEdit&color=red&logo=arxiv)](https://arxiv.org/abs/2312.11392) [![Page link](https://img.shields.io/badge/Page-SCEdit-Gree)](https://scedit.github.io/)
 3. Res-Tuning(TODO): [Res-Tuning: A Flexible and Efficient Tuning Paradigm via Unbinding Tuner from Backbone](https://arxiv.org/abs/2310.19859) [![Arxiv link](https://img.shields.io/static/v1?label=arXiv&message=ResTuning&color=red&logo=arxiv)](https://arxiv.org/abs/2310.19859) [![Page link](https://img.shields.io/badge/Page-ResTuning-Gree)](https://res-tuning.github.io/)
 
 ## 🎉 News
+- [2024.02]: We release new SCEdit controllable image synthesis models for SD v1.5 and SD XL.
 - [2024.01]: We release **SCEPTER Studio**, an integrated toolkit for data management, model training and inference based on [Gradio](https://www.gradio.app/).
 - [2024.01]: [SCEdit](https://arxiv.org/abs/2312.11392) support controllable image synthesis for training and inference.
 - [2023.12]: We propose [SCEdit](https://arxiv.org/abs/2312.11392), an efficient and controllable generation framework.
@@ -56,13 +57,17 @@ Currently supported approches (and counting):
 conda env create -f environment.yaml
 conda activate scepter
 ```
+- We recommend installing the specific version of PyTorch and accelerate toolbox [xFormers](https://pypi.org/project/xformers/). You can install these recommended version by pip:
+
+```shell
+pip install -r requirements/recommended.txt
+```
 
 - Install SCEPTER by the `pip` command:
 
 ```shell
 pip install scepter
 ```
-- PS: We recommend installing PyTorch follwing [official documentation](https://pytorch.org/get-started/locally/)
 
 ## 🚀 Getting Started
 
@@ -167,19 +172,8 @@ python scepter/tools/run_inference.py --cfg scepter/methods/scedit/ctr/sd21_768_
 To fully experience **SCEPTER Studio**, you can launch the following command line:
 
 ```shell
-pip install scepter
-python -m scepter.tools.webui
-```
-or run after clone repo code
-```shell
-git clone https://github.com/modelscope/scepter.git
 PYTHONPATH=. python scepter/tools/webui.py --cfg scepter/methods/studio/scepter_ui.yaml
 ```
-
-The startup of **SCEPTER Studio** eliminates the need for manual downloading and organizing of models; it will automatically load the corresponding models and store them in a local directory. 
-Depending on the network and hardware situation, the initial startup usually requires 15-60 minutes, primarily involving the download and processing of SDv1.5, SDv2.1, and SDXL models. 
-Therefore, subsequent startups will become much faster (about one minute) as downloading is no longer required.
-
 
 ### Modelscope Studio
 
@@ -201,8 +195,8 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 | **Model** | **Canny** | **HED** | **Depth** | **Pose** | **Color** |
 |:---------:|:---------:|:-------:|:---------:|:--------:|:---------:|
 |   SD 1.5  |     ✅     |    ✅    |     ✅     |     ✅    |     ✅     |
-|   SD 2.1  |     🪄     |    ✅    |     ✅     |     🪄    |     🪄     |
-|   SD XL   |     ✅     |    ✅    |     ✅     |     ✅    |     ✅     |
+|   SD 2.1  |     🪄     |    🪄    |     🪄     |     🪄    |     🪄     |
+|   SD XL   |     🪄     |    🪄    |     🪄     |     🪄    |     🪄     |
 
 ### Model URL
 
@@ -210,9 +204,9 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 - 🪄 denotes that the model has been published.
 - More models will be released in the future.
 
-| Model  | URL                                                                                 |
-|--------|-------------------------------------------------------------------------------------|
-| SCEdit | [ModelCard](https://modelscope.cn/models/damo/scepter_scedit/summary) |
+| Model  | URL                                                                                                                                            |
+|--------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| SCEdit | [ModelScope](https://modelscope.cn/models/damo/scepter_scedit/summary) [HuggingFace](https://huggingface.co/scepter-studio/scepter_scedit) |
 
 PS: Scripts running within the SCEPTER framework will automatically fetch and load models based on the required dependency files, eliminating the need for manual downloads.
 

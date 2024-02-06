@@ -2,6 +2,7 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import os
+import time
 import unittest
 
 from scepter.modules.utils.config import Config
@@ -15,6 +16,7 @@ class FSTest(unittest.TestCase):
     def tearDown(self):
         super().tearDown()
 
+    @unittest.skip('')
     def test_modelscope(self):
         fs_info = {'NAME': 'ModelscopeFs', 'TEMP_DIR': 'cache/data'}
         config = Config(load=False, cfg_dict=fs_info)
@@ -48,6 +50,89 @@ class FSTest(unittest.TestCase):
         path = 'ms://AI-ModelScope/clip-vit-large-patch14'
         with FS.get_dir_to_local_dir(path, wait_finish=True) as local_path:
             print(f'Download from {path} to {local_path}')
+            self.assertTrue(os.path.exists(local_path))
+
+    @unittest.skip('')
+    def test_huggingface(self):
+        fs_info = {'NAME': 'HuggingfaceFs', 'TEMP_DIR': 'cache/data'}
+        config = Config(load=False, cfg_dict=fs_info)
+        FS.init_fs_client(config)
+
+        path = 'hf://runwayml/stable-diffusion-v1-5'
+        with FS.get_dir_to_local_dir(path, wait_finish=True) as local_path:
+            print(f'Download from {path} to {local_path}')
+            self.assertTrue(os.path.exists(local_path))
+
+        path = 'hf://stabilityai/stable-diffusion-2-1-base@text_encoder'
+        with FS.get_dir_to_local_dir(path, wait_finish=True) as local_path:
+            print(f'Download from {path} to {local_path}')
+            self.assertTrue(os.path.exists(local_path))
+
+        path = 'hf://stabilityai/stable-diffusion-xl-base-1.0@README.md'
+        with FS.get_from(path, wait_finish=True) as local_path:
+            print(f'Download from {path} to {local_path}')
+            self.assertTrue(os.path.exists(local_path))
+
+    # @unittest.skip('')
+    def test_scedit(self):
+        fs_info = {'NAME': 'ModelscopeFs', 'TEMP_DIR': 'cache/cache_data'}
+        config = Config(load=False, cfg_dict=fs_info)
+        FS.init_fs_client(config)
+
+        st_time = time.time()
+        path = 'ms://damo/scepter_scedit'
+        with FS.get_dir_to_local_dir(path, wait_finish=True) as local_path:
+            print(
+                f'Download from {path} to {local_path}, take {time.time()-st_time}'
+            )
+            self.assertTrue(os.path.exists(local_path))
+
+        st_time = time.time()
+        path = 'ms://damo/scepter_scedit'
+        with FS.get_dir_to_local_dir(path, wait_finish=True) as local_path:
+            print(
+                f'Download from {path} to {local_path}, take {time.time()-st_time}'
+            )
+            self.assertTrue(os.path.exists(local_path))
+
+        st_time = time.time()
+        path = 'ms://damo/scepter_scedit@controllable_model/SD2.1/canny_control/'
+        with FS.get_dir_to_local_dir(path, wait_finish=True) as local_path:
+            print(
+                f'Download from {path} to {local_path}, take {time.time()-st_time}'
+            )
+            self.assertTrue(os.path.exists(local_path))
+
+        st_time = time.time()
+        path = 'ms://damo/scepter_scedit@controllable_model/SD2.1/canny_control/'
+        with FS.get_dir_to_local_dir(path, wait_finish=True) as local_path:
+            print(
+                f'Download from {path} to {local_path}, take {time.time()-st_time}'
+            )
+            self.assertTrue(os.path.exists(local_path))
+
+        st_time = time.time()
+        path = 'ms://damo/scepter@mantra_images/SD_XL1.0/894f40ed44b37c3372e6a22b8ae577a4.png'
+        with FS.get_from(path, wait_finish=True) as local_path:
+            print(
+                f'Download from {path} to {local_path}, take {time.time()-st_time}'
+            )
+            self.assertTrue(os.path.exists(local_path))
+
+        st_time = time.time()
+        path = 'ms://damo/scepter@mantra_images/SD2.1/894f40ed44b37c3372e6a22b8ae577a4.png'
+        with FS.get_from(path, wait_finish=True) as local_path:
+            print(
+                f'Download from {path} to {local_path}, take {time.time()-st_time}'
+            )
+            self.assertTrue(os.path.exists(local_path))
+
+        st_time = time.time()
+        path = 'ms://damo/scepter@mantra_images/SD2.1/894f40ed44b37c3372e6a22b8ae577a4.png'
+        with FS.get_from(path, wait_finish=True) as local_path:
+            print(
+                f'Download from {path} to {local_path}, take {time.time()-st_time}'
+            )
             self.assertTrue(os.path.exists(local_path))
 
 

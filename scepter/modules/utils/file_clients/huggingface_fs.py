@@ -11,7 +11,7 @@ from scepter.modules.utils.file_clients.registry import FILE_SYSTEMS
 
 
 @FILE_SYSTEMS.register_class()
-class ModelscopeFs(BaseFs):
+class HuggingfaceFs(BaseFs):
     para_dict = {
         'RETRY_TIMES': {
             'value': 10,
@@ -21,14 +21,12 @@ class ModelscopeFs(BaseFs):
     para_dict.update(BaseFs.para_dict)
 
     def __init__(self, cfg, logger):
-        super(ModelscopeFs, self).__init__(cfg, logger=logger)
+        super(HuggingfaceFs, self).__init__(cfg, logger=logger)
         retry_times = cfg.get('RETRY_TIMES', 10)
         self._retry_times = retry_times
-        self._model_id_loaded = set()
-        self._model_file_loaded = set()
 
     def get_prefix(self) -> str:
-        return 'ms://'
+        return 'hf://'
 
     def support_write(self) -> bool:
         return False
@@ -45,7 +43,7 @@ class ModelscopeFs(BaseFs):
                                  target_path,
                                  local_path=None,
                                  wait_finish=False) -> Optional[str]:
-        from modelscope.hub.file_download import model_file_download
+        from huggingface_hub import hf_hub_download
 
         key = osp.relpath(target_path, self.get_prefix())
         key, file_path = key.split('@', 1)
@@ -66,16 +64,10 @@ class ModelscopeFs(BaseFs):
         retry = 0
         while retry < self._retry_times:
             try:
-                model_file = os.path.join(key, file_path)
-                if model_file in self._model_file_loaded:
-                    local_path = os.path.join(local_path, model_file)
-                    if not osp.exists(local_path):
-                        self._model_file_loaded.remove(key)
-                else:
-                    local_path = model_file_download(model_id=key,
-                                                     revision=revision,
-                                                     file_path=file_path,
-                                                     cache_dir=local_path)
+                local_path = hf_hub_download(repo_id=key,
+                                             revision=revision,
+                                             filename=file_path,
+                                             cache_dir=local_path)
                 if osp.exists(local_path):
                     break
             except Exception:
@@ -83,7 +75,7 @@ class ModelscopeFs(BaseFs):
 
         if retry >= self._retry_times:
             return None
-        self._model_file_loaded.add(model_file)
+
         if is_tmp:
             self.add_temp_file(local_path)
         return local_path
@@ -92,10 +84,9 @@ class ModelscopeFs(BaseFs):
                              target_path,
                              local_path=None,
                              wait_finish=False,
-                             multi_thread=False,
                              timeout=3600,
                              worker_id=-1) -> Optional[str]:
-        from modelscope.hub.snapshot_download import snapshot_download
+        from huggingface_hub import snapshot_download
         assert target_path.startswith(self.get_prefix())
 
         key = osp.relpath(target_path, self.get_prefix())
@@ -123,14 +114,9 @@ class ModelscopeFs(BaseFs):
         retry = 0
         while retry < self._retry_times:
             try:
-                if key in self._model_id_loaded:
-                    local_path = os.path.join(local_path, key)
-                    if not osp.exists(local_path):
-                        self._model_id_loaded.remove(key)
-                else:
-                    local_path = snapshot_download(key,
-                                                   revision=revision,
-                                                   cache_dir=local_path)
+                local_path = snapshot_download(repo_id=key,
+                                               revision=revision,
+                                               cache_dir=local_path)
                 if osp.exists(local_path):
                     break
             except Exception:
@@ -139,7 +125,6 @@ class ModelscopeFs(BaseFs):
         if retry >= self._retry_times:
             return None
 
-        self._model_id_loaded.add(key)
         if is_tmp:
             self.add_temp_file(local_path)
         if not ret_folder == '':
@@ -176,10 +161,7 @@ class ModelscopeFs(BaseFs):
     def walk_dir(self, file_dir, recurse=True):
         raise NotImplementedError
 
-    def put_dir_from_local_dir(self,
-                               local_dir,
-                               target_dir,
-                               multi_thread=False) -> bool:
+    def put_dir_from_local_dir(self, local_dir, target_dir) -> bool:
         raise NotImplementedError
 
     def size(self, target_path) -> Optional[int]:

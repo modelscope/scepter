@@ -4,10 +4,10 @@ import io
 from io import BytesIO
 
 import onnx
-import onnxruntime
 import torch
 from torch.onnx import OperatorExportTypes
 
+import onnxruntime
 from scepter.modules.utils.distribute import we
 
 type_map = {

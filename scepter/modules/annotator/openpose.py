@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 # Openpose
 # Original from CMU https://github.com/CMU-Perceptual-Computing-Lab/openpose
 # 2nd Edited by https://github.com/Hzzone/pytorch-openpose

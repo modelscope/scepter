@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 from glob import glob
 
@@ -367,7 +368,7 @@ def get_control_default(config_dict):
         default_control_cfg = default_control_cfg['control_type']
     else:
         return ret_data
-    # import pdb; pdb.set_trace()
+
     ret_data['control_choices'] = list(default_control_cfg['choices'].keys())
     defalt_t_type = default_control_cfg['default']
     type_paras = default_control_cfg.get(defalt_t_type, None)

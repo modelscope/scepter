@@ -440,6 +440,7 @@ class Workenv(object):
     def set_env(self, we_env):
         for k, v in we_env.items():
             setattr(self, k, v)
+        set_random_seed(self.seed)
 
     def __str__(self):
         environ_str = f'Now running in the distributed environment with world size {self.world_size}\n!'

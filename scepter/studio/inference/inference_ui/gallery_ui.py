@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
+import os
+
 import gradio as gr
 import numpy as np
 from PIL import Image
@@ -11,6 +14,7 @@ class GalleryUI(UIBase):
     def __init__(self, cfg, pipe_manager, is_debug=False, language='en'):
         self.pipe_manager = pipe_manager
         self.component_names = GalleryUIName(language)
+        self.cfg = cfg
 
     def create_ui(self, *args, **kwargs):
         with gr.Group():
@@ -25,7 +29,9 @@ class GalleryUI(UIBase):
                 with gr.Column(scale=2, min_width=0):
                     self.output_gallery = gr.Gallery(
                         label=self.component_names.gallery_diffusion_output,
-                        value=[])
+                        value=[],
+                        allow_preview=True,
+                        preview=True)
             with gr.Row(elem_classes='type_row'):
                 with gr.Column(scale=17):
                     self.prompt = gr.Textbox(
@@ -46,18 +52,41 @@ class GalleryUI(UIBase):
                         visible=True)
 
     def set_callbacks(self, inference_ui, model_manage_ui, diffusion_ui,
-                      mantra_ui, tuner_ui, refiner_ui, control_ui):
-        def generate_image(
-                mantra_state, tuner_state, control_state, diffusion_model,
-                first_stage_model, cond_stage_model, refiner_cond_model,
-                refiner_diffusion_model, tuner_model, custom_tuner_model,
-                control_model, crop_type, control_cond_image, prompt,
-                negative_prompt, prompt_prefix, sample, discretization,
-                output_height, output_width, image_number, sample_steps,
-                guide_scale, guide_rescale, refine_state, refine_strength,
-                refine_sampler, refine_discretization, refine_guide_scale,
-                refine_guide_rescale, style_template, style_negative_template,
-                image_seed):
+                      mantra_ui, tuner_ui, refiner_ui, control_ui, **kwargs):
+        def generate_image(mantra_state,
+                           tuner_state,
+                           control_state,
+                           refine_state,
+                           diffusion_model,
+                           first_stage_model,
+                           cond_stage_model,
+                           refiner_cond_model,
+                           refiner_diffusion_model,
+                           tuner_model,
+                           custom_tuner_model,
+                           control_model,
+                           crop_type,
+                           control_cond_image,
+                           prompt,
+                           negative_prompt,
+                           prompt_prefix,
+                           sample,
+                           discretization,
+                           output_height,
+                           output_width,
+                           image_number,
+                           sample_steps,
+                           guide_scale,
+                           guide_rescale,
+                           refine_strength,
+                           refine_sampler,
+                           refine_discretization,
+                           refine_guide_scale,
+                           refine_guide_rescale,
+                           style_template,
+                           style_negative_template,
+                           image_seed,
+                           show_jpeg_image=True):
             current_pipeline = self.pipe_manager.get_pipeline_given_modules({
                 'diffusion_model':
                 diffusion_model,
@@ -167,6 +196,14 @@ class GalleryUI(UIBase):
             if 'seed' in results:
                 print(results['seed'])
             print(images, before_images)
+            if show_jpeg_image:
+                save_list = []
+                for i, img in enumerate(images):
+                    save_image = os.path.join(self.cfg.WORK_DIR,
+                                              f'cur_gallery_{i}.jpg')
+                    img.save(save_image)
+                    save_list.append(save_image)
+                images = save_list
             return (
                 gr.Column(visible=len(before_images) > 0),
                 before_images,
@@ -176,8 +213,8 @@ class GalleryUI(UIBase):
         self.generate_button.click(
             generate_image,
             inputs=[
-                inference_ui.mantra_state, inference_ui.tuner_state,
-                inference_ui.control_state, model_manage_ui.diffusion_model,
+                mantra_ui.state, tuner_ui.state, control_ui.state,
+                refiner_ui.state, model_manage_ui.diffusion_model,
                 model_manage_ui.first_stage_model,
                 model_manage_ui.cond_stage_model,
                 refiner_ui.refiner_cond_model,
@@ -189,8 +226,8 @@ class GalleryUI(UIBase):
                 diffusion_ui.output_height, diffusion_ui.output_width,
                 diffusion_ui.image_number, diffusion_ui.sample_steps,
                 diffusion_ui.guide_scale, diffusion_ui.guide_rescale,
-                refiner_ui.refine_state, refiner_ui.refine_strength,
-                refiner_ui.refine_sampler, refiner_ui.refine_discretization,
+                refiner_ui.refine_strength, refiner_ui.refine_sampler,
+                refiner_ui.refine_discretization,
                 refiner_ui.refine_guide_scale, refiner_ui.refine_guide_rescale,
                 mantra_ui.style_template, mantra_ui.style_negative_template,
                 diffusion_ui.image_seed

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 # MLSD Line Detection
 # From https://github.com/navervision/mlsd
 # Apache-2.0 license

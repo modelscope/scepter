@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import os
+from collections import OrderedDict
 from glob import glob
 
 import gradio as gr
@@ -19,6 +21,9 @@ from scepter.studio.inference.inference_ui.model_manage_ui import ModelManageUI
 from scepter.studio.inference.inference_ui.refiner_ui import RefinerUI
 from scepter.studio.inference.inference_ui.tuner_ui import TunerUI
 from scepter.studio.utils.env import init_env
+
+UI_MAP = [('diffusion', DiffusionUI), ('mantra', MantraUI), ('tuner', TunerUI),
+          ('control', ControlUI), ('refiner', RefinerUI)]
 
 
 class InferenceUI():
@@ -71,94 +76,78 @@ class InferenceUI():
                                     pipe_manager,
                                     is_debug=is_debug,
                                     language=language)
-        self.diffusion_ui = DiffusionUI(cfg_general,
-                                        pipe_manager,
-                                        is_debug=is_debug,
-                                        language=language)
-        self.mantra_ui = MantraUI(cfg_general,
-                                  pipe_manager,
-                                  is_debug=is_debug,
-                                  language=language)
-        self.tuner_ui = TunerUI(cfg_general,
-                                pipe_manager,
-                                is_debug=is_debug,
-                                language=language)
-        self.refiner_ui = RefinerUI(cfg_general,
-                                    pipe_manager,
-                                    is_debug=is_debug,
-                                    language=language)
-        self.control_ui = ControlUI(cfg_general,
-                                    pipe_manager,
-                                    is_debug=is_debug,
-                                    language=language)
         self.component_names = InferenceUIName(language=language)
+        self.tab_ui = OrderedDict()
+        self.tab_ui_kwargs = OrderedDict()
+        for name, UI in UI_MAP:
+            ui = UI(cfg_general,
+                    pipe_manager,
+                    is_debug=is_debug,
+                    language=language)
+            self.tab_ui[name] = ui
+            self.tab_ui_kwargs[f'{name}_ui'] = ui
+            self.__setattr__(f'{name}_ui', ui)
+
+        self.check_box_controlled_tabs = ['mantra', 'tuner', 'control']
+        assert len(self.component_names.check_box_for_setting) == len(
+            self.check_box_controlled_tabs)
 
     def create_ui(self):
+        # create model
         self.model_manage_ui.create_ui()
         self.gallery_ui.create_ui()
-        with gr.Row(variant='panel', equal_height=True):
-            self.check_box_for_setting = gr.CheckboxGroup(
-                choices=self.component_names.check_box_for_setting,
-                show_label=False)
+
+        # create tabs
+        def create_tab(name, ui):
+            label = getattr(self.component_names, f'{name}_paras')
+            if name in ['refiner']:
+                ui.create_ui()
+            else:
+                with gr.TabItem(label=label, id=f'{name}_ui'):
+                    ui.create_ui()
+
         with gr.Row(variant='panel', equal_height=True):
             with gr.Accordion(label=self.component_names.advance_block_name,
                               open=True):
+                self.check_box_for_setting = gr.CheckboxGroup(
+                    choices=self.component_names.check_box_for_setting,
+                    show_label=False)
                 with gr.Tabs() as self.setting_tab:
-                    with gr.TabItem(label=self.component_names.diffusion_paras,
-                                    id='diffusion_ui'):
-                        self.diffusion_ui.create_ui()
-                    # 0
-                    with gr.TabItem(label=self.component_names.mantra_paras,
-                                    id='mantra_ui',
-                                    visible=True) as self.mantra_tab:
-                        self.mantra_ui.create_ui()
-                        self.mantra_state = gr.State(value=False)
-                    # 1
-                    with gr.TabItem(label=self.component_names.tuner_paras,
-                                    id='tuner_ui',
-                                    visible=True) as self.tuner_tab:
-                        self.tuner_ui.create_ui()
-                        self.tuner_state = gr.State(value=False)
-                    # 2
-                    with gr.TabItem(label=self.component_names.contrl_paras,
-                                    id='control_ui',
-                                    visible=True) as self.control_tab:
-                        self.control_ui.create_ui()
-                        self.control_state = gr.State(value=False)
-                    # 3
-                    with gr.TabItem(label=self.component_names.refine_paras,
-                                    id='refiner_ui',
-                                    visible=True) as self.refine_tab:
-                        self.refiner_ui.create_ui()
+                    for name, ui in self.tab_ui.items():
+                        create_tab(name, ui)
 
     def set_callbacks(self, manager):
-        self.model_manage_ui.set_callbacks(self.diffusion_ui, self.tuner_ui,
-                                           self.control_ui, self.mantra_ui)
+        self.model_manage_ui.set_callbacks(**self.tab_ui_kwargs)
         self.gallery_ui.set_callbacks(self, self.model_manage_ui,
-                                      self.diffusion_ui, self.mantra_ui,
-                                      self.tuner_ui, self.refiner_ui,
-                                      self.control_ui)
-        self.diffusion_ui.set_callbacks(self.model_manage_ui)
-        self.mantra_ui.set_callbacks(self.model_manage_ui)
-        self.tuner_ui.set_callbacks(self.model_manage_ui)
-        self.control_ui.set_callbacks(self.model_manage_ui, self.diffusion_ui)
-        self.refiner_ui.set_callbacks()
+                                      **self.tab_ui_kwargs)
+        for name, ui in self.tab_ui_kwargs.items():
+            ui.set_callbacks(self.model_manage_ui,
+                             **self.tab_ui_kwargs,
+                             gallery_ui=self.gallery_ui)
 
-        def change_setting_tab(check_box):
-            mantra_ui, tuner_ui, control_ui = False, False, False
+        def change_setting_tab(check_box, *args):
+            selected_tab = 'diffusion_ui'
+            ui_tabs_state = [False] * len(args)
             for key in check_box:
-                if self.component_names.check_box_for_setting.index(key) == 0:
-                    mantra_ui = True
-                if self.component_names.check_box_for_setting.index(key) == 1:
-                    tuner_ui = True
-                if self.component_names.check_box_for_setting.index(key) == 2:
-                    control_ui = True
-            return (mantra_ui, tuner_ui, control_ui)
+                i = self.component_names.check_box_for_setting.index(key)
+                ui_tabs_state[i] = True
+                if ui_tabs_state[i] != args[i]:
+                    selected_tab = self.check_box_controlled_tabs[i] + '_ui'
+            ui_tabs_updates = [gr.update(visible=v) for v in ui_tabs_state]
 
+            return gr.update(
+                selected=selected_tab), *ui_tabs_state, *ui_tabs_updates
+
+        gr_states = [
+            self.tab_ui[name].state for name in self.check_box_controlled_tabs
+        ]
+        gr_tabs = [
+            self.tab_ui[name].tab for name in self.check_box_controlled_tabs
+        ]
         self.check_box_for_setting.change(
             change_setting_tab,
-            inputs=[self.check_box_for_setting],
-            outputs=[self.mantra_state, self.tuner_state, self.control_state],
+            inputs=[self.check_box_for_setting, *gr_states],
+            outputs=[self.setting_tab, *gr_states, *gr_tabs],
             queue=False)
 
 

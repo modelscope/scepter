@@ -31,7 +31,7 @@ SOLVER:
     PARAMETERIZATION: v
     TIMESTEPS: 1000
     MIN_SNR_GAMMA:
-    ZERO_TERMINAL_SNR: True
+    ZERO_TERMINAL_SNR: False
     PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-2-1@v2-1_768-ema-pruned.safetensors
     IGNORE_KEYS: [ ]
     SCALE_FACTOR: 0.18215

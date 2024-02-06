@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 
 import gradio as gr
 
@@ -16,6 +17,8 @@ class ModelManageUI(UIBase):
         self.component_names = ModelManageUIName(language)
 
     def create_ui(self, *args, **kwargs):
+        self.diffusion_state = gr.State(
+            value=self.default_choices['diffusion_model']['default'])
         with gr.Group():
             gr.Markdown(value=self.component_names.model_block_name)
             with gr.Row(variant='panel', equal_height=True):
@@ -99,7 +102,8 @@ class ModelManageUI(UIBase):
             #                 self.tuner_name = gr.Text(
             #                     label='tuner_name')
 
-    def set_callbacks(self, diffusion_ui, tuner_ui, control_ui, mantra_ui):
+    def set_callbacks(self, diffusion_ui, tuner_ui, control_ui, mantra_ui,
+                      **kwargs):
         # def select_refine_tuner(all_select, evt: gr.SelectData):
         #     if 'Refiners' in all_select:
         #         refine_panel = gr.Row(visible=True)
@@ -122,12 +126,19 @@ class ModelManageUI(UIBase):
         #         self.refine_diffusion_panel, self.tuner_choice_panel,
         #         advance_ui.refine_tab, advance_ui.refine_state
         #     ])
-        def diffusion_model_change(diffusion_model, control_mode):
-            diffusion_model_info = self.pipe_manager.model_level_info[
-                diffusion_model]
-            now_pipeline = diffusion_model_info['pipeline'][0]
+        def diffusion_model_change(diffusion_state, diffusion_model,
+                                   control_mode):
+            if diffusion_state != diffusion_model:
+                last_pipline = self.pipe_manager.model_level_info[
+                    diffusion_state]['pipeline'][0]
+                last_pipeline_ins = self.pipe_manager.pipeline_level_modules[
+                    last_pipline]
+                last_pipeline_ins.dynamic_unload(name='all')
+            now_pipeline = self.pipe_manager.model_level_info[diffusion_model][
+                'pipeline'][0]
             pipeline_ins = self.pipe_manager.pipeline_level_modules[
                 now_pipeline]
+            pipeline_ins.dynamic_load(name='all')
             all_module_name = {}
             for module_name in self.pipe_manager.module_list:
                 module = getattr(pipeline_ins, module_name)
@@ -164,9 +175,10 @@ class ModelManageUI(UIBase):
                                                  default_input)
             diffusion_ui.cur_paras = cur_paras
             return (
+                diffusion_model,
                 gr.Dropdown(value=all_module_name['first_stage_model']),
                 gr.Dropdown(value=all_module_name['cond_stage_model']),
-                gr.Dropdown(choices=tunner_choices, value=None),
+                gr.Dropdown(choices=tunner_choices, value=[]),
                 gr.Dropdown(choices=controller_choices,
                             value=controller_default),
                 gr.Dropdown(choices=mantra_ui.all_styles[now_pipeline],
@@ -187,14 +199,17 @@ class ModelManageUI(UIBase):
 
         self.diffusion_model.change(
             diffusion_model_change,
-            inputs=[self.diffusion_model, control_ui.control_mode],
-            outputs=[
-                self.first_stage_model, self.cond_stage_model,
-                tuner_ui.tuner_model, control_ui.control_model,
-                mantra_ui.style, diffusion_ui.negative_prompt,
-                diffusion_ui.prompt_prefix, diffusion_ui.output_height,
-                diffusion_ui.sampler, diffusion_ui.discretization,
-                diffusion_ui.sample_steps, diffusion_ui.guide_scale,
-                diffusion_ui.guide_rescale
+            inputs=[
+                self.diffusion_state, self.diffusion_model,
+                control_ui.control_mode
             ],
-            queue=False)
+            outputs=[
+                self.diffusion_state, self.first_stage_model,
+                self.cond_stage_model, tuner_ui.tuner_model,
+                control_ui.control_model, mantra_ui.style,
+                diffusion_ui.negative_prompt, diffusion_ui.prompt_prefix,
+                diffusion_ui.output_height, diffusion_ui.sampler,
+                diffusion_ui.discretization, diffusion_ui.sample_steps,
+                diffusion_ui.guide_scale, diffusion_ui.guide_rescale
+            ],
+            queue=True)

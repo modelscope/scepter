@@ -129,12 +129,14 @@ class FileSystem(object):
                              local_path=None,
                              wait_finish=False,
                              timeout=3600,
+                             multi_thread=False,
                              worker_id=0):
         with self.get_fs_client(target_path) as client:
             local_path = client.get_dir_to_local_dir(target_path,
                                                      local_path=local_path,
                                                      wait_finish=wait_finish,
                                                      timeout=timeout,
+                                                     multi_thread=multi_thread,
                                                      worker_id=worker_id)
             if local_path is None:
                 raise ReadException(
@@ -189,7 +191,10 @@ class FileSystem(object):
             local_path, is_tmp = client.map_to_local(target_path)
             return local_path, is_tmp
 
-    def put_dir_from_local_dir(self, local_dir, target_dir):
+    def put_dir_from_local_dir(self,
+                               local_dir,
+                               target_dir,
+                               multi_thread=False):
         """ Upload all contents in local_dir to target_dir, keep the file tree.
 
         Args:
@@ -200,7 +205,9 @@ class FileSystem(object):
             Bool.
         """
         with self.get_fs_client(target_dir) as client:
-            return client.put_dir_from_local_dir(local_dir, target_dir)
+            return client.put_dir_from_local_dir(local_dir,
+                                                 target_dir,
+                                                 multi_thread=multi_thread)
 
     def walk_dir(self, target_dir, recurse=True):
         """ Iterator to access the files of target dir.

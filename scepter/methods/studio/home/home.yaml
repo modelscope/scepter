@@ -38,15 +38,15 @@ GUIDE_INFO:
       width: 100%;
     }
     .video-wrapper {
-      width: 75%; 
+      width: 75%;
     }
     video {
-      width: 100%; 
-      display: block; 
+      width: 100%;
+      display: block;
     }
     .description {
-      text-align: center; 
-      margin-top: 10px; 
+      text-align: center;
+      margin-top: 10px;
       font-size: 0.8em;
     }
     </style>
@@ -70,15 +70,15 @@ GUIDE_INFO:
       width: 100%;
     }
     .video-wrapper {
-      width: 75%; 
+      width: 75%;
     }
     video {
-      width: 100%; 
-      display: block; 
+      width: 100%;
+      display: block;
     }
     .description {
-      text-align: center; 
-      margin-top: 10px; 
+      text-align: center;
+      margin-top: 10px;
       font-size: 0.8em;
     }
     </style>

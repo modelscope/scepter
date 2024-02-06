@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 # For dataset manager
 class InferenceUIName():
     def __init__(self, language='en'):

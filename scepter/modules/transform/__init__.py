@@ -16,7 +16,8 @@ from scepter.modules.transform.io import (LoadCvImageFromFile,
 from scepter.modules.transform.io_video import (DecodeVideoToTensor,
                                                 LoadVideoFromFile)
 from scepter.modules.transform.registry import TRANSFORMS, build_pipeline
-from scepter.modules.transform.tensor import Rename, Select, ToNumpy, ToTensor
+from scepter.modules.transform.tensor import (Rename, RenameMeta, Select,
+                                              TemplateStr, ToNumpy, ToTensor)
 from scepter.modules.transform.transform_xl import FlexibleCropXL
 from scepter.modules.transform.video import (AutoResizedCropVideo,
                                              CenterCropVideo, NormalizeVideo,

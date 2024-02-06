@@ -252,3 +252,87 @@ class TensorToGPU(object):
                             __class__.__name__,
                             para_dict,
                             set_name=True)
+
+
+@TRANSFORMS.register_class()
+class RenameMeta(object):
+    def __init__(self, cfg, logger=None):
+        self.input_key = cfg.INPUT_KEY
+        self.output_key = cfg.OUTPUT_KEY
+        self.force = cfg.get('FORCE', False)
+
+    def __call__(self, item):
+        if 'meta' in item:
+            data = {}
+            for idx, key in enumerate(self.input_key):
+                data[self.output_key[idx]] = item['meta'][key]
+            if not self.force:
+                have_key_set = set(self.input_key)
+            else:
+                have_key_set = set(self.input_key + self.output_key)
+            for k, v in item['meta'].items():
+                if k not in have_key_set:
+                    data[k] = v
+            item['meta'] = data
+        return item
+
+    @staticmethod
+    def get_config_template():
+        '''
+        { "ENV" :
+            { "description" : "",
+              "A" : {
+                    "value": 1.0,
+                    "description": ""
+               }
+            }
+        }
+        :return:
+        '''
+        para_dict = [{
+            'INPUT_KEY': {
+                'value': [],
+                'description':
+                'The keys need to rename, the other keys are outputed by default.'
+            },
+            'OUTPUT_KEY': {
+                'value': [],
+                'description':
+                'The keys need to rename, the other keys are outputed by default.'
+            }
+        }]
+        return dict_to_yaml('TRANSFORM',
+                            __class__.__name__,
+                            para_dict,
+                            set_name=True)
+
+
+@TRANSFORMS.register_class()
+class TemplateStr(object):
+    def __init__(self, cfg, logger=None):
+        self.template_str = cfg.get('TEMPLATE_STR', '')
+        self.meta_template_str = cfg.get('META_TEMPLATE_STR', '')
+
+    def __call__(self, item):
+        if self.template_str != '':
+            for key, val in item.items():
+                if isinstance(val, str) and f'{{{key}}}' in self.template_str:
+                    template = self.template_str
+                    val = template.replace(f'{{{key}}}', val)
+                    item[key] = val
+        if self.meta_template_str != '' and 'meta' in item:
+            for key, val in item['meta'].items():
+                if isinstance(val,
+                              str) and f'{{{key}}}' in self.meta_template_str:
+                    template = self.meta_template_str
+                    val = template.replace(f'{{{key}}}', val)
+                    item['meta'][key] = val
+        return item
+
+    @staticmethod
+    def get_config_template():
+        para_dict = [{}]
+        return dict_to_yaml('TRANSFORM',
+                            __class__.__name__,
+                            para_dict,
+                            set_name=True)

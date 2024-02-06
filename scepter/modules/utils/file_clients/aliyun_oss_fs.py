@@ -490,15 +490,88 @@ class AliyunOssFs(BaseFs):
                                   meta_dict=copy.deepcopy(meta_dict)))
         return meta_dict
 
+    def _get_dir_multi(self,
+                       target_path,
+                       local_path,
+                       wait_finish=False,
+                       meta_dict={}):
+        local_path = local_path.replace('/./', '/')
+        os.makedirs(local_path, exist_ok=True)
+        generator = self.walk_dir(target_path)
+        single_file_name = []
+        for file_name in generator:
+            if file_name == target_path or file_name == target_path + '/':
+                continue
+            local_file_name = os.path.join(
+                local_path,
+                file_name.split(target_path)[-1]).replace('/./', '/')
+            if not self.isdir(file_name):
+                single_file_name.append((file_name, local_file_name))
+            else:
+                meta_dict.update(
+                    self._get_dir_multi(file_name,
+                                        local_file_name,
+                                        meta_dict=copy.deepcopy(meta_dict)))
+
+        data_quene = queue.Queue()
+        batch_size = 20
+        R = threading.Lock()
+
+        def get_one_object(target_path_list):
+            if isinstance(target_path_list, tuple):
+                target_path_list = [target_path_list]
+            for target_path, local_path in target_path_list:
+                if self.exists(target_path):
+                    etag, size = self.get_meta(target_path)
+                    if local_path in meta_dict and meta_dict[
+                            local_path] == etag:
+                        continue
+                    process_msg(f'Download {target_path} to {local_path}....')
+                    local_path = self.get_object_to_local_file(
+                        target_path, local_path, wait_finish=wait_finish)
+                    assert local_path is not None
+                    meta_dict[target_path] = etag
+                else:
+                    local_path = None
+                R.acquire()
+                try:
+                    data_quene.put_nowait([target_path, local_path])
+                except Exception:
+                    R.release()
+                R.release()
+
+        while True:
+            batch_list = single_file_name[:10 * batch_size]
+            if len(batch_list) < 1:
+                break
+            single_file_name = single_file_name[10 * batch_size:]
+            threading_list = []
+            for i in range(batch_size):
+                cur_batch = batch_list[i::batch_size]
+                if isinstance(cur_batch, tuple):
+                    cur_batch = [cur_batch]
+                t = threading.Thread(target=get_one_object, args=(cur_batch, ))
+                t.daemon = True
+                t.start()
+                threading_list.append(t)
+            [threading_t.join() for threading_t in threading_list]
+            file_dict = {}
+            while not data_quene.empty():
+                target_path, local_path = data_quene.get_nowait()
+                file_dict[target_path] = local_path
+        return meta_dict
+
     def get_dir_to_local_dir(self,
                              target_path,
                              local_path=None,
                              wait_finish=False,
                              timeout=3600,
+                             multi_thread=False,
                              worker_id=-1) -> Optional[str]:
         if not self.isdir(target_path):
             self.logger.info(
                 f"{target_path} is not directory or doesn't exist.")
+            return None
         if not target_path.endswith('/'):
             target_path += '/'
         if local_path is None:
@@ -533,9 +606,14 @@ class AliyunOssFs(BaseFs):
             meta_dict = json.load(open(check_file, 'r'))
         else:
             meta_dict = {}
-        meta_dict = self._get_dir(target_path,
-                                  local_path=local_path,
-                                  meta_dict=copy.deepcopy(meta_dict))
+        if multi_thread:
+            meta_dict = self._get_dir_multi(target_path,
+                                            local_path=local_path,
+                                            meta_dict=copy.deepcopy(meta_dict))
+        else:
+            meta_dict = self._get_dir(target_path,
+                                      local_path=local_path,
+                                      meta_dict=copy.deepcopy(meta_dict))
         json.dump(meta_dict, open(check_file, 'w'))
         if is_tmp:
             self.add_temp_file(local_path)
@@ -938,16 +1016,67 @@ class AliyunOssFs(BaseFs):
                 continue
             yield osp.join(self._prefix, obj.key)
 
-    def put_dir_from_local_dir(self, local_dir, target_dir) -> bool:
+    def put_dir_from_local_dir(self,
+                               local_dir,
+                               target_dir,
+                               multi_thread=False) -> bool:
+        singe_file_names = []
         for folder, sub_folders, files in os.walk(local_dir):
             for file in files:
                 file_abs_path = osp.join(folder, file)
                 file_rel_path = osp.relpath(file_abs_path, local_dir)
                 target_path = osp.join(target_dir, file_rel_path)
+                singe_file_names.append((file_abs_path, target_path))
+
+        if not multi_thread:
+            for file_abs_path, target_path in singe_file_names:
                 status = self.put_object_from_local_file(
                     file_abs_path, target_path)
                 if not status:
                     return False
+        else:
+            data_quene = queue.Queue()
+            R = threading.Lock()
+            batch_size = 20
+
+            def put_one_object(target_path_list):
+                if isinstance(target_path_list, tuple):
+                    target_path_list = [target_path_list]
+                for local_path, target_path in target_path_list:
+                    if local_path is None or target_path is None:
+                        flg = False
+                    elif os.path.exists(local_path):
+                        flg = self.put_object_from_local_file(
+                            local_path, target_path)
+                    else:
+                        flg = False
+                    R.acquire()
+                    try:
+                        data_quene.put_nowait([local_path, target_path, flg])
+                    except Exception:
+                        R.release()
+                    R.release()
+
+            while True:
+                batch_list = singe_file_names[:10 * batch_size]
+                if len(batch_list) < 1:
+                    break
+                singe_file_names = singe_file_names[10 * batch_size:]
+                threading_list = []
+                for i in range(batch_size):
+                    cur_batch = batch_list[i::batch_size]
+                    if isinstance(cur_batch, tuple):
+                        cur_batch = [cur_batch]
+                    t = threading.Thread(target=put_one_object,
+                                         args=(cur_batch, ))
+                    t.daemon = True
+                    t.start()
+                    threading_list.append(t)
+                [threading_t.join() for threading_t in threading_list]
+                while not data_quene.empty():
+                    local_path, target_path, flg = data_quene.get_nowait()
+                    if not flg:
+                        return False
         return True
 
     def size(self, target_path) -> Optional[int]:

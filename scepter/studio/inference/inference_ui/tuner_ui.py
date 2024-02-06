@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 
 import gradio as gr
@@ -45,7 +46,8 @@ class TunerUI(UIBase):
                     one_tuner.NAME] = one_tuner
 
     def create_ui(self, *args, **kwargs):
-        with gr.Row(equal_height=True):
+        self.state = gr.State(value=False)
+        with gr.Row(equal_height=True, visible=False) as self.tab:
             with gr.Column(variant='panel', scale=1, min_width=0):
                 with gr.Group(visible=True):
                     with gr.Row(equal_height=True):
@@ -91,7 +93,7 @@ class TunerUI(UIBase):
                             label=self.component_names.tuner_prompt_example,
                             lines=2)
 
-    def set_callbacks(self, model_manage_ui):
+    def set_callbacks(self, model_manage_ui, **kwargs):
         def tuner_model_change(tuner_model, diffusion_model):
             diffusion_model_info = self.pipe_manager.model_level_info[
                 diffusion_model]

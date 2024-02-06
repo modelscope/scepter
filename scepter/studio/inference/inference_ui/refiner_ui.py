@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import gradio as gr
 
 from scepter.studio.inference.inference_ui.component_names import RefinerUIName
@@ -19,8 +20,8 @@ class RefinerUI(UIBase):
         return diffusion_paras
 
     def create_ui(self, *args, **kwargs):
-        self.refine_state = gr.State(value=False)
-        with gr.Group(visible=False) as self.refine_tab:
+        self.state = gr.State(value=False)
+        with gr.Group(visible=False) as self.tab:
             with gr.Row(equal_height=True):
                 with gr.Column(variant='panel', scale=1, min_width=0):
                     self.refiner_diffusion_model = gr.Dropdown(
@@ -86,5 +87,5 @@ class RefinerUI(UIBase):
                             'DEFAULT', 0.5),
                         interactive=True)
 
-    def set_callbacks(self):
+    def set_callbacks(self, model_manage_ui, **kwargs):
         pass

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 
 import gradio as gr
@@ -45,7 +46,8 @@ class MantraUI(UIBase):
         return name_level_style, all_styles
 
     def create_ui(self, *args, **kwargs):
-        with gr.Row(equal_height=True):
+        self.state = gr.State(value=False)
+        with gr.Row(equal_height=True, visible=False) as self.tab:
             with gr.Column(scale=1):
                 with gr.Group(visible=True):
                     with gr.Row(equal_height=True):
@@ -102,7 +104,7 @@ class MantraUI(UIBase):
                             label=self.component_names.style_example_prompt,
                             lines=2)
 
-    def set_callbacks(self, model_manage_ui):
+    def set_callbacks(self, model_manage_ui, **kwargs):
         def change_style(style, diffusion_model):
             style_template = ''
             style_negative_template = []

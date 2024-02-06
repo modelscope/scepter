@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 class Singleton(object):
     @classmethod
     def get_instance(cls, cfg, **kwargs):
