@@ -68,6 +68,7 @@ class DiffusionUI(UIBase):
     def create_ui(self, *args, **kwargs):
         self.cur_paras = self.get_default(self.diffusion_paras,
                                           self.default_input)
+        self.example_block = gr.Row(equal_height=True, visible=True)
         with gr.Row(equal_height=True):
             self.negative_prompt = gr.Textbox(
                 label=self.component_names.negative_prompt,
@@ -154,6 +155,12 @@ class DiffusionUI(UIBase):
                 self.refresh_seed = gr.Button(value=refresh_symbol)
 
     def set_callbacks(self, model_manage_ui, **kwargs):
+        gallery_ui = kwargs.pop('gallery_ui')
+        with self.example_block:
+            gr.Examples(label=self.component_names.example_block_name,
+                        examples=self.component_names.examples,
+                        inputs=gallery_ui.prompt)
+
         def random_checked(r):
             value = -1
             return (gr.Row(visible=not r), gr.Textbox(value=value))

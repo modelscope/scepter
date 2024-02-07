@@ -54,7 +54,8 @@ class GaussianDiffusion(object):
                 guide_rescale=None,
                 clamp=None,
                 percentile=None,
-                cat_uc=False):
+                cat_uc=False,
+                **kwargs):
         """
         Apply one step of denoising from the posterior distribution q(x_s | x_t, x0).
         Since x0 is not available, estimate the denoising results using the learned
@@ -79,7 +80,7 @@ class GaussianDiffusion(object):
         # prediction
         if guide_scale is None:
             assert isinstance(model_kwargs, dict)
-            out = model(xt, t=t, **model_kwargs)
+            out = model(xt, t=t, **model_kwargs, **kwargs)
         else:
             # classifier-free guidance (arXiv:2207.12598)
             # model_kwargs[0]: conditional kwargs
@@ -87,7 +88,7 @@ class GaussianDiffusion(object):
             assert isinstance(model_kwargs, list) and len(model_kwargs) == 2
 
             if guide_scale == 1.:
-                out = model(xt, t=t, **model_kwargs[0])
+                out = model(xt, t=t, **model_kwargs[0], **kwargs)
             else:
                 if cat_uc:
 
@@ -111,11 +112,12 @@ class GaussianDiffusion(object):
                                 all_model_kwargs[key], value)
                     all_out = model(xt.repeat(2, 1, 1, 1),
                                     t=t.repeat(2),
-                                    **all_model_kwargs)
+                                    **all_model_kwargs,
+                                    **kwargs)
                     y_out, u_out = all_out.chunk(2)
                 else:
-                    y_out = model(xt, t=t, **model_kwargs[0])
-                    u_out = model(xt, t=t, **model_kwargs[1])
+                    y_out = model(xt, t=t, **model_kwargs[0], **kwargs)
+                    u_out = model(xt, t=t, **model_kwargs[1], **kwargs)
                 out = u_out + guide_scale * (y_out - u_out)
 
                 # rescale the output according to arXiv:2305.08891
@@ -262,7 +264,8 @@ class GaussianDiffusion(object):
                               guide_rescale,
                               clamp,
                               percentile,
-                              cat_uc=cat_uc)[-2]
+                              cat_uc=cat_uc,
+                              **kwargs)[-2]
 
             # collect intermediate outputs
             if return_intermediate == 'xt':
@@ -467,8 +470,8 @@ class GaussianDiffusion(object):
             t = self._sigma_to_t(sigma).repeat(len(xt)).round().long()
 
             x0 = self.denoise(xt * c_in, t, None, model, model_kwargs,
-                              guide_scale, guide_rescale, clamp,
-                              percentile)[-2]
+                              guide_scale, guide_rescale, clamp, percentile,
+                              **kwargs)[-2]
             # collect intermediate outputs
             if return_intermediate == 'xt':
                 intermediates.append(xt)

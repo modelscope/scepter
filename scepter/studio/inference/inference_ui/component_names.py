@@ -83,7 +83,6 @@ class DiffusionUIName():
             self.image_number = 'Images Number'
             self.resolutions_height = 'Output Height'
             self.resolutions_width = 'Output Width'
-
             self.negative_prompt = 'Negative Prompt'
             self.negative_prompt_placeholder = 'Type Prompt Here'
             self.negative_prompt_description = 'Describing what you do not want to see.'
@@ -93,6 +92,12 @@ class DiffusionUIName():
             self.discretization = 'Discretization'
             self.random_seed = 'Use Random Seed'
             self.seed = 'Used Seed'
+            self.example_block_name = 'Prompt Examples'
+            self.examples = [
+                'dream dandelion', 'Mount Everest', 'a boy wearing a jacket',
+                'Spring, Birds, Cawing, Branches',
+                'Cyberpunk, Maiden, Heavy Machinery', 'A Frog'
+            ]
 
         elif language == 'zh':
 
@@ -110,6 +115,12 @@ class DiffusionUIName():
             self.discretization = '离散化'
             self.random_seed = '使用随机种子'
             self.seed = '使用的种子'
+            self.example_block_name = '提示词样例'
+            self.examples = [
+                'dream dandelion', 'Mount Everest', 'a boy wearing a jacket',
+                'Spring, Birds, Cawing, Branches',
+                'Cyberpunk, Maiden, Heavy Machinery', 'A Frog'
+            ]
 
 
 class MantraUIName():
@@ -127,6 +138,13 @@ class MantraUIName():
             self.style_negative_template = 'Mantra Negative Prompt Template'
             self.style_example = 'Mantra Results Example'
             self.style_example_prompt = 'Mantra Example Prompt'
+            self.example_block_name = 'Examples'
+            self.examples = [
+                [['Adorable 3D Character'], 'a girl'],
+                [['Watercolor 2'], 'a single flower'],
+                [['Action Figure'],
+                 'a close up of a small rabbit wearing a hat and scarf']
+            ]
 
         elif language == 'zh':
             self.mantra_styles = '咒语风格'
@@ -140,6 +158,12 @@ class MantraUIName():
             self.style_negative_template = '咒语负向提示模板'
             self.style_example = '咒语示例图'
             self.style_example_prompt = '咒语示例提示词'
+            self.example_block_name = '样例'
+            self.examples = [
+                [['可爱的3D角色'], 'a girl'], [['水彩'], 'a single flower'],
+                [['动作人偶'],
+                 'a close up of a small rabbit wearing a hat and scarf']
+            ]
 
 
 class RefinerUIName():
@@ -179,6 +203,11 @@ class TunerUIName():
             self.tuner_prompt_example = 'Prompt Example'
             self.base_model = 'Base Model Name'
             self.custom_tuner_model = 'Customized Model'
+            self.advance_block_name = 'Advance Setting'
+            self.tuner_scale = 'Tuner Scale'
+            self.example_block_name = 'Examples'
+            self.examples = [[['Pencil Sketch Drawing'], 'a girl in a jacket'],
+                             [['Flat 2D Art'], 'a cat']]
 
         elif language == 'zh':
             self.tuner_model = '微调模型'
@@ -189,6 +218,11 @@ class TunerUIName():
             self.tuner_prompt_example = '示例提示词'
             self.base_model = '基础模型'
             self.custom_tuner_model = '自定义模型'
+            self.advance_block_name = '高级设置'
+            self.tuner_scale = '微调强度'
+            self.example_block_name = '样例'
+            self.examples = [[['铅笔素描'], 'a girl in a jacket'],
+                             [['扁平2D艺术'], 'a cat']]
 
 
 class ControlUIName():

@@ -47,53 +47,74 @@ class TunerUI(UIBase):
 
     def create_ui(self, *args, **kwargs):
         self.state = gr.State(value=False)
-        with gr.Row(equal_height=True, visible=False) as self.tab:
-            with gr.Column(variant='panel', scale=1, min_width=0):
-                with gr.Group(visible=True):
-                    with gr.Row(equal_height=True):
-                        with gr.Column(scale=1):
-                            self.tuner_model = gr.Dropdown(
-                                label=self.component_names.tuner_model,
-                                choices=self.tunner_choices,
+        with gr.Column(visible=False) as self.tab:
+            with gr.Row():
+                with gr.Column(variant='panel', scale=1, min_width=0):
+                    with gr.Group(visible=True):
+                        with gr.Row(equal_height=True):
+                            with gr.Column(scale=1):
+                                self.tuner_model = gr.Dropdown(
+                                    label=self.component_names.tuner_model,
+                                    choices=self.tunner_choices,
+                                    value=None,
+                                    multiselect=True,
+                                    interactive=True)
+                            with gr.Column(scale=1):
+                                self.custom_tuner_model = gr.Dropdown(
+                                    label=self.component_names.
+                                    custom_tuner_model,
+                                    choices=[],
+                                    value=None,
+                                    multiselect=True,
+                                    interactive=True)
+                        with gr.Row(equal_height=True):
+                            with gr.Column(scale=1):
+                                self.tuner_type = gr.Text(
+                                    value='',
+                                    label=self.component_names.tuner_type)
+                            with gr.Column(scale=1):
+                                self.base_model = gr.Text(
+                                    value='',
+                                    label=self.component_names.base_model)
+                            with gr.Column(scale=1):
+                                self.tuner_desc = gr.Text(
+                                    value='',
+                                    label=self.component_names.tuner_desc,
+                                    lines=4)
+                with gr.Column(variant='panel', scale=1, min_width=0):
+                    with gr.Group(visible=True):
+                        with gr.Row(equal_height=True):
+                            self.tuner_example = gr.Image(
+                                label=self.component_names.tuner_example,
+                                source='upload',
                                 value=None,
-                                multiselect=True,
-                                interactive=True)
-                        with gr.Column(scale=1):
-                            self.custom_tuner_model = gr.Dropdown(
-                                label=self.component_names.custom_tuner_model,
-                                choices=[],
-                                value=None,
-                                multiselect=True,
-                                interactive=True)
-                    with gr.Row(equal_height=True):
-                        with gr.Column(scale=1):
-                            self.tuner_type = gr.Text(
+                                interactive=False)
+                        with gr.Row(equal_height=True):
+                            self.tuner_prompt_example = gr.Text(
                                 value='',
-                                label=self.component_names.tuner_type)
-                        with gr.Column(scale=1):
-                            self.base_model = gr.Text(
-                                value='',
-                                label=self.component_names.base_model)
-                        with gr.Column(scale=1):
-                            self.tuner_desc = gr.Text(
-                                value='',
-                                label=self.component_names.tuner_desc,
-                                lines=4)
-            with gr.Column(variant='panel', scale=1, min_width=0):
-                with gr.Group(visible=True):
-                    with gr.Row(equal_height=True):
-                        self.tuner_example = gr.Image(
-                            label=self.component_names.tuner_example,
-                            source='upload',
-                            value=None,
-                            interactive=False)
-                    with gr.Row(equal_height=True):
-                        self.tuner_prompt_example = gr.Text(
-                            value='',
-                            label=self.component_names.tuner_prompt_example,
-                            lines=2)
+                                label=self.component_names.
+                                tuner_prompt_example,
+                                lines=2)
+
+            with gr.Accordion(label=self.component_names.advance_block_name,
+                              open=False):
+                self.tuner_scale = gr.Slider(
+                    label=self.component_names.tuner_scale,
+                    minimum=0.0,
+                    maximum=1.0,
+                    step=0.05,
+                    value=1.0,
+                    interactive=True)
+
+            self.example_block = gr.Accordion(
+                label=self.component_names.example_block_name, open=True)
 
     def set_callbacks(self, model_manage_ui, **kwargs):
+        gallery_ui = kwargs.pop('gallery_ui')
+        with self.example_block:
+            gr.Examples(examples=self.component_names.examples,
+                        inputs=[self.tuner_model, gallery_ui.prompt])
+
         def tuner_model_change(tuner_model, diffusion_model):
             diffusion_model_info = self.pipe_manager.model_level_info[
                 diffusion_model]

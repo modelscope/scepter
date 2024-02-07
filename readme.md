@@ -179,6 +179,42 @@ PYTHONPATH=. python scepter/tools/webui.py --cfg scepter/methods/studio/scepter_
 
 We deploy a work studio on Modelscope that includes only the inference tab, please refer to [ms_scepter_studio](https://www.modelscope.cn/studios/damo/scepter_studio/summary)
 
+## 🖼️ Gallery
+
+### Dragon Year Special: Dragon Tuner
+
+<table>
+  <tr>
+    <td><strong>Gold Dragon Tuner</strong></td>
+    <td><strong>Sloppy Dragon Tuner</strong></td>
+    <td><strong>Red Dragon Tuner</strong><br> + Papercraft Mantra</td>
+    <td><strong>Azure Dragon Tuner</strong><br> + Pose Control</td>
+  </tr>
+  <tr>
+    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/tuner_gold_dragon.png" width="300"></td>
+    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/tuner_sloppy_dragon.jpeg" width="300"></td>
+    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/tuner_mantra_papercraft_dragon.png" width="300"></td>
+    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/tuner_pose.png" width="300"></td>
+  </tr>
+</table>
+
+### Text Effect Image
+
+<table>
+  <tr>
+    <td><strong>Conditional Image</strong></td>
+    <td><strong>Midas Control</strong><br>"Race track, top view"</td>
+    <td><strong>Midas Control</strong><br> + Watercolor Mantra<br>"white lilies"</td>
+    <td><strong>Midas Control</strong><br> + Dragon Tuner<br>"Spring Festival, Chinese dragon"</td>
+  </tr>
+  <tr>
+    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/word_condition.png" width="300"></td>
+    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/word_race.jpeg" width="300"></td>
+    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/word_lilies.jpeg" width="300"></td>
+    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/word_festival.jpeg" width="300"></td>
+  </tr>
+</table>
+
 ## ✨ Features
 
 ### Text-to-Image Generation
@@ -204,9 +240,9 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 - 🪄 denotes that the model has been published.
 - More models will be released in the future.
 
-| Model  | URL                                                                                                                                            |
-|--------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| SCEdit | [ModelScope](https://modelscope.cn/models/damo/scepter_scedit/summary) [HuggingFace](https://huggingface.co/scepter-studio/scepter_scedit) |
+| Model  | URL                                                                                 |
+|--------|-------------------------------------------------------------------------------------|
+| SCEdit | [ModelCard](https://modelscope.cn/models/damo/scepter_scedit/summary) |
 
 PS: Scripts running within the SCEPTER framework will automatically fetch and load models based on the required dependency files, eliminating the need for manual downloads.
 

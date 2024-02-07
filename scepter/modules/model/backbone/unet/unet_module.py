@@ -492,13 +492,20 @@ class DiffusionUNet(BaseModel):
             hs.append(h)
         h = self.middle_block(h, emb, context)
         for m_id, module in enumerate(self.output_blocks):
-            h = torch.cat([h, self.lsc_identity[m_id](hs.pop())], dim=1)
+            skip_h = hs.pop()
+            if 'tuner_scale' in kwargs and kwargs[
+                    'tuner_scale'] is not None and kwargs['tuner_scale'] < 1.0:
+                tuner_scale = kwargs['tuner_scale']
+                tuner_h = self.lsc_identity[m_id](skip_h) - skip_h
+                h = torch.cat([h, skip_h + tuner_scale * tuner_h], dim=1)
+            else:
+                h = torch.cat([h, self.lsc_identity[m_id](skip_h)], dim=1)
             target_size = hs[-1].shape[-2:] if len(hs) > 0 else None
             h = module(h, emb, context, target_size)
         out = self.out(h)
         return out
 
-    def _forward_control(self, x, emb, context, hint, alpha=0.5, **kwargs):
+    def _forward_control(self, x, emb, context, hint, **kwargs):
         control_scale = kwargs.pop('control_scale', 1.0)
         multi_csc_tuners = self.control_blocks
         # hints
@@ -535,8 +542,8 @@ class DiffusionUNet(BaseModel):
                 skip_h_new = skip_h + control_scale * multi_control_h
             else:
                 # csc-tuner + sc-tuner
-                skip_h_new = skip_h + alpha * multi_control_h + (
-                    1 - alpha) * tuner_h
+                tuner_scale = kwargs['tuner_scale']
+                skip_h_new = skip_h + control_scale * multi_control_h + tuner_scale * tuner_h
             h = torch.cat([h, skip_h_new], dim=1)
             target_size = hs[-1].shape[-2:] if len(hs) > 0 else None
             h = module(h, emb, context, target_size)
@@ -834,13 +841,20 @@ class DiffusionUNetXL(DiffusionUNet):
             hs.append(h)
         h = self.middle_block(h, emb, context)
         for m_id, module in enumerate(self.output_blocks):
-            h = torch.cat([h, self.lsc_identity[m_id](hs.pop())], dim=1)
+            skip_h = hs.pop()
+            if 'tuner_scale' in kwargs and kwargs[
+                    'tuner_scale'] is not None and kwargs['tuner_scale'] < 1.0:
+                tuner_scale = kwargs['tuner_scale']
+                tuner_h = self.lsc_identity[m_id](skip_h) - skip_h
+                h = torch.cat([h, skip_h + tuner_scale * tuner_h], dim=1)
+            else:
+                h = torch.cat([h, self.lsc_identity[m_id](skip_h)], dim=1)
             target_size = hs[-1].shape[-2:] if len(hs) > 0 else None
             h = module(h, emb, context, target_size)
         out = self.out(h)
         return out
 
-    def _forward_control(self, x, emb, context, hint, alpha=0.5, **kwargs):
+    def _forward_control(self, x, emb, context, hint, **kwargs):
         control_scale = kwargs.pop('control_scale', 1.0)
         multi_csc_tuners = self.control_blocks
         # hints
@@ -877,8 +891,8 @@ class DiffusionUNetXL(DiffusionUNet):
                 skip_h_new = skip_h + control_scale * multi_control_h
             else:
                 # csc-tuner + sc-tuner
-                skip_h_new = skip_h + alpha * multi_control_h + (
-                    1 - alpha) * tuner_h
+                tuner_scale = kwargs['tuner_scale']
+                skip_h_new = skip_h + control_scale * multi_control_h + tuner_scale * tuner_h
             h = torch.cat([h, skip_h_new], dim=1)
             target_size = hs[-1].shape[-2:] if len(hs) > 0 else None
             h = module(h, emb, context, target_size)

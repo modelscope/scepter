@@ -5,8 +5,8 @@ from __future__ import annotations
 import os.path
 
 import gradio as gr
-
 import imagehash
+
 from scepter.modules.utils.file_system import FS
 from scepter.studio.preprocess.caption_editor_ui.component_names import \
     DatasetGalleryUIName
