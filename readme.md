@@ -172,8 +172,18 @@ python scepter/tools/run_inference.py --cfg scepter/methods/scedit/ctr/sd21_768_
 To fully experience **SCEPTER Studio**, you can launch the following command line:
 
 ```shell
+pip install scepter
+python -m scepter.tools.webui
+```
+or run after clone repo code
+```shell
+git clone https://github.com/modelscope/scepter.git
 PYTHONPATH=. python scepter/tools/webui.py --cfg scepter/methods/studio/scepter_ui.yaml
 ```
+
+The startup of **SCEPTER Studio** eliminates the need for manual downloading and organizing of models; it will automatically load the corresponding models and store them in a local directory. 
+Depending on the network and hardware situation, the initial startup usually requires 15-60 minutes, primarily involving the download and processing of SDv1.5, SDv2.1, and SDXL models. 
+Therefore, subsequent startups will become much faster (about one minute) as downloading is no longer required.
 
 ### Modelscope Studio
 
