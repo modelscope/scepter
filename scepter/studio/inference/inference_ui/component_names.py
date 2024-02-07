@@ -2,11 +2,17 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 # For dataset manager
 from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.directory import get_md5
 
 
 def download_image(image):
     if image is not None:
-        local_path = FS.get_from(image)
+        client = FS.get_fs_client(image)
+        if client.tmp_dir.startswith("/home"):
+            name = get_md5(image)
+            local_path = FS.get_from(image, f"/tmp/gradio/scepter_examples/{name}")
+        else:
+            local_path = FS.get_from(image)
         return local_path
     else:
         return image
