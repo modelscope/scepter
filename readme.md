@@ -14,6 +14,7 @@
 - [Installation](#-Installation)
 - [Getting Started](#-getting-started)
 - [SCEPTER Studio](#-scepter-studio)
+- [Gallery](#-gallery)
 - [Features](#-features)
 - [Learn More](#-learn-more)
 - [License](#license)
@@ -163,7 +164,6 @@ python scepter/tools/run_inference.py --cfg scepter/methods/scedit/t2i/sd15_512_
 python scepter/tools/run_inference.py --cfg scepter/methods/scedit/ctr/sd21_768_sce_ctr_canny.yaml --num_samples 1 --prompt 'a single flower is shown in front of a tree' --save_folder 'test_flower_canny' --image_size 768 --task control --image 'asset/images/flower.jpg' --control_mode canny --pretrained_model ms://damo/scepter_scedit@controllable_model/SD2.1/canny_control/0_SwiftSCETuning/pytorch_model.bin   # canny
 python scepter/tools/run_inference.py --cfg scepter/methods/scedit/ctr/sd21_768_sce_ctr_pose.yaml --num_samples 1 --prompt 'super mario' --save_folder 'test_mario_pose' --image_size 768 --task control --image 'asset/images/pose_source.png' --control_mode source --pretrained_model ms://damo/scepter_scedit@controllable_model/SD2.1/pose_control/0_SwiftSCETuning/pytorch_model.bin   # pose
 ```
-
 
 ## 🖥️ SCEPTER Studio
 
