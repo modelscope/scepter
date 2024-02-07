@@ -99,7 +99,10 @@ class HttpFs(BaseFs):
     def walk_dir(self, file_dir, recurse=True):
         raise NotImplementedError
 
-    def put_dir_from_local_dir(self, local_dir, target_dir) -> bool:
+    def put_dir_from_local_dir(self,
+                               local_dir,
+                               target_dir,
+                               multi_thread=False) -> bool:
         raise NotImplementedError
 
     def size(self, target_path) -> Optional[int]:
@@ -117,6 +120,15 @@ class HttpFs(BaseFs):
             start,
             size=10000,
             delimiter=None) -> (Union[bytes, str, None], Optional[int]):
+        raise NotImplementedError
+
+    def get_dir_to_local_dir(self,
+                             target_path,
+                             local_path=None,
+                             wait_finish=False,
+                             multi_thread=False,
+                             timeout=3600,
+                             worker_id=0) -> Optional[str]:
         raise NotImplementedError
 
     def get_url(self, target_path, lifecycle=3600 * 100):

@@ -51,6 +51,28 @@ class AnnotatorTest(unittest.TestCase):
             os.path.join(self.save_dir, 'sunflower_canny.png'))
 
     @unittest.skip('')
+    def test_annotator_canny_random(self):
+        # canny
+        canny_dict = {
+            'NAME': 'CannyAnnotator',
+            'LOW_THRESHOLD': 100,
+            'HIGH_THRESHOLD': 200,
+            'RANDOM_CFG': {
+                'PROBA': 1.0,
+                'MIN_LOW_THRESHOLD': 50,
+                'MAX_LOW_THRESHOLD': 100,
+                'MIN_HIGH_THRESHOLD': 200,
+                'MAX_HIGH_THRESHOLD': 350
+            }
+        }
+        canny_anno = Config(cfg_dict=canny_dict, load=False)
+        canny_ins = ANNOTATORS.build(canny_anno).to(we.device_id)
+        canny_image = canny_ins(self.image)
+        print("canny's shape:", canny_image.shape)
+        Image.fromarray(canny_image).save(
+            os.path.join(self.save_dir, 'sunflower_canny_random.png'))
+
+    @unittest.skip('')
     def test_annotator_hed(self):
         # hed
         hed_dict = {
@@ -130,6 +152,26 @@ class AnnotatorTest(unittest.TestCase):
             os.path.join(self.save_dir, 'sunflower_color.png'))
 
     @unittest.skip('')
+    def test_annotator_color_random(self):
+        # color
+        color_dict = {
+            'NAME': 'ColorAnnotator',
+            'RATIO': 64,
+            'RANDOM_CFG': {
+                'PROBA': 1.0,
+                # 'MIN_RATIO': 64,
+                # 'MAX_RATIO': 128
+                'CHOICE_RATIO': [32, 64, 128]
+            }
+        }
+        color_anno = Config(cfg_dict=color_dict, load=False)
+        color_ins = ANNOTATORS.build(color_anno).to(we.device_id)
+        color_image = color_ins(self.image)
+        print("color's shape:", color_image.shape)
+        Image.fromarray(color_image).save(
+            os.path.join(self.save_dir, 'sunflower_color_random.png'))
+
+    @unittest.skip('')
     def test_annotator_multi(self):
         # multi annotators
         canny_dict = {
@@ -185,7 +227,7 @@ class AnnotatorTest(unittest.TestCase):
             Image.fromarray(save_image).save(
                 os.path.join(self.save_dir, f'sunflower_multi_{key}.png'))
 
-    # @unittest.skip('')
+    @unittest.skip('')
     def test_annotator_processor(self):
         from scepter.modules.annotator.utils import AnnotatorProcessor
         anno_processor = AnnotatorProcessor(anno_type='hed')

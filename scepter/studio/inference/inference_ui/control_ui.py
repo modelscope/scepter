@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 
 import gradio as gr
 import numpy as np
@@ -67,8 +68,9 @@ class ControlUI(UIBase):
         return annotator
 
     def create_ui(self, *args, **kwargs):
-        gr.Markdown(self.component_names.preprocess)
-        with gr.Group():
+        self.state = gr.State(value=False)
+        with gr.Column(visible=False) as self.tab:
+            # gr.Markdown(self.component_names.preprocess)
             with gr.Row():
                 with gr.Column(scale=1, min_width=0):
                     self.source_image = gr.Image(
@@ -104,7 +106,27 @@ class ControlUI(UIBase):
                     self.cond_button = gr.Button('Extract')
                     gr.Markdown(self.component_names.direction)
 
-    def set_callbacks(self, model_manage_ui, diffusion_ui):
+            with gr.Accordion(label=self.component_names.advance_block_name,
+                              open=False):
+                self.control_scale = gr.Slider(
+                    label=self.component_names.control_scale,
+                    minimum=0.0,
+                    maximum=1.0,
+                    step=0.05,
+                    value=1.0,
+                    interactive=True)
+
+            self.example_block = gr.Accordion(
+                label=self.component_names.example_block_name, open=True)
+
+    def set_callbacks(self, model_manage_ui, diffusion_ui, **kwargs):
+        gallery_ui = kwargs.pop('gallery_ui')
+        with self.example_block:
+            gr.Examples(
+                examples=self.component_names.examples,
+                inputs=[self.control_mode, self.cond_image, gallery_ui.prompt],
+                examples_per_page=20)
+
         def extract_condition(source_image, control_mode, crop_type,
                               output_height, output_width):
             if control_mode not in self.controlable_annotators:

@@ -3,7 +3,6 @@
 import argparse
 import os
 
-import cv2
 import numpy as np
 import torch
 import torch.cuda.amp as amp
@@ -67,13 +66,12 @@ def run_task(cfg):
     for idx, out in enumerate(ret):
         img = out['image']
         img = img.permute(1, 2, 0).cpu().numpy()
-        img = (img * 255).astype(np.uint8)
+        img = Image.fromarray((img * 255).astype(np.uint8))
         filename = '{}_{}.png'.format('inference', idx)
         save_file = os.path.join(save_folder, filename)
         with FS.put_to(save_file) as local_path:
-            image = img.copy()
-            cv2.cvtColor(image, cv2.COLOR_RGB2BGR, image)
-            cv2.imwrite(local_path, image)
+            img.save(local_path)
+            std_logger.info(f'Processed {filename} save to {local_path}')
 
 
 def run_task_control(cfg):
@@ -151,13 +149,11 @@ def run_task_control(cfg):
         for name in ['image', 'hint']:
             img = out[name]
             img = img.permute(1, 2, 0).cpu().numpy()
-            img = (img * 255).astype(np.uint8)
+            img = Image.fromarray((img * 255).astype(np.uint8))
             filename = '{}_{}_{}.png'.format('inference', name, idx)
             save_file = os.path.join(save_folder, filename)
             with FS.put_to(save_file) as local_path:
-                image = img.copy()
-                cv2.cvtColor(image, cv2.COLOR_RGB2BGR, image)
-                cv2.imwrite(local_path, image)
+                img.save(local_path)
                 std_logger.info(f'Processed {filename} save to {local_path}')
 
 

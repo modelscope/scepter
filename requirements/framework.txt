@@ -7,5 +7,6 @@ opencv-python
 opencv_transforms>=0.0.6
 oss2>=2.15.0
 pyyaml>=5.3.1
+scikit-image
+torchsde
 transformers
-xformers>=0.0.21

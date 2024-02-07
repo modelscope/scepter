@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 # For dataset manager
 class CreateDatasetUIName():
     def __init__(self, language='en'):
@@ -44,6 +45,7 @@ class CreateDatasetUIName():
             self.refresh_data_list_info1 = (
                 'The dataset name has been changed, '
                 'please refresh the list and try again.')
+            self.use_link = 'Use File Link'
         elif language == 'zh':
             self.dataset_name = '数据集'
             self.btn_create_datasets = '新建'
@@ -76,6 +78,7 @@ class CreateDatasetUIName():
             self.illegal_data_err3 = '文件解压失败，上传存储器失败！'
             self.modify_data_name_err1 = '变更数据集名称失败！'
             self.refresh_data_list_info1 = '该数据集名称发生了变更，请刷新列表试一下。'
+            self.use_link = '使用文件链接'
 
 
 class DatasetGalleryUIName():

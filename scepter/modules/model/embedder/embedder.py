@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+import warnings
 from collections import OrderedDict
 from contextlib import nullcontext
 from typing import Dict
@@ -11,7 +12,6 @@ import torch.nn as nn
 import torch.utils.dlpack
 from einops import rearrange
 from torch.utils.checkpoint import checkpoint
-from transformers import CLIPTextModel, CLIPTokenizer
 
 # to check
 from scepter.modules.model.backbone.unet.unet_utils import Timestep
@@ -22,6 +22,12 @@ from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 
 from .base_embedder import BaseEmbedder
+
+try:
+    from transformers import CLIPTextModel, CLIPTokenizer
+except Exception as e:
+    warnings.warn(
+        f'Import transformers error, please deal with this problem: {e}')
 
 
 def autocast(f, enabled=True):

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 # Please use this implementation in your products
 # This implementation may produce slightly different results from Saining Xie's official implementations,
 # but it generates smoother edges and is more suitable for ControlNet as well as other image-to-image translations.

@@ -14,6 +14,7 @@
 - [Installation](#-Installation)
 - [Getting Started](#-getting-started)
 - [SCEPTER Studio](#-scepter-studio)
+- [Gallery](#-gallery)
 - [Features](#-features)
 - [Learn More](#-learn-more)
 - [License](#license)
@@ -43,6 +44,7 @@ Currently supported approaches (and counting):
 3. Res-Tuning(TODO): [Res-Tuning: A Flexible and Efficient Tuning Paradigm via Unbinding Tuner from Backbone](https://arxiv.org/abs/2310.19859) [![Arxiv link](https://img.shields.io/static/v1?label=arXiv&message=ResTuning&color=red&logo=arxiv)](https://arxiv.org/abs/2310.19859) [![Page link](https://img.shields.io/badge/Page-ResTuning-Gree)](https://res-tuning.github.io/)
 
 ## 🎉 News
+- [2024.02]: We release new SCEdit controllable image synthesis models for SD v2.1 and SD XL. Multiple strategies applied to accelerate inference time for SCEPTER Studio.
 - [2024.01]: We release **SCEPTER Studio**, an integrated toolkit for data management, model training and inference based on [Gradio](https://www.gradio.app/).
 - [2024.01]: [SCEdit](https://arxiv.org/abs/2312.11392) support controllable image synthesis for training and inference.
 - [2023.12]: We propose [SCEdit](https://arxiv.org/abs/2312.11392), an efficient and controllable generation framework.
@@ -56,13 +58,17 @@ Currently supported approaches (and counting):
 conda env create -f environment.yaml
 conda activate scepter
 ```
+- We recommend installing the specific version of PyTorch and accelerate toolbox [xFormers](https://pypi.org/project/xformers/). You can install these recommended version by pip:
+
+```shell
+pip install -r requirements/recommended.txt
+```
 
 - Install SCEPTER by the `pip` command:
 
 ```shell
 pip install scepter
 ```
-- PS: We recommend installing PyTorch follwing [official documentation](https://pytorch.org/get-started/locally/)
 
 ## 🚀 Getting Started
 
@@ -159,7 +165,6 @@ python scepter/tools/run_inference.py --cfg scepter/methods/scedit/ctr/sd21_768_
 python scepter/tools/run_inference.py --cfg scepter/methods/scedit/ctr/sd21_768_sce_ctr_pose.yaml --num_samples 1 --prompt 'super mario' --save_folder 'test_mario_pose' --image_size 768 --task control --image 'asset/images/pose_source.png' --control_mode source --pretrained_model ms://damo/scepter_scedit@controllable_model/SD2.1/pose_control/0_SwiftSCETuning/pytorch_model.bin   # pose
 ```
 
-
 ## 🖥️ SCEPTER Studio
 
 ### Launch
@@ -167,23 +172,48 @@ python scepter/tools/run_inference.py --cfg scepter/methods/scedit/ctr/sd21_768_
 To fully experience **SCEPTER Studio**, you can launch the following command line:
 
 ```shell
-pip install scepter
-python -m scepter.tools.webui
-```
-or run after clone repo code
-```shell
-git clone https://github.com/modelscope/scepter.git
 PYTHONPATH=. python scepter/tools/webui.py --cfg scepter/methods/studio/scepter_ui.yaml
 ```
-
-The startup of **SCEPTER Studio** eliminates the need for manual downloading and organizing of models; it will automatically load the corresponding models and store them in a local directory. 
-Depending on the network and hardware situation, the initial startup usually requires 15-60 minutes, primarily involving the download and processing of SDv1.5, SDv2.1, and SDXL models. 
-Therefore, subsequent startups will become much faster (about one minute) as downloading is no longer required.
-
 
 ### Modelscope Studio
 
 We deploy a work studio on Modelscope that includes only the inference tab, please refer to [ms_scepter_studio](https://www.modelscope.cn/studios/damo/scepter_studio/summary)
+
+## 🖼️ Gallery
+
+### Dragon Year Special: Dragon Tuner
+
+<table>
+  <tr>
+    <td><strong>Gold Dragon Tuner</strong></td>
+    <td><strong>Sloppy Dragon Tuner</strong></td>
+    <td><strong>Red Dragon Tuner</strong><br> + Papercraft Mantra</td>
+    <td><strong>Azure Dragon Tuner</strong><br> + Pose Control</td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_gold_dragon.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_sloppy_dragon.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_mantra_papercraft_dragon.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_pose.jpeg?raw=true" width="300"></td>
+  </tr>
+</table>
+
+### Text Effect Image
+
+<table>
+  <tr>
+    <td><strong>Conditional Image</strong></td>
+    <td><strong>Midas Control</strong><br>"Race track, top view"</td>
+    <td><strong>Midas Control</strong><br> + Watercolor Mantra<br>"white lilies"</td>
+    <td><strong>Midas Control</strong><br> + Dragon Tuner<br>"Spring Festival, Chinese dragon"</td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/word_condition.png?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/word_race.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/word_lilies.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/word_festival.jpeg?raw=true" width="300"></td>
+  </tr>
+</table>
 
 ## ✨ Features
 
@@ -201,8 +231,8 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 | **Model** | **Canny** | **HED** | **Depth** | **Pose** | **Color** |
 |:---------:|:---------:|:-------:|:---------:|:--------:|:---------:|
 |   SD 1.5  |     ✅     |    ✅    |     ✅     |     ✅    |     ✅     |
-|   SD 2.1  |     🪄     |    ✅    |     ✅     |     🪄    |     🪄     |
-|   SD XL   |     ✅     |    ✅    |     ✅     |     ✅    |     ✅     |
+|   SD 2.1  |     🪄     |    🪄    |     🪄     |     🪄    |     🪄     |
+|   SD XL   |     🪄     |    🪄    |     🪄     |     🪄    |     🪄     |
 
 ### Model URL
 
@@ -210,9 +240,9 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 - 🪄 denotes that the model has been published.
 - More models will be released in the future.
 
-| Model  | URL                                                                                 |
-|--------|-------------------------------------------------------------------------------------|
-| SCEdit | [ModelCard](https://modelscope.cn/models/damo/scepter_scedit/summary) |
+| Model  | URL                                                                                                                                            |
+|--------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| SCEdit | [ModelScope](https://modelscope.cn/models/damo/scepter_scedit/summary) [HuggingFace](https://huggingface.co/scepter-studio/scepter_scedit) |
 
 PS: Scripts running within the SCEPTER framework will automatically fetch and load models based on the required dependency files, eliminating the need for manual downloads.
 

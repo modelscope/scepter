@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange, repeat
+from packaging import version
 
 from scepter.modules.model.utils.basic_utils import checkpoint, default, exists
 
@@ -24,6 +25,12 @@ except Exception as e:
 
 if find_loader('flash_attn'):
     FLASH_ATTN_IS_AVAILABLE = True
+    import flash_attn
+    if (not hasattr(flash_attn, '__version__')) or (version.parse(
+            flash_attn.__version__) < version.parse('2.0')):
+        from flash_attn.flash_attn_interface import flash_attn_unpadded_kvpacked_func
+    else:
+        from flash_attn.flash_attn_interface import flash_attn_varlen_kvpacked_func as flash_attn_unpadded_kvpacked_func
 else:
     FLASH_ATTN_IS_AVAILABLE = False
 
@@ -607,8 +614,6 @@ class FlashattnMultiHeadAttention(nn.Module):
                 and self.head_dim % 8 == 0 and self.head_dim <= 128
                 and self.flash_dtype is not None):
             # flash implementation
-            from flash_attn.flash_attn_interface import \
-                flash_attn_unpadded_kvpacked_func
             dtype = q.dtype
             if dtype != self.flash_dtype:
                 q = q.type(self.flash_dtype)

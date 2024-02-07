@@ -914,7 +914,7 @@ data = {
 _model(data)
 probe = _model.probe_data()
 for key in probe:
-    print(key, probe[key].to_log(prefix=f"xxx/dev_easytorch/{key}"))
+    print(key, probe[key].to_log(prefix=f"xxx/{key}"))
 ```
 <hr/>
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 from abc import ABCMeta
 
 import cv2
@@ -18,6 +19,7 @@ class ColorAnnotator(BaseAnnotator, metaclass=ABCMeta):
     def __init__(self, cfg, logger=None):
         super().__init__(cfg, logger=logger)
         self.ratio = cfg.get('RATIO', 64)
+        self.random_cfg = cfg.get('RANDOM_CFG', None)
 
     def forward(self, image):
         if isinstance(image, Image.Image):
@@ -29,8 +31,21 @@ class ColorAnnotator(BaseAnnotator, metaclass=ABCMeta):
         else:
             raise f'Unsurpport datatype{type(image)}, only surpport np.ndarray, torch.Tensor, Pillow Image.'
         h, w = image.shape[:2]
-        ratio = self.ratio
-        image = cv2.resize(image, (w // ratio, h // ratio),
+
+        if self.random_cfg is None:
+            ratio = self.ratio
+        else:
+            proba = self.random_cfg.get('PROBA', 1.0)
+            if np.random.random() < proba:
+                if 'CHOICE_RATIO' in self.random_cfg:
+                    ratio = np.random.choice(self.random_cfg['CHOICE_RATIO'])
+                else:
+                    min_ratio = self.random_cfg.get('MIN_RATIO', 48)
+                    max_ratio = self.random_cfg.get('MAX_RATIO', 96)
+                    ratio = np.random.randint(min_ratio, max_ratio)
+            else:
+                ratio = self.ratio
+        image = cv2.resize(image, (int(w // ratio), int(h // ratio)),
                            interpolation=cv2.INTER_CUBIC)
         image = cv2.resize(image, (w, h), interpolation=cv2.INTER_NEAREST)
         assert len(image.shape) < 4

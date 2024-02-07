@@ -25,6 +25,14 @@ class TrainTest(unittest.TestCase):
 
         os.system(
             'python scepter/tools/run_train.py '
+            '--cfg scepter/methods/examples/generation/stable_diffusion_2.1_512.yaml '
+            '--max_steps 100')
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(self.tmp_dir, 'sd21_512_full/checkpoints')))
+
+        os.system(
+            'python scepter/tools/run_train.py '
             '--cfg scepter/methods/examples/generation/stable_diffusion_2.1_768.yaml '
             '--max_steps 100')
         self.assertTrue(
@@ -48,6 +56,14 @@ class TrainTest(unittest.TestCase):
         self.assertTrue(
             os.path.exists(
                 os.path.join(self.tmp_dir, 'sd15_512_lora/checkpoints')))
+
+        os.system(
+            'python scepter/tools/run_train.py '
+            '--cfg scepter/methods/examples/generation/stable_diffusion_2.1_512_lora.yaml '
+            '--max_steps 100')
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(self.tmp_dir, 'sd21_512_lora/checkpoints')))
 
         os.system(
             'python scepter/tools/run_train.py '
@@ -163,14 +179,16 @@ class TrainTest(unittest.TestCase):
                 os.path.join(self.tmp_dir,
                              'sdxl_1024_sce_ctr_color/checkpoints')))
 
-    # @unittest.skip('')
+    @unittest.skip('')
     def test_generation_example_datatxt(self):
-        # os.system(
-        #     'python scepter/tools/run_train.py '
-        #     '--cfg scepter/methods/scedit/t2i/sdxl_1024_sce_t2i_datatxt.yaml '
-        #     '--max_steps 100'
-        # )
-        # self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, 'sdxl_1024_sce_t2i_datatxt/checkpoints')))
+        os.system(
+            'python scepter/tools/run_train.py '
+            '--cfg scepter/methods/scedit/t2i/sdxl_1024_sce_t2i_datatxt.yaml '
+            '--max_steps 100')
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(self.tmp_dir,
+                             'sdxl_1024_sce_t2i_datatxt/checkpoints')))
 
         os.system(
             'python scepter/tools/run_train.py '

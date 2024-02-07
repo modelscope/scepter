@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 
 import gradio as gr
@@ -45,64 +46,76 @@ class MantraUI(UIBase):
         return name_level_style, all_styles
 
     def create_ui(self, *args, **kwargs):
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                with gr.Group(visible=True):
-                    with gr.Row(equal_height=True):
-                        self.style = gr.Dropdown(
-                            label=self.component_names.mantra_styles,
-                            choices=self.all_styles[self.default_pipeline],
-                            value=None,
-                            multiselect=True,
-                            interactive=True)
-                    with gr.Row(equal_height=True):
-                        with gr.Column(scale=1):
-                            self.style_name = gr.Text(
+        self.state = gr.State(value=False)
+        with gr.Column(visible=False) as self.tab:
+            with gr.Row():
+                with gr.Column(scale=1):
+                    with gr.Group(visible=True):
+                        with gr.Row(equal_height=True):
+                            self.style = gr.Dropdown(
+                                label=self.component_names.mantra_styles,
+                                choices=self.all_styles[self.default_pipeline],
+                                value=None,
+                                multiselect=True,
+                                interactive=True)
+                        with gr.Row(equal_height=True):
+                            with gr.Column(scale=1):
+                                self.style_name = gr.Text(
+                                    value='',
+                                    label=self.component_names.style_name)
+                            with gr.Column(scale=1):
+                                self.style_source = gr.Text(
+                                    value='',
+                                    label=self.component_names.style_source)
+                            with gr.Column(scale=1):
+                                self.style_desc = gr.Text(
+                                    value='',
+                                    label=self.component_names.style_desc)
+                        with gr.Row(equal_height=True):
+                            self.style_prompt = gr.Text(
                                 value='',
-                                label=self.component_names.style_name)
-                        with gr.Column(scale=1):
-                            self.style_source = gr.Text(
+                                label=self.component_names.style_prompt,
+                                lines=4)
+                        with gr.Row(equal_height=True):
+                            self.style_negative_prompt = gr.Text(
                                 value='',
-                                label=self.component_names.style_source)
-                        with gr.Column(scale=1):
-                            self.style_desc = gr.Text(
+                                label=self.component_names.
+                                style_negative_prompt,
+                                lines=4)
+                with gr.Column(scale=1):
+                    with gr.Group(visible=True):
+                        with gr.Row(equal_height=True):
+                            self.style_template = gr.Text(
                                 value='',
-                                label=self.component_names.style_desc)
-                    with gr.Row(equal_height=True):
-                        self.style_prompt = gr.Text(
-                            value='',
-                            label=self.component_names.style_prompt,
-                            lines=4)
-                    with gr.Row(equal_height=True):
-                        self.style_negative_prompt = gr.Text(
-                            value='',
-                            label=self.component_names.style_negative_prompt,
-                            lines=4)
-            with gr.Column(scale=1):
-                with gr.Group(visible=True):
-                    with gr.Row(equal_height=True):
-                        self.style_template = gr.Text(
-                            value='',
-                            label=self.component_names.style_template,
-                            lines=2)
-                    with gr.Row(equal_height=True):
-                        self.style_negative_template = gr.Text(
-                            value='',
-                            label=self.component_names.style_negative_template,
-                            lines=2)
-                    with gr.Row(equal_height=True):
-                        self.style_example = gr.Image(
-                            label=self.component_names.style_example,
-                            source='upload',
-                            value=None,
-                            interactive=False)
-                    with gr.Row(equal_height=True):
-                        self.style_example_prompt = gr.Text(
-                            value='',
-                            label=self.component_names.style_example_prompt,
-                            lines=2)
+                                label=self.component_names.style_template,
+                                lines=2)
+                        with gr.Row(equal_height=True):
+                            self.style_negative_template = gr.Text(
+                                value='',
+                                label=self.component_names.
+                                style_negative_template,
+                                lines=2)
+                        with gr.Row(equal_height=True):
+                            self.style_example = gr.Image(
+                                label=self.component_names.style_example,
+                                source='upload',
+                                value=None,
+                                interactive=False)
+                        with gr.Row(equal_height=True):
+                            self.style_example_prompt = gr.Text(
+                                value='',
+                                label=self.component_names.
+                                style_example_prompt,
+                                lines=2)
+            self.example_block = gr.Accordion(
+                label=self.component_names.example_block_name, open=True)
 
-    def set_callbacks(self, model_manage_ui):
+    def set_callbacks(self, model_manage_ui, **kwargs):
+        gallery_ui = kwargs.pop('gallery_ui')
+        with self.example_block:
+            gr.Examples(examples=self.component_names.examples,
+                        inputs=[self.style, gallery_ui.prompt])
+
         def change_style(style, diffusion_model):
             style_template = ''
             style_negative_template = []

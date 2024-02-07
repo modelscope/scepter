@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
-import os
 from abc import ABCMeta, abstractmethod
 
 from torch.utils.data import Dataset
 
 from scepter.modules.transform.registry import TRANSFORMS, build_pipeline
 from scepter.modules.utils.config import dict_to_yaml
-from scepter.modules.utils.distribute import set_random_seed, we
+from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger
 from scepter.modules.utils.registry import old_python_version
@@ -84,7 +83,6 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
                                                overwrite=False)
         self.worker_id = worker_id
         self.logger = self.worker_logger
-        set_random_seed(int(os.environ.get('ES_SEED', 2023)))
         we.set_env(self.local_we)
 
     @abstractmethod

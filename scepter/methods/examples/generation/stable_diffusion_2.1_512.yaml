@@ -15,7 +15,7 @@ SOLVER:
   ACCU_STEP: 1
   EVAL_INTERVAL: 100
   #
-  WORK_DIR: ./cache/save_data/sd21_768_full
+  WORK_DIR: ./cache/save_data/sd21_512_full
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:
@@ -24,11 +24,11 @@ SOLVER:
   #
   MODEL:
     NAME: LatentDiffusion
-    PARAMETERIZATION: v
+    PARAMETERIZATION: eps
     TIMESTEPS: 1000
     MIN_SNR_GAMMA:
     ZERO_TERMINAL_SNR: False
-    PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-2-1@v2-1_768-ema-pruned.safetensors
+    PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-2-1-base@v2-1_512-ema-pruned.safetensors
     IGNORE_KEYS: [ ]
     SCALE_FACTOR: 0.18215
     SIZE_FACTOR: 8
@@ -113,9 +113,9 @@ SOLVER:
     SAMPLE_STEPS: 50
     SEED: 2023
     GUIDE_SCALE: 7.5
-    GUIDE_RESCALE: 0.5
+    GUIDE_RESCALE:
     DISCRETIZATION: trailing
-    IMAGE_SIZE: [768, 768]
+    IMAGE_SIZE: [512, 512]
     RUN_TRAIN_N: False
   #
   OPTIMIZER:
@@ -146,13 +146,13 @@ SOLVER:
         RGB_ORDER: RGB
         BACKEND: pillow
       - NAME: Resize
-        SIZE: 768
+        SIZE: 512
         INTERPOLATION: bilinear
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
       - NAME: CenterCrop
-        SIZE: 768
+        SIZE: 512
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
@@ -179,7 +179,7 @@ SOLVER:
     PROMPT_PREFIX: ""
     MS_REMAP_KEYS: { 'Image': 'Target:FILE' }
     MS_DATASET_SPLIT: test_short
-    OUTPUT_SIZE: [768, 768]
+    OUTPUT_SIZE: [512, 512]
     REPLACE_STYLE: False
     PIN_MEMORY: True
     BATCH_SIZE: 4

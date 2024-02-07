@@ -82,8 +82,6 @@ EXTENSION_PARAS:
 CONTROLABLE_ANNOTATORS:
   -
     NAME: "CannyAnnotator"
-    LOW_THRESHOLD: 100
-    HIGH_THRESHOLD: 200
     TYPE: Canny
     IS_DEFAULT: True
   -
@@ -100,8 +98,6 @@ CONTROLABLE_ANNOTATORS:
   -
     NAME: "MidasDetector"
     PRETRAINED_MODEL: "ms://damo/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt"
-    A: 6.2
-    BG_TH: 0.1
     TYPE: Midas
     IS_DEFAULT: False
   -
@@ -109,9 +105,6 @@ CONTROLABLE_ANNOTATORS:
     TYPE: Color
     IS_DEFAULT: False
   -
-    NAME: "MLSDdetector"
-    PRETRAINED_MODEL: "ms://damo/scepter_scedit@annotator/ckpts/mlsd_large_512_fp32.pth"
-    THR_V: 0.1
-    THR_D: 0.1
-    TYPE: MLSD
+    NAME: "InvertAnnotator"
+    TYPE: Invert-Preprocess
     IS_DEFAULT: False

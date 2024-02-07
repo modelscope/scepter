@@ -85,6 +85,7 @@ class LocalFs(BaseFs):
                              target_path,
                              local_path=None,
                              wait_finish=False,
+                             multi_thread=False,
                              timeout=3600,
                              worker_id=0) -> Optional[str]:
         if not self.isdir(target_path):
@@ -294,7 +295,10 @@ class LocalFs(BaseFs):
     def get_logging_handler(self, target_logging_path):
         return logging.FileHandler(target_logging_path)
 
-    def put_dir_from_local_dir(self, local_dir, target_dir) -> bool:
+    def put_dir_from_local_dir(self,
+                               local_dir,
+                               target_dir,
+                               multi_thread=False) -> bool:
         local_dir = self.reconstruct_path(local_dir)
         target_dir = self.reconstruct_path(target_dir)
         if local_dir == target_dir:

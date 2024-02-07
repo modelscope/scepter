@@ -15,7 +15,7 @@ SOLVER:
   ACCU_STEP: 1
   EVAL_INTERVAL: 100
   #
-  WORK_DIR: ./cache/save_data/sdxl_1024_sce_ctr_color_datatxt
+  WORK_DIR: ./cache/save_data/sdxl_1024_sce_ctr_canny
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:
@@ -240,8 +240,7 @@ SOLVER:
         TUNER_NAME: SCEAdapter
         DOWN_RATIO: 1.0
     CONTROL_ANNO:
-      NAME: ColorAnnotator
-      RATIO: 64
+      NAME: CannyAnnotator
   #
   SAMPLE_ARGS:
     SAMPLER: ddim
@@ -262,128 +261,102 @@ SOLVER:
     AMSGRAD: False
   #
   TRAIN_DATA:
-    NAME: ImageTextPairDataset
+    NAME: ImageTextPairMSDataset
     MODE: train
-    P_ZERO: 0.1
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_DATASET_SPLIT: train_short
+    MS_REMAP_KEYS: { 'Image:FILE': 'Target:FILE' }
+    REPLACE_STYLE: False
     PIN_MEMORY: True
-    BATCH_SIZE: 4
+    BATCH_SIZE: 1
     NUM_WORKERS: 4
-    FILE_SYSTEM:
-      NAME: LocalFs
-      AUTO_CLEAN: False
     SAMPLER:
-      NAME: MixtureOfSamplers
-      SUB_SAMPLERS:
-        -
-          NAME: MultiLevelBatchSampler
-          PROB: 1.0
-          IMAGE_SIZE: [ 1024, 1024 ]
-          FIELDS: ["img_path", "width", "height", "prompt"]
-          DELIMITER: '#;#'
-          PATH_PREFIX: cache/datasets/3D_example_txt
-          PROMPT_PREFIX: ''
-          INDEX_FILE: cache/datasets/3D_example_txt/train.txt
-    #
+      NAME: LoopSampler
     TRANSFORMS:
-      -
-        NAME: LoadImageFromFile
+      - NAME: LoadImageFromFile
         RGB_ORDER: RGB
         BACKEND: pillow
-      -
-        NAME: FlexibleResize
-        INTERPOLATION: bilinear
+      - NAME: FlexibleResize
         SIZE: 1024
-        INPUT_KEY: ['img']
-        OUTPUT_KEY: ['img']
+        INTERPOLATION: bilinear
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
-      -
-        NAME: FlexibleCropXL
-        INPUT_KEY: ['img']
-        OUTPUT_KEY: ['img']
+      - NAME: FlexibleCropXL
+        SIZE: 1024
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
-      -
-        NAME: ToNumpy
+      - NAME: ToNumpy
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'image_preprocess' ]
-      -
-        NAME: ImageToTensor
-        INPUT_KEY: ['img']
-        OUTPUT_KEY: ['img']
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
-      -
-        NAME: Normalize
+      - NAME: Normalize
         MEAN: [ 0.5,  0.5,  0.5 ]
         STD: [ 0.5,  0.5,  0.5 ]
-        INPUT_KEY: ['img']
-        OUTPUT_KEY: ['img']
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
         BACKEND: torchvision
-      -
-        NAME: Select
-        KEYS: ['img', 'prompt', 'image_preprocess', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left']
-        META_KEYS: [ 'img_path' ]
-      -
-        NAME: Rename
-        INPUT_KEY: ['img', 'image_preprocess', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left']
-        OUTPUT_KEY: ['image', 'image_preprocess', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left']
+      - NAME: Rename
+        INPUT_KEY: [ 'img', 'image_preprocess', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
+        OUTPUT_KEY: [ 'image', 'image_preprocess', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
+      - NAME: Select
+        KEYS: [ 'image', 'prompt', 'image_preprocess', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
+        META_KEYS: [ 'data_key' ]
   #
   EVAL_DATA:
-    NAME: Text2ImageDataset
+    NAME: ImageTextPairMSDataset
     MODE: eval
-    PROMPT_FILE: cache/datasets/3D_example_txt/train.txt
-    PATH_PREFIX: cache/datasets/3D_example_txt
-    IMAGE_SIZE: [ 1024, 1024 ]
-    FIELDS: ["img_path", "width", "height", "prompt"]
-    DELIMITER: '#;#'
-    PROMPT_PREFIX: ''
-    USE_NUM: 8
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_DATASET_SPLIT: train_short
+    MS_REMAP_KEYS: { 'Image:FILE': 'Target:FILE' }
+    REPLACE_STYLE: False
     PIN_MEMORY: True
-    BATCH_SIZE: 4
+    BATCH_SIZE: 10
     NUM_WORKERS: 4
-    FILE_SYSTEM:
-      NAME: LocalFs
-      AUTO_CLEAN: False
-    #
     TRANSFORMS:
-      -
-        NAME: LoadImageFromFile
+      - NAME: LoadImageFromFile
         RGB_ORDER: RGB
         BACKEND: pillow
-      -
-        NAME: FlexibleResize
-        INTERPOLATION: bilinear
+      - NAME: Resize
         SIZE: 1024
-        INPUT_KEY: ['img']
-        OUTPUT_KEY: ['img']
+        INTERPOLATION: bilinear
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
-      -
-        NAME: FlexibleCenterCrop
-        INPUT_KEY: ['img']
-        OUTPUT_KEY: ['img']
+      - NAME: CenterCrop
+        SIZE: 1024
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
-      -
-        NAME: ToNumpy
+      - NAME: ToNumpy
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'image_preprocess' ]
-      -
-        NAME: ImageToTensor
-        INPUT_KEY: ['img']
-        OUTPUT_KEY: ['img']
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
-      -
-        NAME: Normalize
+      - NAME: Normalize
         MEAN: [ 0.5,  0.5,  0.5 ]
         STD: [ 0.5,  0.5,  0.5 ]
-        INPUT_KEY: ['img']
-        OUTPUT_KEY: ['img']
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
         BACKEND: torchvision
-      -
-        NAME: Rename
+      - NAME: Rename
         INPUT_KEY: [ 'img', 'image_preprocess' ]
         OUTPUT_KEY: [ 'image', 'image_preprocess' ]
-      -
-        NAME: Select
+      - NAME: Select
         KEYS: [ 'image', 'prompt', 'image_preprocess' ]
-        META_KEYS: [ ]
+        META_KEYS: [ 'data_key' ]
   #
   TRAIN_HOOKS:
     -

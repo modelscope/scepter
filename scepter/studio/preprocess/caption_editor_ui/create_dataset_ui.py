@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 from __future__ import annotations
 
 import copy
@@ -219,8 +220,7 @@ class CreateDatasetUI(UIBase):
         new_file_folder = f'{local_dataset_folder}/images'
         os.makedirs(new_file_folder, exist_ok=True)
         if file_folder is not None:
-            res = os.popen(f"mv '{file_folder}'/* '{new_file_folder}'")
-            res = res.readlines()
+            _ = FS.get_dir_to_local_dir(file_folder, new_file_folder)
         elif len(raw_list) > 0:
             raw_list = list(set(raw_list))
             for img_id, cur_image in enumerate(raw_list):
@@ -251,8 +251,13 @@ class CreateDatasetUI(UIBase):
             res = res.readlines()
         if not os.path.exists(new_train_list):
             raise gr.Error(f'{str(res)}')
-        res = os.popen(f"rm -rf '{hit_dir}'")
-        res = res.readlines()
+        try:
+            res = os.popen(f"rm -rf '{hit_dir}/images/*'")
+            _ = res.readlines()
+            res = os.popen(f"rm -rf '{hit_dir}'")
+            _ = res.readlines()
+        except Exception:
+            pass
         file_list = self.load_train_csv(new_train_list, data_folder)
         return file_list
 
@@ -320,7 +325,7 @@ class CreateDatasetUI(UIBase):
                 if FS.exists(meta_file):
                     local_dataset_folder, _ = FS.map_to_local(one_dir)
                     local_dataset_folder = FS.get_dir_to_local_dir(
-                        one_dir, local_dataset_folder)
+                        one_dir, local_dataset_folder, multi_thread=True)
                     meta_data = self.load_meta(
                         os.path.join(local_dataset_folder, 'meta.json'))
                     meta_data['local_work_dir'] = local_dataset_folder
@@ -361,10 +366,16 @@ class CreateDatasetUI(UIBase):
                             self.create_mode = gr.State(value=0)
                         with gr.Column(visible=False,
                                        min_width=0) as file_panel:
+                            self.use_link = gr.Checkbox(
+                                label=self.components_name.use_link,
+                                value=False,
+                                visible=False)
                             self.file_path = gr.File(
                                 label=self.components_name.zip_file,
                                 min_width=0,
-                                file_types=['.zip', '.txt', '.csv'])
+                                file_types=['.zip', '.txt', '.csv'],
+                                visible=False)
+
                             self.file_path_url = gr.Text(
                                 label=self.components_name.zip_file_url,
                                 value='',
@@ -397,8 +408,11 @@ class CreateDatasetUI(UIBase):
             return (gr.Column(visible=True), gr.Column(visible=True),
                     gr.Column(visible=True),
                     gr.Checkbox(value=False, visible=False),
-                    gr.Text(value=get_random_dataset_name(), interactive=True),
-                    gr.File(value=None), gr.Text(value='', visible=False), 2)
+                    gr.Text(value=get_random_dataset_name(),
+                            interactive=True), gr.File(value=None,
+                                                       visible=True),
+                    gr.Text(value='', visible=False), 2,
+                    gr.Checkbox(value=False, visible=True))
 
         def get_random_dataset_name():
             data_name = 'name-version-{0:%Y%m%d_%H_%M_%S}'.format(
@@ -427,12 +441,13 @@ class CreateDatasetUI(UIBase):
 
             if not file_url.strip() == '' and file_path is not None:
                 raise gr.Error(self.components_name.illegal_data_name_err4)
-            if create_mode == 1 and not file_url.strip() == '':
+            if create_mode == 3 and not file_url.strip() == '':
                 file_name, surfix = os.path.splitext(file_url.split('?')[0])
                 save_file = os.path.join(self.work_dir, f'{user_name}{surfix}')
-                with FS.put_to(save_file) as local_path:
-                    res = os.popen(f"wget '{file_url}' -O '{local_path}'")
-                    res.readlines()
+                local_path, _ = FS.map_to_local(save_file)
+                res = os.popen(f"wget -c '{file_url}' -O '{local_path}'")
+                res.readlines()
+                FS.put_object_from_local_file(local_path, save_file)
                 if not FS.exists(save_file):
                     raise gr.Error(
                         f'{self.components_name.illegal_data_err1} {str(res)}')
@@ -468,7 +483,8 @@ class CreateDatasetUI(UIBase):
                 raise gr.Error(
                     f'{self.components_name.illegal_data_err2} {surfix}')
             is_flag = FS.put_dir_from_local_dir(local_dataset_folder,
-                                                dataset_folder)
+                                                dataset_folder,
+                                                multi_thread=True)
             if not is_flag:
                 raise gr.Error(f'{self.components_name.illegal_data_err3}')
 
@@ -480,7 +496,8 @@ class CreateDatasetUI(UIBase):
             meta['work_dir'] = dataset_folder
 
             self.meta_dict[meta['dataset_name']] = meta
-            self.dataset_list.append(meta['dataset_name'])
+            if meta['dataset_name'] not in self.dataset_list:
+                self.dataset_list.append(meta['dataset_name'])
             return (
                 gr.Checkbox(value=True, visible=False),
                 gr.Dropdown(value=user_name, choices=self.dataset_list),
@@ -499,10 +516,23 @@ class CreateDatasetUI(UIBase):
         self.btn_create_datasets_from_file.click(show_file_panel, [], [
             self.file_panel, self.dataset_panel, self.btn_panel,
             self.panel_state, self.user_data_name, self.file_path,
-            self.file_path_url, self.create_mode
+            self.file_path_url, self.create_mode, self.use_link
         ],
                                                  queue=False)
 
+        def use_link_change(use_link):
+            if use_link:
+                create_mode = 3
+                return (gr.File(value=None, visible=False),
+                        gr.Text(value='', visible=True), create_mode)
+            else:
+                create_mode = 2
+                return (gr.File(value=None, visible=True),
+                        gr.Text(value='', visible=False), create_mode)
+
+        self.use_link.change(
+            use_link_change, [self.use_link],
+            [self.file_path, self.file_path_url, self.create_mode])
         # Click Refresh
         self.random_data_button.click(get_random_dataset_name, [],
                                       [self.user_data_name],
@@ -517,7 +547,7 @@ class CreateDatasetUI(UIBase):
             self.user_data_name, self.create_mode, self.file_path_url,
             self.file_path, self.panel_state
         ], [self.panel_state, self.dataset_name],
-                                       queue=False)
+                                       queue=True)
 
         def show_edit_panel(panel_state, data_name):
             if panel_state:
@@ -555,14 +585,17 @@ class CreateDatasetUI(UIBase):
                     local_dataset_folder, _ = FS.map_to_local(dataset_folder)
                     os.makedirs(local_dataset_folder, exist_ok=True)
                     is_flag = FS.get_dir_to_local_dir(ori_meta['work_dir'],
-                                                      local_dataset_folder)
+                                                      local_dataset_folder,
+                                                      multi_thread=True)
                     file_list = ori_meta['file_list']
-                    is_flag = FS.put_dir_from_local_dir(
-                        local_dataset_folder, dataset_folder)
+                    is_flag = FS.put_dir_from_local_dir(local_dataset_folder,
+                                                        dataset_folder,
+                                                        multi_thread=True)
                     if not is_flag:
                         raise gr.Error(self.components_name.illegal_data_err3)
-                    is_flag = FS.put_dir_from_local_dir(
-                        local_dataset_folder, dataset_folder)
+                    is_flag = FS.put_dir_from_local_dir(local_dataset_folder,
+                                                        dataset_folder,
+                                                        multi_thread=True)
                     if not is_flag:
                         raise gr.Error(self.components_name.illegal_data_err3)
                     cursor = ori_meta['cursor']
