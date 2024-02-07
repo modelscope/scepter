@@ -11,10 +11,10 @@
 ## 📖 Table of Contents
 - [Introduction](#-introduction)
 - [News](#-news)
-- [Installation](#-Installation)
+- [Installation](#%EF%B8%8F-installation)
 - [Getting Started](#-getting-started)
-- [SCEPTER Studio](#-scepter-studio)
-- [Gallery](#-gallery)
+- [SCEPTER Studio](#%EF%B8%8F-scepter-studio)
+- [Gallery](#%EF%B8%8F-gallery)
 - [Features](#-features)
 - [Learn More](#-learn-more)
 - [License](#license)
