@@ -923,7 +923,7 @@ class DiffusionUNetXL(DiffusionUNet):
             context = cond
             hint = kwargs.pop('hint', None)
 
-        if self.control_blocks is not None:
+        if self.control_blocks is not None and hint is not None:
             out = self._forward_control(x, emb, context, hint, **kwargs)
         else:
             out = self._forward_origin(x, emb, context, **kwargs)

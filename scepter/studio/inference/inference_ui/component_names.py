@@ -66,12 +66,14 @@ class GalleryUIName():
             self.gallery_before_refine_output = 'Before Refine Output'
             self.prompt_input = 'Type Prompt Here'
             self.generate = 'Generate'
+            self.control_err1 = 'The conditional image does not exist'
         elif language == 'zh':
             self.gallery_block_name = '模型的输出'
             self.gallery_diffusion_output = '扩散输出'
             self.gallery_before_refine_output = '精炼前输出'
             self.prompt_input = '在此输入提示'
             self.generate = '生成'
+            self.control_err1 = '条件图片不存在'
 
 
 class DiffusionUIName():

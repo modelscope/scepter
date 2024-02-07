@@ -88,6 +88,9 @@ class GalleryUI(UIBase):
                          style_negative_template,
                          image_seed,
                          show_jpeg_image=True):
+        if control_state and control_cond_image is None:
+            raise gr.Error(self.component_names.control_err1)
+
         current_pipeline = self.pipe_manager.get_pipeline_given_modules({
             'diffusion_model':
             diffusion_model,
