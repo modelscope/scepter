@@ -191,10 +191,10 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
     <td><strong>Azure Dragon Tuner</strong><br> + Pose Control</td>
   </tr>
   <tr>
-    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/tuner_gold_dragon.png" width="300"></td>
-    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/tuner_sloppy_dragon.jpeg" width="300"></td>
-    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/tuner_mantra_papercraft_dragon.png" width="300"></td>
-    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/tuner_pose.png" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_gold_dragon.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_sloppy_dragon.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_mantra_papercraft_dragon.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_pose.jpeg?raw=true" width="300"></td>
   </tr>
 </table>
 
@@ -208,10 +208,10 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
     <td><strong>Midas Control</strong><br> + Dragon Tuner<br>"Spring Festival, Chinese dragon"</td>
   </tr>
   <tr>
-    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/word_condition.png" width="300"></td>
-    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/word_race.jpeg" width="300"></td>
-    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/word_lilies.jpeg" width="300"></td>
-    <td><img src="https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/readme/word_festival.jpeg" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/word_condition.png?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/word_race.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/word_lilies.jpeg?raw=true" width="300"></td>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/word_festival.jpeg?raw=true" width="300"></td>
   </tr>
 </table>
 
