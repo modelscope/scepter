@@ -43,7 +43,7 @@ Currently supported approaches (and counting):
 3. Res-Tuning(TODO): [Res-Tuning: A Flexible and Efficient Tuning Paradigm via Unbinding Tuner from Backbone](https://arxiv.org/abs/2310.19859) [![Arxiv link](https://img.shields.io/static/v1?label=arXiv&message=ResTuning&color=red&logo=arxiv)](https://arxiv.org/abs/2310.19859) [![Page link](https://img.shields.io/badge/Page-ResTuning-Gree)](https://res-tuning.github.io/)
 
 ## 🎉 News
-- [2024.02]: We release new SCEdit controllable image synthesis models for SD v1.5 and SD XL.
+- [2024.02]: We release new SCEdit controllable image synthesis models for SD v2.1 and SD XL. Multiple strategies applied to accelerate inference time for SCEPTER Studio.
 - [2024.01]: We release **SCEPTER Studio**, an integrated toolkit for data management, model training and inference based on [Gradio](https://www.gradio.app/).
 - [2024.01]: [SCEdit](https://arxiv.org/abs/2312.11392) support controllable image synthesis for training and inference.
 - [2023.12]: We propose [SCEdit](https://arxiv.org/abs/2312.11392), an efficient and controllable generation framework.
@@ -240,9 +240,9 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 - 🪄 denotes that the model has been published.
 - More models will be released in the future.
 
-| Model  | URL                                                                                 |
-|--------|-------------------------------------------------------------------------------------|
-| SCEdit | [ModelCard](https://modelscope.cn/models/damo/scepter_scedit/summary) |
+| Model  | URL                                                                                                                                            |
+|--------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| SCEdit | [ModelScope](https://modelscope.cn/models/damo/scepter_scedit/summary) [HuggingFace](https://huggingface.co/scepter-studio/scepter_scedit) |
 
 PS: Scripts running within the SCEPTER framework will automatically fetch and load models based on the required dependency files, eliminating the need for manual downloads.
 
