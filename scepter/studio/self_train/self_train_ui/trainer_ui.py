@@ -407,11 +407,11 @@ class TrainerUI(UIBase):
             # Check Cuda Memory
             if torch.cuda.is_available() and not self.is_debug:
                 device = torch.device('cuda:0')
-                required_memory_bytes = 40 * (1024**3)
+                required_memory_bytes = 4 * (1024**3)
                 try:
                     tensor = torch.empty(  # noqa
                         (required_memory_bytes // 4, ), device=device
-                    )  # create 18GB tensor to check the memory if enough
+                    )  # create 4GB tensor to check the memory if enough
                     del tensor
                 except RuntimeError:
                     raise gr.Error(self.component_names.training_err2)
