@@ -244,12 +244,18 @@ class Text2ImageDataset(BaseDataset):
             image_size = [image_size, image_size]
         assert isinstance(image_size, Iterable) and len(image_size) == 2
 
-        prompt_file = cfg.PROMPT_FILE
-        with FS.get_object(prompt_file) as local_data:
+        if cfg.PROMPT_FILE is not None and cfg.PROMPT_FILE != '':
+            prompt_file = cfg.PROMPT_FILE
+            with FS.get_object(prompt_file) as local_data:
+                rows = [
+                    i.split(delimiter,
+                            len(fields) - 1)
+                    for i in local_data.decode('utf-8').strip().split('\n')
+                ]
+        else:
             rows = [
                 i.split(delimiter,
-                        len(fields) - 1)
-                for i in local_data.decode('utf-8').strip().split('\n')
+                        len(fields) - 1) for i in cfg.PROMPT_DATA
             ]
 
         self.items = list()
@@ -263,10 +269,9 @@ class Text2ImageDataset(BaseDataset):
                     item['meta']['img_path'] = os.path.join(path_prefix, value)
                 elif key in ['width', 'height']:
                     item['meta'][key] = int(value)
-                elif key != 'meta':
-                    item[key] = value
                 else:
-                    continue
+                    item['meta'][key] = value
+
             self.items.append(item)
         if use_num > 0:
             self.items = self.items[:use_num]

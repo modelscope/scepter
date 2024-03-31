@@ -146,11 +146,20 @@ class ModelManageUI(UIBase):
                     continue
                 model_name = f"{now_pipeline}_{module['name']}"
                 all_module_name[module_name] = model_name
+            tunner_choices = []
             if now_pipeline in self.default_choices['tuners']:
                 tunner_choices = self.default_choices['tuners'][now_pipeline][
                     'choices']
-            else:
-                tunner_choices = []
+            custom_tunner_choices = []
+            custom_tunner_default = []
+            if now_pipeline in self.default_choices.get(
+                    'customized_tuners', []):
+                custom_tunner_choices = self.default_choices[
+                    'customized_tuners'][now_pipeline]['choices']
+                custom_tunner_default = self.default_choices[
+                    'customized_tuners'][now_pipeline]['default']
+                if isinstance(custom_tunner_default, str):
+                    custom_tunner_default = [custom_tunner_default]
 
             if now_pipeline in self.default_choices[
                     'controllers'] and control_mode in self.default_choices[
@@ -179,9 +188,11 @@ class ModelManageUI(UIBase):
                 gr.Dropdown(value=all_module_name['first_stage_model']),
                 gr.Dropdown(value=all_module_name['cond_stage_model']),
                 gr.Dropdown(choices=tunner_choices, value=[]),
+                gr.Dropdown(choices=custom_tunner_choices,
+                            value=custom_tunner_default),
                 gr.Dropdown(choices=controller_choices,
                             value=controller_default),
-                gr.Dropdown(choices=mantra_ui.all_styles[now_pipeline],
+                gr.Dropdown(choices=mantra_ui.all_styles.get(now_pipeline, []),
                             value=[]),
                 gr.Textbox(choices=cur_paras.NEGATIVE_PROMPT.get('VALUES', []),
                            value=cur_paras.NEGATIVE_PROMPT.get('DEFAULT', '')),
@@ -206,10 +217,11 @@ class ModelManageUI(UIBase):
             outputs=[
                 self.diffusion_state, self.first_stage_model,
                 self.cond_stage_model, tuner_ui.tuner_model,
-                control_ui.control_model, mantra_ui.style,
-                diffusion_ui.negative_prompt, diffusion_ui.prompt_prefix,
-                diffusion_ui.output_height, diffusion_ui.sampler,
-                diffusion_ui.discretization, diffusion_ui.sample_steps,
-                diffusion_ui.guide_scale, diffusion_ui.guide_rescale
+                tuner_ui.custom_tuner_model, control_ui.control_model,
+                mantra_ui.style, diffusion_ui.negative_prompt,
+                diffusion_ui.prompt_prefix, diffusion_ui.output_height,
+                diffusion_ui.sampler, diffusion_ui.discretization,
+                diffusion_ui.sample_steps, diffusion_ui.guide_scale,
+                diffusion_ui.guide_rescale
             ],
             queue=True)

@@ -8,8 +8,9 @@ import torch
 import torch.nn as nn
 
 from scepter.modules.model.backbone.unet.unet_utils import (
-    Downsample, ResBlock, SpatialTransformer, Timestep,
-    TimestepEmbedSequential, Upsample, conv_nd, linear, normalization,
+    BasicTransformerBlock, Downsample, ResBlock, SpatialTransformer,
+    SpatialTransformerV2, Timestep, TimestepEmbedSequential,
+    TransformerBlockV2, Upsample, conv_nd, linear, normalization,
     timestep_embedding, zero_module)
 from scepter.modules.model.base_model import BaseModel
 from scepter.modules.model.registry import BACKBONES
@@ -950,4 +951,444 @@ class DiffusionUNetXL(DiffusionUNet):
         return dict_to_yaml('BACKBONE',
                             __class__.__name__,
                             DiffusionUNetXL.para_dict,
+                            set_name=True)
+
+
+@BACKBONES.register_class()
+class LargenUNetXL(DiffusionUNetXL):
+    para_dict = {
+        'TRANSFORMER_BLOCK_TYPE': {
+            'value': 'att_v1'
+        },
+        'IMAGE_SCALE': {
+            'value': 0.0,
+        },
+    }
+    para_dict.update(DiffusionUNetXL.para_dict)
+
+    def __init__(self, cfg, logger):
+        super().__init__(cfg, logger=logger)
+        self.init_params(cfg)
+        self.construct_network()
+
+    def init_params(self, cfg):
+        super().init_params(cfg)
+        self.transformer_block_type = cfg.get('TRANSFORMER_BLOCK_TYPE',
+                                              'att_v1')
+        TRANSFORMER_BLOCKS = {
+            'att_v1': BasicTransformerBlock,
+            'att_v2': TransformerBlockV2,
+        }
+        assert self.transformer_block_type in list(TRANSFORMER_BLOCKS.keys())
+        self.transformer_block = TRANSFORMER_BLOCKS[
+            self.transformer_block_type]
+        self.image_scale = cfg.get('IMAGE_SCALE', 0.0)
+        self.use_refine = cfg.get('USE_REFINE', False)
+
+    def construct_network(self):
+        in_channels = self.in_channels
+        model_channels = self.model_channels
+        out_channels = self.out_channels
+        attention_resolutions = self.attention_resolutions
+        channel_mult = self.channel_mult
+        num_classes = self.num_classes
+        num_heads = self.num_heads
+        num_head_channels = self.num_head_channels
+        dims = self.dims
+        dropout = self.dropout
+        use_checkpoint = self.use_checkpoint
+        use_scale_shift_norm = self.use_scale_shift_norm
+        disable_self_attentions = self.disable_self_attentions
+        disable_middle_self_attn = self.disable_middle_self_attn
+        transformer_depth = self.transformer_depth
+        transformer_depth_middle = self.transformer_depth_middle
+        context_dim = self.context_dim
+        use_linear_in_transformer = self.use_linear_in_transformer
+        resblock_updown = self.resblock_updown
+        conv_resample = self.conv_resample
+        adm_in_channels = self.adm_in_channels
+        transformer_block = self.transformer_block
+
+        time_embed_dim = model_channels * 4
+        self.time_embed = nn.Sequential(
+            linear(model_channels, time_embed_dim),
+            nn.SiLU(),
+            linear(time_embed_dim, time_embed_dim),
+        )
+
+        if self.num_classes is not None:
+            if isinstance(self.num_classes, int):
+                self.label_emb = nn.Embedding(num_classes, time_embed_dim)
+            elif self.num_classes == 'continuous':
+                print('setting up linear c_adm embedding layer')
+                self.label_emb = nn.Linear(1, time_embed_dim)
+            elif self.num_classes == 'timestep':
+                self.label_emb = nn.Sequential(
+                    Timestep(model_channels),
+                    nn.Sequential(
+                        linear(model_channels, time_embed_dim),
+                        nn.SiLU(),
+                        linear(time_embed_dim, time_embed_dim),
+                    ),
+                )
+            elif self.num_classes == 'sequential':
+                assert adm_in_channels is not None
+                self.label_emb = nn.Sequential(
+                    nn.Sequential(
+                        linear(adm_in_channels, time_embed_dim),
+                        nn.SiLU(),
+                        linear(time_embed_dim, time_embed_dim),
+                    ))
+            else:
+                raise ValueError()
+
+        self.input_blocks = nn.ModuleList([
+            TimestepEmbedSequential(
+                conv_nd(dims, in_channels, model_channels, 3, padding=1))
+        ])
+        self._feature_size = model_channels
+        input_block_chans = [model_channels]
+        input_down_flag = [False]
+        ch = model_channels
+        ds = 1
+        for level, mult in enumerate(channel_mult):
+            for nr in range(self.num_res_blocks[level]):
+                layers = [
+                    ResBlock(
+                        ch,
+                        time_embed_dim,
+                        dropout,
+                        out_channels=mult * model_channels,
+                        dims=dims,
+                        use_checkpoint=use_checkpoint,
+                        use_scale_shift_norm=use_scale_shift_norm,
+                    )
+                ]
+                ch = mult * model_channels
+                if ds in attention_resolutions:
+                    if num_head_channels == -1:
+                        dim_head = ch // num_heads
+                    else:
+                        num_heads = ch // num_head_channels
+                        dim_head = num_head_channels
+                    disabled_sa = disable_self_attentions[level] if exists(
+                        disable_self_attentions) else False
+
+                    layers.append(
+                        SpatialTransformerV2(
+                            ch,
+                            num_heads,
+                            dim_head,
+                            transformer_block=transformer_block,
+                            depth=transformer_depth[level],
+                            context_dim=context_dim,
+                            disable_self_attn=disabled_sa,
+                            use_linear=use_linear_in_transformer,
+                            use_checkpoint=use_checkpoint))
+                self.input_blocks.append(TimestepEmbedSequential(*layers))
+                self._feature_size += ch
+                input_block_chans.append(ch)
+                input_down_flag.append(False)
+            if level != len(channel_mult) - 1:
+                out_ch = ch
+                self.input_blocks.append(
+                    TimestepEmbedSequential(
+                        ResBlock(
+                            ch,
+                            time_embed_dim,
+                            dropout,
+                            out_channels=out_ch,
+                            dims=dims,
+                            use_checkpoint=use_checkpoint,
+                            use_scale_shift_norm=use_scale_shift_norm,
+                            down=True,
+                        ) if resblock_updown else Downsample(
+                            ch, conv_resample, dims=dims, out_channels=out_ch))
+                )
+                ch = out_ch
+                input_block_chans.append(ch)
+                input_down_flag.append(True)
+                ds *= 2
+                self._feature_size += ch
+        self._input_block_chans = copy.deepcopy(input_block_chans)
+        self._input_down_flag = input_down_flag
+
+        if num_head_channels == -1:
+            dim_head = ch // num_heads
+        else:
+            num_heads = ch // num_head_channels
+            dim_head = num_head_channels
+        self.middle_block = TimestepEmbedSequential(
+            ResBlock(
+                ch,
+                time_embed_dim,
+                dropout,
+                dims=dims,
+                use_checkpoint=use_checkpoint,
+                use_scale_shift_norm=use_scale_shift_norm,
+            ),
+            SpatialTransformerV2(ch,
+                                 num_heads,
+                                 dim_head,
+                                 transformer_block=transformer_block,
+                                 depth=transformer_depth_middle,
+                                 context_dim=context_dim,
+                                 disable_self_attn=disable_middle_self_attn,
+                                 use_linear=use_linear_in_transformer,
+                                 use_checkpoint=use_checkpoint),
+            ResBlock(
+                ch,
+                time_embed_dim,
+                dropout,
+                dims=dims,
+                use_checkpoint=use_checkpoint,
+                use_scale_shift_norm=use_scale_shift_norm,
+            ),
+        )
+        self._feature_size += ch
+        self._middle_block_chans = [ch]
+
+        self._output_block_chans = []
+        self.output_blocks = nn.ModuleList([])
+        for level, mult in list(enumerate(channel_mult))[::-1]:
+            for i in range(self.num_res_blocks[level] + 1):
+                ich = input_block_chans.pop()
+                layers = [
+                    ResBlock(
+                        ch + ich,
+                        time_embed_dim,
+                        dropout,
+                        out_channels=model_channels * mult,
+                        dims=dims,
+                        use_checkpoint=use_checkpoint,
+                        use_scale_shift_norm=use_scale_shift_norm,
+                    )
+                ]
+                ch = model_channels * mult
+                if ds in attention_resolutions:
+                    if num_head_channels == -1:
+                        dim_head = ch // num_heads
+                    else:
+                        num_heads = ch // num_head_channels
+                        dim_head = num_head_channels
+                    disabled_sa = disable_self_attentions[level] if exists(
+                        disable_self_attentions) else False
+                    layers.append(
+                        SpatialTransformerV2(
+                            ch,
+                            num_heads,
+                            dim_head,
+                            transformer_block=transformer_block,
+                            depth=transformer_depth[level],
+                            context_dim=context_dim,
+                            disable_self_attn=disabled_sa,
+                            use_linear=use_linear_in_transformer,
+                            use_checkpoint=use_checkpoint))
+                if level and i == self.num_res_blocks[level]:
+                    out_ch = ch
+                    layers.append(
+                        ResBlock(
+                            ch,
+                            time_embed_dim,
+                            dropout,
+                            out_channels=out_ch,
+                            dims=dims,
+                            use_checkpoint=use_checkpoint,
+                            use_scale_shift_norm=use_scale_shift_norm,
+                            up=True,
+                        ) if resblock_updown else Upsample(
+                            ch, conv_resample, dims=dims, out_channels=out_ch))
+                    ds //= 2
+
+                self.output_blocks.append(TimestepEmbedSequential(*layers))
+
+                self._feature_size += ch
+                self._output_block_chans.append(ch)
+
+        self.out = nn.Sequential(
+            normalization(ch),
+            nn.SiLU(),
+            zero_module(
+                conv_nd(dims, model_channels, out_channels, 3, padding=1)),
+        )
+
+        if self.use_refine:
+            self.ref_time_embed = copy.deepcopy(self.time_embed)
+            self.ref_label_emb = copy.deepcopy(self.label_emb)
+            self.ref_input_blocks = copy.deepcopy(self.input_blocks)
+            self.ref_input_blocks[0] = TimestepEmbedSequential(
+                conv_nd(dims, 4, model_channels, 3, padding=1))
+            self.ref_middle_block = copy.deepcopy(self.middle_block)
+            self.ref_output_blocks = copy.deepcopy(self.output_blocks)
+
+    def load_pretrained_model(self, pretrained_model):
+        if pretrained_model is not None:
+            with FS.get_from(pretrained_model,
+                             wait_finish=True) as local_model:
+                self.init_from_ckpt(local_model, ignore_keys=self.ignore_keys)
+
+    def init_from_ckpt(self, path, ignore_keys=list()):
+        if path.endswith('safetensors'):
+            from safetensors.torch import load_file as load_safetensors
+            sd = load_safetensors(path)
+        else:
+            sd = torch.load(path, map_location='cpu')
+
+        new_sd = OrderedDict()
+        for k, v in sd.items():
+            ignored = False
+            for ik in ignore_keys:
+                if ik in k:
+                    if we.rank == 0:
+                        self.logger.info(
+                            'Ignore key {} from state_dict.'.format(k))
+                    ignored = True
+                    break
+            if not ignored:
+                if k == 'input_blocks.0.0.weight':
+                    if we.rank == 0:
+                        self.logger.info(
+                            'Partial initial key {} from state_dict.'.format(
+                                k))
+                    new_v = torch.empty(320, self.in_channels, 3, 3)
+                    nn.init.zeros_(new_v)
+                    new_v[:, :v.shape[1]] = v
+                    new_sd[k] = new_v
+                    if self.use_refine:
+                        new_sd['ref_' + k] = v
+                else:
+                    new_sd[k] = v
+                    if self.use_refine:
+                        new_sd['ref_' + k] = v
+
+        missing, unexpected = self.load_state_dict(new_sd, strict=False)
+        if we.rank == 0:
+            self.logger.info(
+                f'Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys'
+            )
+            if len(missing) > 0:
+                self.logger.info(f'Missing Keys:\n {missing}')
+            if len(unexpected) > 0:
+                self.logger.info(f'\nUnexpected Keys:\n {unexpected}')
+
+    def forward(self, x, t=None, cond=dict(), **kwargs):
+        t_emb = timestep_embedding(t,
+                                   self.model_channels,
+                                   repeat_only=False,
+                                   legacy=True)
+        emb = self.time_embed(t_emb)
+
+        if isinstance(cond, dict):
+            if 'y' in cond:
+                assert self.num_classes is not None
+                emb = emb + self.label_emb(cond['y'])
+                if self.use_refine:
+                    ref_emb = self.ref_time_embed(t_emb)
+                    assert 'null_y' in cond
+                    cond_y = cond['y'].clone()
+                    cond_y[:, :cond['null_y'].shape[1]] = cond['null_y']
+                    ref_emb = ref_emb + self.ref_label_emb(cond_y)
+
+            if 'concat' in cond:
+                c = cond['concat']
+                x = torch.cat([x, c], dim=1)
+
+            context = cond.get('crossattn', None)
+            img_context = cond.get('img_crossattn', None)
+
+            task = cond['task']
+            image_scale = cond.get('image_scale', self.image_scale)
+            if 'Subject' in task and img_context is not None:
+                ip_enc_scale = image_scale
+                ip_dec_scale = image_scale
+                num_img_tokens = img_context.shape[1]
+                context = torch.cat([context, img_context], dim=1)
+            else:
+                ip_enc_scale = None
+                ip_dec_scale = None
+                num_img_tokens = None
+
+            ref = cond.get('ref_xt', None)
+            ref_context = cond.get('ref_crossattn', None)
+        else:
+            raise TypeError
+
+        hs = []
+        refs = []
+        h = x
+
+        if self.use_refine:
+            assert ref is not None and ref_context is not None
+            for i, (ref_module, module) in enumerate(
+                    zip(self.ref_input_blocks, self.input_blocks)):
+                ref = ref_module(ref, ref_emb, ref_context, caching=None)
+                h = module(h,
+                           emb,
+                           context,
+                           caching=None,
+                           scale=ip_enc_scale,
+                           num_img_token=num_img_tokens)
+                refs.append(ref)
+                hs.append(h)
+
+            ref = self.ref_middle_block(ref,
+                                        ref_emb,
+                                        ref_context,
+                                        caching=None)
+            h = self.middle_block(h,
+                                  emb,
+                                  context,
+                                  caching=None,
+                                  scale=ip_enc_scale,
+                                  num_img_token=num_img_tokens)
+
+            for i, (ref_module, module) in enumerate(
+                    zip(self.ref_output_blocks, self.output_blocks)):
+                cache = []
+                ref = torch.cat([ref, refs.pop()], dim=1)
+                ref = ref_module(ref,
+                                 ref_emb,
+                                 ref_context,
+                                 caching='write',
+                                 cache=cache)
+                h = torch.cat([h, hs.pop()], dim=1)
+                h = module(h,
+                           emb,
+                           context,
+                           caching='read',
+                           cache=cache,
+                           scale=ip_dec_scale,
+                           num_img_token=num_img_tokens)
+        else:
+            for module in self.input_blocks:
+                h = module(h,
+                           emb,
+                           context,
+                           caching=None,
+                           scale=ip_enc_scale,
+                           num_img_token=num_img_tokens)
+                hs.append(h)
+            h = self.middle_block(h,
+                                  emb,
+                                  context,
+                                  caching=None,
+                                  scale=ip_enc_scale,
+                                  num_img_token=num_img_tokens)
+            for module in self.output_blocks:
+                h = torch.cat([h, hs.pop()], dim=1)
+                h = module(h,
+                           emb,
+                           context,
+                           caching=None,
+                           scale=ip_dec_scale,
+                           num_img_token=num_img_tokens)
+
+        out = self.out(h)
+        return out
+
+    @staticmethod
+    def get_config_template():
+        return dict_to_yaml('BACKBONE',
+                            __class__.__name__,
+                            LargenUNetXL.para_dict,
                             set_name=True)

@@ -263,7 +263,8 @@ class ProbeData():
                         url = FS.get_url(one_path,
                                          lifecycle=3600 * 365 * 24).replace(
                                              '.oss-internal.aliyun-inc.',
-                                             '.oss.aliyuncs.')
+                                             '.oss.aliyuncs.').replace(
+                                                 '-internal', '')
                         one_rank += (
                             f'<td align="center"><input type="image" src="{url}" >'
                             f'<br><font size="4"><strong>{save_id}-{idx}|{one_label}<strong></font><br/></td>'

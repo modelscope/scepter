@@ -3,6 +3,7 @@
 
 import torch
 import torch.nn as nn
+from einops import repeat
 from torch.utils.checkpoint import checkpoint
 
 from scepter.modules.model.backbone.autoencoder.ae_utils import (
@@ -244,6 +245,7 @@ class Decoder(BaseModel):
 
         # compute in_ch_mult, block_in and curr_res at lowest res
         block_in = self.ch * self.ch_mult[self.num_resolutions - 1]
+        self.block_in = block_in
         curr_res = 1
         # z to block_in
         self.conv_in = torch.nn.Conv2d(self.z_channels,
@@ -316,6 +318,51 @@ class Decoder(BaseModel):
         temb = None
 
         h = self.conv_in(z)
+
+        # middle
+        if not self.use_checkpoint:
+            h = self.mid_upsclae_transform(h, temb)
+        else:
+            h = checkpoint(self.mid_upsclae_transform, h, temb)
+
+        # end
+        if self.give_pre_end:
+            return h
+
+        h = self.norm_out(h)
+        h = nonlinearity(h)
+        h = self.conv_out(h)
+        if self.tanh_out:
+            h = torch.tanh(h)
+        return h
+
+    @staticmethod
+    def get_config_template():
+        return dict_to_yaml('BACKBONE',
+                            __class__.__name__,
+                            Decoder.para_dict,
+                            set_name=True)
+
+
+@BACKBONES.register_class()
+class RDecoder(Decoder):
+    def construct_model(self):
+        super().construct_model()
+        self.resize_level = nn.Sequential(
+            nn.Linear(self.block_in, self.block_in),
+            nn.SiLU(),
+            nn.Linear(self.block_in, self.block_in),
+        )
+
+    def forward(self, z, rembed=None):
+        # timestep embedding
+        temb = None
+        h = self.conv_in(z)
+        bs, channel, hdim, wdim = h.size()
+        if rembed is not None:
+            rembed = self.resize_level(rembed)
+            rembed = repeat(rembed, 'b e->  b e hd wd', hd=hdim, wd=wdim)
+            h = h + rembed
 
         # middle
         if not self.use_checkpoint:

@@ -6,6 +6,7 @@ import gradio as gr
 import numpy as np
 from PIL import Image
 
+from scepter.modules.utils.file_system import FS
 from scepter.studio.inference.inference_ui.component_names import GalleryUIName
 from scepter.studio.utils.uibase import UIBase
 
@@ -15,6 +16,9 @@ class GalleryUI(UIBase):
         self.pipe_manager = pipe_manager
         self.component_names = GalleryUIName(language)
         self.cfg = cfg
+        self.work_dir = cfg.WORK_DIR
+        self.local_work_dir, _ = FS.map_to_local(self.work_dir)
+        os.makedirs(self.local_work_dir, exist_ok=True)
 
     def create_ui(self, *args, **kwargs):
         with gr.Group():
@@ -41,6 +45,7 @@ class GalleryUI(UIBase):
                         container=False,
                         autofocus=True,
                         elem_classes='type_row',
+                        submit_on_enter=True,
                         lines=1)
 
                 with gr.Column(scale=3, min_width=0):
@@ -87,6 +92,19 @@ class GalleryUI(UIBase):
                          style_template,
                          style_negative_template,
                          image_seed,
+                         largen_state,
+                         largen_task,
+                         largen_image_scale,
+                         largen_tar_image,
+                         largen_tar_mask,
+                         largen_masked_image,
+                         largen_ref_image,
+                         largen_ref_mask,
+                         largen_ref_clip,
+                         largen_base_image,
+                         largen_extra_sizes,
+                         largen_bbox_yyxx,
+                         largen_history,
                          show_jpeg_image=True):
         if control_state and control_cond_image is None:
             raise gr.Error(self.component_names.control_err1)
@@ -111,9 +129,8 @@ class GalleryUI(UIBase):
         for tuner_m in tuner_model:
             if tuner_m is None or tuner_m == '':
                 continue
-            if (now_pipeline in self.pipe_manager.model_level_info['tuners']
-                    and tuner_m in self.pipe_manager.model_level_info['tuners']
-                [now_pipeline]):
+            if now_pipeline in self.pipe_manager.model_level_info['tuners'] and \
+               tuner_m in self.pipe_manager.model_level_info['tuners'][now_pipeline]:
                 tuner_m = self.pipe_manager.model_level_info['tuners'][
                     now_pipeline][tuner_m]['model_info']
                 used_tuner_model.append(tuner_m)
@@ -163,6 +180,23 @@ class GalleryUI(UIBase):
             pipeline_input['refine_guide_rescale'] = refine_guide_rescale
         else:
             refine_strength = 0
+        if largen_state:
+            largen_cfg = {
+                'largen_task': largen_task,
+                'largen_image_scale': largen_image_scale,
+                'largen_tar_image': largen_tar_image,
+                'largen_tar_mask': largen_tar_mask,
+                'largen_ref_image': largen_ref_image,
+                'largen_ref_mask': largen_ref_mask,
+                'largen_masked_image': largen_masked_image,
+                'largen_ref_clip': largen_ref_clip,
+                'largen_base_image': largen_base_image,
+                'largen_extra_sizes': largen_extra_sizes,
+                'largen_bbox_yyxx': largen_bbox_yyxx,
+            }
+        else:
+            largen_cfg = {}
+
         results = current_pipeline(
             pipeline_input,
             num_samples=image_number,
@@ -177,7 +211,8 @@ class GalleryUI(UIBase):
             if tuner_state or control_state else None,
             control_cond_image=control_cond_image if control_state else None,
             crop_type=crop_type if control_state else None,
-            seed=int(image_seed))
+            seed=int(image_seed),
+            **largen_cfg)
         images = []
         before_images = []
         if 'images' in results:
@@ -198,27 +233,34 @@ class GalleryUI(UIBase):
         if 'seed' in results:
             print(results['seed'])
         print(images, before_images)
+        largen_history.extend(images)
+        if len(largen_history) > 10:
+            largen_history = largen_history[-10:]
         if show_jpeg_image:
             save_list = []
             for i, img in enumerate(images):
-                save_image = os.path.join(self.cfg.WORK_DIR,
+                save_image = os.path.join(self.local_work_dir,
                                           f'cur_gallery_{i}.jpg')
                 img.save(save_image)
                 save_list.append(save_image)
             images = save_list
+
         return (
             gr.Column(visible=len(before_images) > 0),
             before_images,
             images,
+            largen_history,
+            gr.update(value=largen_history),
         )
 
     def generate_image(self, *args, **kwargs):
         gallery_result = self.generate_gallery(*args, **kwargs)
-        before_refine_panel, before_refine_gallery, output_gallery = gallery_result
+        before_refine_panel, before_refine_gallery, output_gallery, _ = gallery_result
         return (before_refine_panel, before_refine_gallery, output_gallery[0])
 
     def set_callbacks(self, inference_ui, model_manage_ui, diffusion_ui,
-                      mantra_ui, tuner_ui, refiner_ui, control_ui, **kwargs):
+                      mantra_ui, tuner_ui, refiner_ui, control_ui, largen_ui,
+                      **kwargs):
 
         self.gen_inputs = [
             self.prompt, mantra_ui.state, tuner_ui.state, control_ui.state,
@@ -237,12 +279,20 @@ class GalleryUI(UIBase):
             refiner_ui.refine_strength, refiner_ui.refine_sampler,
             refiner_ui.refine_discretization, refiner_ui.refine_guide_scale,
             refiner_ui.refine_guide_rescale, mantra_ui.style_template,
-            mantra_ui.style_negative_template, diffusion_ui.image_seed
+            mantra_ui.style_negative_template, diffusion_ui.image_seed,
+            largen_ui.state, largen_ui.task, largen_ui.image_scale,
+            largen_ui.tar_image, largen_ui.tar_mask, largen_ui.masked_image,
+            largen_ui.ref_image, largen_ui.ref_mask, largen_ui.ref_clip,
+            largen_ui.base_image, largen_ui.extra_sizes, largen_ui.bbox_yyxx,
+            largen_ui.image_history
         ]
 
         self.gen_outputs = [
-            self.before_refine_panel, self.before_refine_gallery,
-            self.output_gallery
+            self.before_refine_panel,
+            self.before_refine_gallery,
+            self.output_gallery,
+            largen_ui.image_history,
+            largen_ui.gallery,
         ]
 
         self.generate_button.click(self.generate_gallery,

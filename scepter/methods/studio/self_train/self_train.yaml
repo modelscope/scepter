@@ -8,3 +8,13 @@ SAMPLERS:
     NAME: 'dpmpp_2m_sde'
   -
     NAME: 'dpmpp_2s_ancestral'
+TRAIN_PARAS:
+  RESOLUTIONS:
+    VALUES: [[256, 256], [320, 180], [180, 320],
+             [512, 512], [640, 360], [360, 640],
+             [768, 768], [960, 540], [540, 960],
+             [1024, 1024], [1280, 720], [720, 1280]]
+    DEFAULT: [1024, 1024]
+  EVAL_PROMPTS:
+    - a boy wearing a jacket
+    - a dog running on the lawn

@@ -24,7 +24,6 @@ refresh_symbol = '\U0001f504'  # 🔄
 class CreateDatasetUI(UIBase):
     def __init__(self, cfg, is_debug=False, language='en'):
         self.work_dir = cfg.WORK_DIR
-        self.dir_list = FS.walk_dir(self.work_dir, recurse=False)
         self.cache_file = {}
         self.meta_dict = {}
         self.dataset_list = self.load_history()
@@ -71,7 +70,8 @@ class CreateDatasetUI(UIBase):
             json.dump(save_meta, open(local_path, 'w'))
         return meta_file
 
-    def construct_meta(self, cursor, file_list, dataset_folder, user_name):
+    def construct_meta(self, cursor, file_list, dataset_folder, user_name,
+                       login_user_name):
         '''
             {
                 "dataset_name": "xxxx",
@@ -86,11 +86,17 @@ class CreateDatasetUI(UIBase):
         save_file_list = os.path.join(dataset_folder, 'file.csv')
         save_file_list = self.write_file_list(file_list, save_file_list)
         meta = {
-            'dataset_name': user_name,
-            'cursor': cursor,
-            'file_list': file_list,
-            'train_csv': train_csv,
-            'save_file_list': save_file_list
+            'dataset_name':
+            user_name if login_user_name == '' or login_user_name is None else
+            '_'.join([login_user_name, user_name]),
+            'cursor':
+            cursor,
+            'file_list':
+            file_list,
+            'train_csv':
+            train_csv,
+            'save_file_list':
+            save_file_list
         }
         self.save_meta(meta, dataset_folder)
         return meta
@@ -180,7 +186,7 @@ class CreateDatasetUI(UIBase):
         file_folder = None
         train_list = None
         hit_dir = None
-        raw_list = []
+        raw_list = {}
         mac_osx = os.path.join(local_dataset_folder, '__MACOSX')
         if os.path.exists(mac_osx):
             res = os.popen(f"rm -rf '{mac_osx}'")
@@ -191,28 +197,45 @@ class CreateDatasetUI(UIBase):
                 res = res.readlines()
                 continue
             if FS.isdir(one_dir):
-                sub_dir = FS.walk_dir(one_dir)
-                for one_s_dir in sub_dir:
-                    if FS.isdir(one_s_dir) and one_s_dir.split(
-                            one_dir)[1].replace('/', '') == 'images':
-                        file_folder = one_s_dir
-                        hit_dir = one_dir
-                    if FS.isfile(one_s_dir) and one_s_dir.split(
-                            one_dir)[1].replace('/', '') == 'train.csv':
-                        train_list = one_s_dir
-                    if file_folder is not None and train_list is not None:
-                        break
-                    if (one_s_dir.endswith('.jpg')
-                            or one_s_dir.endswith('.jpeg')
-                            or one_s_dir.endswith('.png')
-                            or one_s_dir.endswith('.webp')):
-                        raw_list.append(one_s_dir)
+                if one_dir.endswith('images') or one_dir.endswith('images/'):
+                    file_folder = one_dir
+                    hit_dir = one_dir
+                else:
+                    sub_dir = FS.walk_dir(one_dir)
+                    for one_s_dir in sub_dir:
+                        if FS.isdir(one_s_dir) and one_s_dir.split(
+                                one_dir)[1].replace('/', '') == 'images':
+                            file_folder = one_s_dir
+                            hit_dir = one_dir
+                        if FS.isfile(one_s_dir) and one_s_dir.split(
+                                one_dir)[1].replace('/', '') == 'train.csv':
+                            train_list = one_s_dir
+                        if file_folder is not None and train_list is not None:
+                            break
+                        if (one_s_dir.endswith('.jpg')
+                                or one_s_dir.endswith('.jpeg')
+                                or one_s_dir.endswith('.png')
+                                or one_s_dir.endswith('.webp')):
+                            file_name, surfix = os.path.splitext(one_s_dir)
+                            txt_file = file_name + '.txt'
+                            if os.path.exists(txt_file):
+                                raw_list[one_s_dir] = txt_file
+                            else:
+                                raw_list[one_s_dir] = None
+            elif one_dir.endswith('train.csv'):
+                train_list = one_dir
             else:
                 if (one_dir.endswith('.jpg') or one_dir.endswith('.jpeg')
                         or one_dir.endswith('.png')
                         or one_dir.endswith('.webp')):
-                    raw_list.append(one_dir)
-
+                    file_name, surfix = os.path.splitext(one_dir)
+                    txt_file = file_name + '.txt'
+                    if os.path.exists(txt_file):
+                        raw_list[one_dir] = txt_file
+                    else:
+                        raw_list[one_dir] = None
+            if file_folder is not None and train_list is not None:
+                break
         if file_folder is None and len(raw_list) < 1:
             raise gr.Error(
                 "images folder or train.csv doesn't exists, or nothing exists in your zip"
@@ -222,17 +245,21 @@ class CreateDatasetUI(UIBase):
         if file_folder is not None:
             _ = FS.get_dir_to_local_dir(file_folder, new_file_folder)
         elif len(raw_list) > 0:
-            raw_list = list(set(raw_list))
+            raw_list = [[k, v] for k, v in raw_list.items()]
             for img_id, cur_image in enumerate(raw_list):
-                _, surfix = os.path.splitext(cur_image)
+                image_name, surfix = os.path.splitext(cur_image[0])
+                if cur_image[1] is not None and os.path.exists(cur_image[1]):
+                    prompt = open(cur_image[1], 'r').read()
+                else:
+                    prompt = image_name.split('/')[-1]
                 try:
                     os.rename(
-                        os.path.abspath(cur_image),
-                        f'{new_file_folder}/{get_md5(cur_image)}{surfix}')
+                        os.path.abspath(cur_image[0]),
+                        f'{new_file_folder}/{get_md5(cur_image[0])}{surfix}')
                     raw_list[img_id] = [
                         os.path.join('images',
-                                     f'{get_md5(cur_image)}{surfix}'),
-                        cur_image.split('/')[-1]
+                                     f'{get_md5(cur_image[0])}{surfix}'),
+                        prompt
                     ]
                 except Exception as e:
                     print(e)
@@ -251,13 +278,14 @@ class CreateDatasetUI(UIBase):
             res = res.readlines()
         if not os.path.exists(new_train_list):
             raise gr.Error(f'{str(res)}')
-        try:
-            res = os.popen(f"rm -rf '{hit_dir}/images/*'")
-            _ = res.readlines()
-            res = os.popen(f"rm -rf '{hit_dir}'")
-            _ = res.readlines()
-        except Exception:
-            pass
+        if not file_folder == hit_dir:
+            try:
+                res = os.popen(f"rm -rf '{hit_dir}/images/*'")
+                _ = res.readlines()
+                res = os.popen(f"rm -rf '{hit_dir}'")
+                _ = res.readlines()
+            except Exception:
+                pass
         file_list = self.load_train_csv(new_train_list, data_folder)
         return file_list
 
@@ -317,21 +345,25 @@ class CreateDatasetUI(UIBase):
                 return True, file_path
         return False, file_path
 
-    def load_history(self):
+    def load_history(self, login_user_name=''):
         dataset_list = []
+        self.dir_list = FS.walk_dir(self.work_dir, recurse=False)
         for one_dir in self.dir_list:
             if FS.isdir(one_dir):
                 meta_file = os.path.join(one_dir, 'meta.json')
                 if FS.exists(meta_file):
                     local_dataset_folder, _ = FS.map_to_local(one_dir)
-                    local_dataset_folder = FS.get_dir_to_local_dir(
-                        one_dir, local_dataset_folder, multi_thread=True)
+                    if not FS.exists(
+                            os.path.join(local_dataset_folder, 'meta.json')):
+                        local_dataset_folder = FS.get_dir_to_local_dir(
+                            one_dir, local_dataset_folder, multi_thread=True)
                     meta_data = self.load_meta(
                         os.path.join(local_dataset_folder, 'meta.json'))
                     meta_data['local_work_dir'] = local_dataset_folder
                     meta_data['work_dir'] = one_dir
-                    dataset_list.append(meta_data['dataset_name'])
-                    self.meta_dict[meta_data['dataset_name']] = meta_data
+                    if meta_data['dataset_name'].startswith(login_user_name):
+                        dataset_list.append(meta_data['dataset_name'])
+                        self.meta_dict[meta_data['dataset_name']] = meta_data
         return dataset_list
 
     def create_ui(self):
@@ -396,7 +428,7 @@ class CreateDatasetUI(UIBase):
         self.file_panel = file_panel
         self.modify_panel = modify_panel
 
-    def set_callbacks(self, gallery_dataset, export_dataset):
+    def set_callbacks(self, gallery_dataset, export_dataset, manager):
         def show_dataset_panel():
             return (gr.Column(visible=False), gr.Column(visible=True),
                     gr.Column(visible=True),
@@ -419,17 +451,19 @@ class CreateDatasetUI(UIBase):
                 datetime.datetime.now())
             return data_name
 
-        def refresh():
-            return gr.Dropdown(value=self.dataset_list[-1]
-                               if len(self.dataset_list) > 0 else '',
-                               choices=self.dataset_list)
+        def refresh(login_user_name):
+            dataset_list = self.load_history(login_user_name=login_user_name)
+            return gr.Dropdown(
+                value=dataset_list[-1] if len(dataset_list) > 0 else '',
+                choices=dataset_list)
 
         self.refresh_dataset_name.click(refresh,
+                                        inputs=[manager.user_name],
                                         outputs=[self.dataset_name],
                                         queue=False)
 
         def confirm_create_dataset(user_name, create_mode, file_url, file_path,
-                                   panel_state):
+                                   panel_state, login_user_name):
             if user_name.strip() == '' or ' ' in user_name or '/' in user_name:
                 raise gr.Error(self.components_name.illegal_data_name_err1)
 
@@ -442,7 +476,9 @@ class CreateDatasetUI(UIBase):
             if not file_url.strip() == '' and file_path is not None:
                 raise gr.Error(self.components_name.illegal_data_name_err4)
             if create_mode == 3 and not file_url.strip() == '':
-                file_name, surfix = os.path.splitext(file_url.split('?')[0])
+                if 'oss' in file_url:
+                    file_url = file_url.split('?')[0]
+                file_name, surfix = os.path.splitext(file_url)
                 save_file = os.path.join(self.work_dir, f'{user_name}{surfix}')
                 local_path, _ = FS.map_to_local(save_file)
                 res = os.popen(f"wget -c '{file_url}' -O '{local_path}'")
@@ -490,7 +526,7 @@ class CreateDatasetUI(UIBase):
 
             cursor = 0 if len(file_list) > 0 else -1
             meta = self.construct_meta(cursor, file_list, dataset_folder,
-                                       user_name)
+                                       user_name, login_user_name)
 
             meta['local_work_dir'] = local_dataset_folder
             meta['work_dir'] = dataset_folder
@@ -498,13 +534,13 @@ class CreateDatasetUI(UIBase):
             self.meta_dict[meta['dataset_name']] = meta
             if meta['dataset_name'] not in self.dataset_list:
                 self.dataset_list.append(meta['dataset_name'])
-            return (
-                gr.Checkbox(value=True, visible=False),
-                gr.Dropdown(value=user_name, choices=self.dataset_list),
-            )
+            return (gr.Checkbox(value=True, visible=False),
+                    gr.Dropdown(value=meta['dataset_name'],
+                                choices=self.dataset_list),
+                    gr.Text(value=meta['dataset_name']))
 
         def clear_file():
-            return gr.Text(visible=True)
+            return gr.Text(visible=False)
 
         # Click Create
         self.btn_create_datasets.click(show_dataset_panel, [], [
@@ -545,9 +581,9 @@ class CreateDatasetUI(UIBase):
         # Click Confirm
         self.confirm_data_button.click(confirm_create_dataset, [
             self.user_data_name, self.create_mode, self.file_path_url,
-            self.file_path, self.panel_state
-        ], [self.panel_state, self.dataset_name],
-                                       queue=True)
+            self.file_path, self.panel_state, manager.user_name
+        ], [self.panel_state, self.dataset_name, self.user_data_name],
+                                       queue=False)
 
         def show_edit_panel(panel_state, data_name):
             if panel_state:
@@ -568,7 +604,7 @@ class CreateDatasetUI(UIBase):
             ],
             queue=False)
 
-        def modify_data_name(user_name, prev_data_name):
+        def modify_data_name(user_name, prev_data_name, login_user_name):
             print(
                 f'Current file name {prev_data_name}, new file name {user_name}.'
             )
@@ -600,7 +636,8 @@ class CreateDatasetUI(UIBase):
                         raise gr.Error(self.components_name.illegal_data_err3)
                     cursor = ori_meta['cursor']
                     meta = self.construct_meta(cursor, file_list,
-                                               dataset_folder, user_name)
+                                               dataset_folder, user_name,
+                                               login_user_name)
                     meta['local_work_dir'] = local_dataset_folder
                     meta['work_dir'] = dataset_folder
 
@@ -624,7 +661,10 @@ class CreateDatasetUI(UIBase):
 
         self.modify_data_button.click(
             modify_data_name,
-            inputs=[self.user_data_name, self.user_data_name_state],
+            inputs=[
+                self.user_data_name, self.user_data_name_state,
+                manager.user_name
+            ],
             outputs=[self.user_data_name_state, self.dataset_name],
             queue=False)
 
@@ -646,4 +686,15 @@ class CreateDatasetUI(UIBase):
                                      self.panel_state, self.user_data_name,
                                      gallery_dataset.gallery_state
                                  ],
+                                 queue=False)
+
+        def login_user_name_change(login_user_name):
+            dataset_list = self.load_history(login_user_name=login_user_name)
+            return gr.Dropdown(
+                value=dataset_list[-1] if len(dataset_list) > 0 else '',
+                choices=dataset_list)
+
+        manager.user_name.change(login_user_name_change,
+                                 inputs=[manager.user_name],
+                                 outputs=[self.dataset_name],
                                  queue=False)

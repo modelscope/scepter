@@ -16,6 +16,7 @@ from scepter.studio.inference.inference_ui.component_names import \
 from scepter.studio.inference.inference_ui.control_ui import ControlUI
 from scepter.studio.inference.inference_ui.diffusion_ui import DiffusionUI
 from scepter.studio.inference.inference_ui.gallery_ui import GalleryUI
+from scepter.studio.inference.inference_ui.largen_ui import LargenUI
 from scepter.studio.inference.inference_ui.mantra_ui import MantraUI
 from scepter.studio.inference.inference_ui.model_manage_ui import ModelManageUI
 from scepter.studio.inference.inference_ui.refiner_ui import RefinerUI
@@ -23,7 +24,7 @@ from scepter.studio.inference.inference_ui.tuner_ui import TunerUI
 from scepter.studio.utils.env import init_env
 
 UI_MAP = [('diffusion', DiffusionUI), ('mantra', MantraUI), ('tuner', TunerUI),
-          ('control', ControlUI), ('refiner', RefinerUI)]
+          ('control', ControlUI), ('refiner', RefinerUI), ('largen', LargenUI)]
 
 
 class InferenceUI():
@@ -54,6 +55,19 @@ class InferenceUI():
             cfg_general.EXTENSION_PARAS.OFFICIAL_CONTROLLERS))
         cfg_general.CONTROLLERS = official_controllers.CONTROLLERS
 
+        # customized tuners
+        tuner_manager = Config(
+            cfg_file=os.path.join(os.path.dirname(scepter.dirname),
+                                  cfg_general.EXTENSION_PARAS.TUNER_MANAGER))
+        tuner_manager = os.path.join(root_work_dir, tuner_manager.WORK_DIR,
+                                     tuner_manager.TUNER_LIST_YAML)
+        if FS.exists(tuner_manager):
+            with FS.get_from(tuner_manager) as local_path:
+                custom_tuners = Config(cfg_file=local_path)
+            cfg_general.CUSTOM_TUNERS = custom_tuners.get('TUNERS', [])
+        else:
+            cfg_general.CUSTOM_TUNERS = []
+
         pipe_manager = PipelineManager()
         config_list = glob(os.path.join(config_dir, '*/*_pro.yaml'),
                            recursive=True)
@@ -67,6 +81,12 @@ class InferenceUI():
 
         for one_controller in cfg_general.CONTROLLERS:
             pipe_manager.register_controllers(one_controller)
+
+        for one_tuner in cfg_general.CUSTOM_TUNERS:
+            pipe_manager.register_tuner(
+                one_tuner,
+                name=one_tuner.NAME_ZH if language == 'zh' else one_tuner.NAME,
+                is_customized=True)
 
         self.model_manage_ui = ModelManageUI(cfg_general,
                                              pipe_manager,
@@ -88,7 +108,8 @@ class InferenceUI():
             self.tab_ui_kwargs[f'{name}_ui'] = ui
             self.__setattr__(f'{name}_ui', ui)
 
-        self.check_box_controlled_tabs = ['mantra', 'tuner', 'control']
+        self.check_box_controlled_tabs = ['mantra', 'tuner', 'control', 'largen']
+        self.pipe_manager = pipe_manager
         assert len(self.component_names.check_box_for_setting) == len(
             self.check_box_controlled_tabs)
 
@@ -96,6 +117,7 @@ class InferenceUI():
         # create model
         self.model_manage_ui.create_ui()
         self.gallery_ui.create_ui()
+        self.infer_info = gr.State(value=None)
 
         # create tabs
         def create_tab(name, ui):
@@ -123,20 +145,65 @@ class InferenceUI():
         for name, ui in self.tab_ui_kwargs.items():
             ui.set_callbacks(self.model_manage_ui,
                              **self.tab_ui_kwargs,
-                             gallery_ui=self.gallery_ui)
+                             gallery_ui=self.gallery_ui,
+                             manager=manager)
 
-        def change_setting_tab(check_box, *args):
+        def change_setting_tab(check_box, default_diffusion_model, *args):
             selected_tab = 'diffusion_ui'
             ui_tabs_state = [False] * len(args)
+            largen_index = self.check_box_controlled_tabs.index('largen')
+            largen_key = self.component_names.check_box_for_setting[largen_index]
+            largen_status = args[largen_index]
             for key in check_box:
                 i = self.component_names.check_box_for_setting.index(key)
                 ui_tabs_state[i] = True
                 if ui_tabs_state[i] != args[i]:
                     selected_tab = self.check_box_controlled_tabs[i] + '_ui'
+            new_check_box_value = check_box
+            for key in check_box:
+                i = self.component_names.check_box_for_setting.index(key)
+                if ui_tabs_state[i] != args[i]:
+                    if i in [largen_index]:
+                        new_check_box_value = [key]
+                        for j in range(len(ui_tabs_state)):
+                            ui_tabs_state[j] = j == i
+                    else:
+                        new_check_box_value = [
+                            k for k in check_box
+                            if k not in [largen_key]
+                        ]
+                        ui_tabs_state[largen_index] = False
+
             ui_tabs_updates = [gr.update(visible=v) for v in ui_tabs_state]
 
-            return gr.update(
-                selected=selected_tab), *ui_tabs_state, *ui_tabs_updates
+            if ui_tabs_state[largen_index]:
+                diffusion_model = gr.Dropdown(
+                    label=self.model_manage_ui.component_names.diffusion_model,
+                    choices=self.model_manage_ui.
+                    default_choices['diffusion_model']['choices'],
+                    value='LARGEN_LargenUNetXL',
+                    interactive=False)
+            elif largen_status:
+                diffusion_model = gr.Dropdown(
+                    label=self.model_manage_ui.component_names.diffusion_model,
+                    choices=self.model_manage_ui.
+                    default_choices['diffusion_model']['choices'],
+                    value=self.model_manage_ui.
+                    default_choices['diffusion_model']['default'],
+                    interactive=True)
+            else:
+                diffusion_model = gr.Dropdown(
+                    label=self.model_manage_ui.component_names.diffusion_model,
+                    choices=self.model_manage_ui.
+                    default_choices['diffusion_model']['choices'],
+                    value=default_diffusion_model,
+                    interactive=True)
+
+            return gr.CheckboxGroup(
+                choices=self.component_names.check_box_for_setting,
+                value=new_check_box_value,
+                show_label=False), gr.update(
+                selected=selected_tab), *ui_tabs_state, *ui_tabs_updates, diffusion_model
 
         gr_states = [
             self.tab_ui[name].state for name in self.check_box_controlled_tabs
@@ -146,8 +213,9 @@ class InferenceUI():
         ]
         self.check_box_for_setting.change(
             change_setting_tab,
-            inputs=[self.check_box_for_setting, *gr_states],
-            outputs=[self.setting_tab, *gr_states, *gr_tabs],
+            inputs=[self.check_box_for_setting, self.model_manage_ui.diffusion_model, *gr_states],
+            outputs=[self.check_box_for_setting, self.setting_tab, *gr_states,
+                     *gr_tabs, self.model_manage_ui.diffusion_model],
             queue=False)
 
 

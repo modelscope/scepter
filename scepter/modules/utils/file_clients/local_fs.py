@@ -293,6 +293,9 @@ class LocalFs(BaseFs):
         return True
 
     def get_logging_handler(self, target_logging_path):
+        dirname = os.path.dirname(target_logging_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname, exist_ok=True)
         return logging.FileHandler(target_logging_path)
 
     def put_dir_from_local_dir(self,
@@ -303,11 +306,11 @@ class LocalFs(BaseFs):
         target_dir = self.reconstruct_path(target_dir)
         if local_dir == target_dir:
             return True
-        # cp -f local_dir/* target_dir/*
-        if not osp.exists(target_dir):
-            status = os.system(f'mkdir -p {target_dir}')
-            if status != 0:
-                return False
+        # # cp -f local_dir/* target_dir/*
+        # if not osp.exists(target_dir):
+        #     status = os.system(f'mkdir -p {target_dir}')
+        #     if status != 0:
+        #         return False
         try:
             shutil.copytree(local_dir, target_dir, symlinks=True)
         except Exception:

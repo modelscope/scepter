@@ -474,10 +474,14 @@ class DiffusionInference():
                             enabled=dtype == 'float16',
                             dtype=getattr(torch, dtype)):
             if self.tokenizer:
+                if not hasattr(get_model(self.cond_stage_model), 'tokenizer'):
+                    setattr(get_model(self.cond_stage_model), 'tokenizer',
+                            self.tokenizer)
                 context = getattr(get_model(self.cond_stage_model),
                                   function_name)(batch['tokens'])
                 null_context = getattr(get_model(self.cond_stage_model),
                                        function_name)(batch_uc['tokens'])
+
             else:
                 context = getattr(get_model(self.cond_stage_model),
                                   function_name)(batch)
@@ -558,12 +562,13 @@ class DiffusionInference():
                         seed=seed,
                         condition_fn=None,
                         clamp=None,
+                        sharpness=value_input.get('sharpness', 0.0),
                         percentile=None,
                         t_max=None,
                         t_min=None,
                         discard_penultimate_step=None,
                         intermediate_callback=intermediate_callback,
-                        cat_uc=cat_uc,
+                        cat_uc=value_input.get('cat_uc', cat_uc),
                         **kwargs)
 
                 self.dynamic_unload(self.diffusion_model,

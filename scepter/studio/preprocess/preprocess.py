@@ -46,7 +46,7 @@ class PreprocessUI():
 
     def set_callbacks(self, manager):
         self.create_dataset.set_callbacks(self.dataset_gallery,
-                                          self.export_dataset)
+                                          self.export_dataset, manager)
         self.dataset_gallery.set_callbacks(self.create_dataset)
         self.export_dataset.set_callbacks(self.create_dataset, manager)
 

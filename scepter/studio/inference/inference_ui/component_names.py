@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 # For dataset manager
-from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.directory import get_md5
+from scepter.modules.utils.file_system import FS
 
 
 def download_image(image):
     if image is not None:
         client = FS.get_fs_client(image)
-        if client.tmp_dir.startswith("/home"):
+        if client.tmp_dir.startswith('/home'):
             name = get_md5(image)
-            local_path = FS.get_from(image, f"/tmp/gradio/scepter_examples/{name}")
+            local_path = FS.get_from(image,
+                                     f'/tmp/gradio/scepter_examples/{name}')
         else:
             local_path = FS.get_from(image)
         return local_path
@@ -23,21 +24,23 @@ class InferenceUIName():
         if language == 'en':
             self.advance_block_name = 'Advance Setting'
             self.check_box_for_setting = [
-                'Use Mantra', 'Use Tuners', 'Use Controller'
+                'Use Mantra', 'Use Tuners', 'Use Controller', 'LAR-Gen'
             ]
             self.diffusion_paras = 'Generation Setting'
             self.mantra_paras = 'Mantra Book'
             self.tuner_paras = 'Tuners'
             self.control_paras = 'Controlable Generation'
             self.refiner_paras = 'Refiner Setting'
+            self.largen_paras = 'LAR-Gen'
         elif language == 'zh':
             self.advance_block_name = '生成选项'
-            self.check_box_for_setting = ['使用咒语', '使用微调', '使用控制']
+            self.check_box_for_setting = ['使用咒语', '使用微调', '使用控制', 'LAR-Gen']
             self.diffusion_paras = '生成参数设置'
             self.mantra_paras = '咒语书'
             self.tuner_paras = '微调模型'
             self.control_paras = '可控生成'
             self.refiner_paras = 'Refine设置'
+            self.largen_paras = 'LAR-Gen'
 
 
 class ModelManageUIName():
@@ -216,6 +219,7 @@ class TunerUIName():
             self.example_block_name = 'Examples'
             self.examples = [[['Pencil Sketch Drawing'], 'a girl in a jacket'],
                              [['Flat 2D Art'], 'a cat']]
+            self.save_button = 'Save'
 
         elif language == 'zh':
             self.tuner_model = '微调模型'
@@ -231,6 +235,7 @@ class TunerUIName():
             self.example_block_name = '样例'
             self.examples = [[['铅笔素描'], 'a girl in a jacket'],
                              [['扁平2D艺术'], 'a cat']]
+            self.save_button = '保存'
 
 
 class ControlUIName():
@@ -342,3 +347,155 @@ class ControlUIName():
             self.advance_block_name = '高级设置'
             self.control_scale = '控制强度'
             self.example_block_name = '样例'
+
+
+class LargenUIName():
+    def __init__(self, language='en'):
+
+        self.tasks = [
+            'Text_Guided_Outpainting', 'Subject_Guided_Inpainting',
+            'Text_Guided_Inpainting', 'Text_Subject_Guided_Inpainting'
+        ]
+
+        if language == 'en':
+            self.apps = [
+                'Zoom Out', 'Virtual Try On', 'Inpainting (text guided)',
+                'Inpainting (text + reference image guided)'
+            ]
+            self.dropdown_name = 'Application'
+            self.subject_image = 'Reference Image'
+            self.subject_mask = 'Reference Mask'
+            self.scene_image = 'Scene Image'
+            self.scene_mask = 'Scene Mask'
+            self.prompt = 'Prompt'
+            self.masked_image = 'Masked Image'
+            self.preprocess = 'Input Preprocess'
+            self.button_name = 'Data Preprocess'
+            self.direction = (
+                'Instruction: \n\n'
+                'For customized data: \n\n'
+                'a.1) Select the task; \n\n'
+                'a.1) Upload scene image; \n\n'
+                'a.2) Upload reference image (if needed); \n\n'
+                'a.3) Use the brush tool to cover the areas on the scene'
+                'image and reference image (to generate corresponding scene'
+                'mask and reference mask); \n\n'
+                'a.4) Click Data Preprocess button; \n\n'
+                'a.5) Input text prompt; \n\n'
+                'For example data: \n\n'
+                'b.1) click example row \n\n'
+                'Finally, click Generate button and get the output image!')
+            self.out_direction_label = 'Out Direction'
+            self.out_directions = [
+                'CenterAround',
+                'RightDown',
+                'LeftDown',
+                'RightUp',
+                'LeftUp',
+            ]
+        elif language == 'zh':
+            self.apps = ['图像扩展', '虚拟试衣', '图像补全（文本引导）', '图像补全（文本+参考图引导）']
+            self.dropdown_name = '应用'
+            self.subject_image = '参考图片'
+            self.subject_mask = '参考图掩码'
+            self.scene_image = '背景图片'
+            self.scene_mask = '背景图掩码'
+            self.prompt = '提示文本'
+            self.masked_image = '掩码图片'
+            self.preprocess = '输入图片预处理'
+            self.button_name = '数据预处理'
+            self.direction = ('使用说明：\n'
+                              '针对自定义数据：\n'
+                              'a.1）上传背景图片（待编辑）；\n'
+                              'a.2）上传参考图片（如需要）；\n'
+                              'a.3）使用笔刷功能涂抹图像中的特定位置（获取对应的掩码图像）；\n'
+                              'a.4）点击数据预处理按钮；\n'
+                              'a.5）输入文本提示；\n'
+                              '针对提供的样例数据: \n'
+                              'b.1）点击样例数据 \n'
+                              '最后，点击生成按钮获取生成图片')
+            self.out_direction_label = '扩展方向'
+            self.out_directions = [
+                '中心向外',
+                '右下',
+                '左下',
+                '右上',
+                '左上',
+            ]
+
+        self.examples = [
+            [
+                self.apps[0],
+                'a temple on fire',
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex1_scene_im.png'  # noqa
+                ),
+                None,
+                None,
+                None,
+                1.0,
+                0.75,
+                'CenterAround',
+                1024,
+                1024
+            ],
+            [
+                self.apps[1],
+                '',
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex2_scene_im.jpg'  # noqa
+                ),
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex2_scene_mask.png'  # noqa
+                ),
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex2_subject_im.jpg'  # noqa
+                ),
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex2_subject_mask.jpg'  # noqa
+                ),
+                1.0,
+                0.0,
+                '',
+                1024,
+                1024
+            ],
+            [
+                self.apps[2],
+                'a blue and white porcelain',
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex3_scene_im.png'  # noqa
+                ),
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex3_scene_mask.png'  # noqa
+                ),
+                None,
+                None,
+                1.0,
+                0.0,
+                '',
+                1024,
+                1024
+            ],
+            [
+                self.apps[3],
+                'a dog wearing sunglasses',
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex4_scene_im.png'  # noqa
+                ),
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex4_scene_mask.png'  # noqa
+                ),
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex4_subject_im.png'  # noqa
+                ),
+                download_image(
+                    'https://modelscope.cn/api/v1/models/iic/LARGEN/repo?Revision=master&FilePath=examples/ex4_subject_mask.png'  # noqa
+                ),
+                0.45,
+                0.0,
+                '',
+                1024,
+                1024
+            ],
+        ]

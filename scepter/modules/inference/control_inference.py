@@ -2,17 +2,22 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import copy
 import os
+import warnings
 
 import torch
 import torch.nn as nn
 import torchvision.transforms as TT
 from PIL.Image import Image
-from swift import SwiftModel
 
 from scepter.modules.model.registry import TUNERS
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
+
+try:
+    from swift import SwiftModel
+except Exception:
+    warnings.warn('Import swift failed, please check it.')
 
 
 class ControlInference():

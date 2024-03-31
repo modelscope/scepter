@@ -8,6 +8,7 @@ import numpy as np
 import torch
 
 from scepter.modules.solver.hooks.checkpoint import CheckpointHook
+from scepter.modules.solver.hooks.data_probe import ProbeDataHook
 from scepter.modules.solver.registry import SOLVERS
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.distribute import we
@@ -27,6 +28,7 @@ def run_task(cfg):
         solver.set_up_pre()
         solver.set_up()
         ori_steps = solver.max_steps
+
         if 'train' in solver.datas:
             dataset = solver.datas['train'].dataset
             if hasattr(dataset, 'real_number'):
@@ -48,6 +50,19 @@ def run_task(cfg):
                                 f'checkpoint save interval is changed from {ori_interval} '
                                 f'to {hook.interval} according to the setting epoches '
                                 f'interval {ori_interval}')
+
+                if 'eval' in solver.hooks_dict:
+                    for hook in solver.hooks_dict['eval']:
+                        if isinstance(hook, ProbeDataHook):
+                            ori_interval = hook.prob_interval
+                            hook.prob_interval = int(hook.prob_interval *
+                                                     solver.max_steps /
+                                                     cfg.SOLVER.MAX_EPOCHS)
+                            std_logger.info(
+                                f'prob interval is changed from {ori_interval} '
+                                f'to {hook.prob_interval} according to the setting epoches '
+                                f'interval {ori_interval}')
+                        solver.eval_interval = hook.prob_interval
             # size 为无限的时候，使用默认值。
         solver.solve()
 

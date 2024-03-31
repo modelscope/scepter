@@ -10,11 +10,16 @@ import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
 
 from scepter.modules.transform.registry import TRANSFORMS
-from scepter.modules.transform.utils import (
-    BACKEND_CV2, BACKEND_PILLOW, BACKEND_TORCHVISION, INPUT_CV2_TYPE_WARNING,
-    INPUT_PIL_TYPE_WARNING, INPUT_TENSOR_TYPE_WARNING, INTERPOLATION_STYLE,
-    INTERPOLATION_STYLE_CV2, TORCHVISION_CAPABILITY, is_cv2_image,
-    is_pil_image, is_tensor)
+from scepter.modules.transform.utils import (BACKEND_CV2, BACKEND_PILLOW,
+                                             BACKEND_TORCHVISION,
+                                             INPUT_CV2_TYPE_WARNING,
+                                             INPUT_PIL_TYPE_WARNING,
+                                             INPUT_TENSOR_TYPE_WARNING,
+                                             INTERPOLATION_STYLE,
+                                             INTERPOLATION_STYLE_CV2,
+                                             TORCHVISION_CAPABILITY,
+                                             is_cv2_image, is_pil_image,
+                                             is_tensor)
 from scepter.modules.utils.config import dict_to_yaml
 
 if TORCHVISION_CAPABILITY:

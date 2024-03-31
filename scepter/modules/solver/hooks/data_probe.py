@@ -30,7 +30,10 @@ class ProbeDataHook(Hook):
     def __init__(self, cfg, logger=None):
         super(ProbeDataHook, self).__init__(cfg, logger=logger)
         self.priority = cfg.get('PRIORITY', _DEFAULT_PROBE_PRIORITY)
-        self.log_interval = cfg.get('PROB_INTERVAL', 1000)
+        self.prob_interval = cfg.get('PROB_INTERVAL', 1000)
+        self.save_name_prefix = cfg.get('SAVE_NAME_PREFIX', 'step')
+        self.save_probe_prefix = cfg.get('SAVE_PROBE_PREFIX', None)
+        self.save_last = cfg.get('SAVE_LAST', False)
 
     def before_all_iter(self, solver):
         pass
@@ -39,19 +42,23 @@ class ProbeDataHook(Hook):
         pass
 
     def after_iter(self, solver):
-        if solver.mode == 'train' and solver.total_iter % self.log_interval == 0:
+        if solver.mode == 'train' and solver.total_iter % self.prob_interval == 0:
             probe_dict = solver.probe_data
             if we.rank == 0:
                 save_folder = os.path.join(
                     solver.work_dir,
-                    f'{solver.mode}_probe/step_{solver.total_iter}')
+                    f'{solver.mode}_probe/{self.save_probe_prefix}-{solver.total_iter}'
+                )
                 ret_data = {}
                 for k, v in probe_dict.items():
-                    ret_one = v.to_log(
-                        os.path.join(
+                    if self.save_probe_prefix is not None:
+                        ret_prefix = os.path.join(save_folder,
+                                                  self.save_probe_prefix)
+                    else:
+                        ret_prefix = os.path.join(
                             save_folder,
-                            k.replace('/', '_') +
-                            f'_step_{solver.total_iter}'))
+                            k.replace('/', '_') + f'_step_{solver.total_iter}')
+                    ret_one = v.to_log(ret_prefix)
                     if (isinstance(ret_one, list)
                             or isinstance(ret_one, dict)) and len(ret_one) < 1:
                         continue
@@ -71,13 +78,19 @@ class ProbeDataHook(Hook):
             if we.rank == 0:
                 step = solver._total_iter[
                     'train'] if 'train' in solver._total_iter else 0
-                save_folder = os.path.join(solver.work_dir,
-                                           f'{solver.mode}_probe/step_{step}')
+                save_folder = os.path.join(
+                    solver.work_dir,
+                    f'{solver.mode}_probe/{self.save_name_prefix}-{step}')
                 ret_data = {}
                 for k, v in probe_dict.items():
-                    ret_one = v.to_log(
-                        os.path.join(save_folder,
-                                     k.replace('/', '_') + f'_step_{step}'))
+                    if self.save_probe_prefix is not None:
+                        ret_prefix = os.path.join(save_folder,
+                                                  self.save_probe_prefix)
+                    else:
+                        ret_prefix = os.path.join(
+                            save_folder,
+                            k.replace('/', '_') + f'_step_{step}')
+                    ret_one = v.to_log(ret_prefix)
                     if (isinstance(ret_one, list)
                             or isinstance(ret_one, dict)) and len(ret_one) < 1:
                         continue
@@ -87,6 +100,16 @@ class ProbeDataHook(Hook):
                     json.dump(ret_data,
                               open(local_path, 'w'),
                               ensure_ascii=False)
+
+                if self.save_last and step == solver.max_steps:
+                    with FS.get_fs_client(save_folder) as client:
+                        last_save_folder = os.path.join(
+                            solver.work_dir,
+                            f'{solver.mode}_probe/{self.save_name_prefix}-last'
+                        )
+                        print(last_save_folder, save_folder)
+                        client.make_link(last_save_folder, save_folder)
+
             solver.clear_probe()
             torch.cuda.synchronize()
             barrier()

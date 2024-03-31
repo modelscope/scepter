@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import argparse
+import importlib
 import os
+import sys
 
 import numpy as np
 import torch
@@ -15,6 +17,13 @@ from scepter.modules.utils.data import transfer_data_to_cuda
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger
+
+if os.path.exists('__init__.py'):
+    package_name = 'scepter_ext'
+    spec = importlib.util.spec_from_file_location(package_name, '__init__.py')
+    package = importlib.util.module_from_spec(spec)
+    sys.modules[package_name] = package
+    spec.loader.exec_module(package)
 
 
 def run_task(cfg):

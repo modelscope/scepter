@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 from scepter.modules.inference.diffusion_inference import DiffusionInference
+from scepter.modules.inference.largen_inference import LargenInference
 from scepter.modules.utils.logger import get_logger
 
 
@@ -95,7 +96,12 @@ class PipelineManager():
         pass
 
     def register_pipeline(self, cfg):
-        new_inference = DiffusionInference(logger=self.logger)
+        pipeline_name = cfg.NAME
+        if 'LARGEN' in pipeline_name:
+            PipelineBuilder = LargenInference
+        else:
+            PipelineBuilder = DiffusionInference
+        new_inference = PipelineBuilder(logger=self.logger)
         new_inference.init_from_cfg(cfg)
         self.contruct_models_index(cfg.NAME, new_inference)
 

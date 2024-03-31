@@ -4,12 +4,14 @@
 from scepter.modules.solver.hooks.backward import BackwardHook
 from scepter.modules.solver.hooks.checkpoint import CheckpointHook
 from scepter.modules.solver.hooks.data_probe import ProbeDataHook
+from scepter.modules.solver.hooks.ema import ModelEmaHook
 from scepter.modules.solver.hooks.hook import Hook
 from scepter.modules.solver.hooks.log import LogHook, TensorboardLogHook
 from scepter.modules.solver.hooks.lr import LrHook
 from scepter.modules.solver.hooks.registry import HOOKS
 from scepter.modules.solver.hooks.safetensors import SafetensorsHook
 from scepter.modules.solver.hooks.sampler import DistSamplerHook
+
 """
 Normally, hooks have priorities, below we recommend priority that runs fine (low score MEANS high priority)
 BackwardHook: 0
@@ -47,5 +49,6 @@ after solve:
 
 __all__ = [
     'HOOKS', 'BackwardHook', 'CheckpointHook', 'Hook', 'LrHook', 'LogHook',
-    'TensorboardLogHook', 'DistSamplerHook', 'ProbeDataHook', 'SafetensorsHook'
+    'TensorboardLogHook', 'DistSamplerHook', 'ProbeDataHook',
+    'SafetensorsHook', 'ModelEmaHook'
 ]

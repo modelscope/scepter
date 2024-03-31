@@ -1,17 +1,5 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
-
-import math
-
-import torch
-import torch.nn as nn
-import torch.nn.functional
-from einops import rearrange
-
-from scepter.modules.model.backbone.video.init_helper import (
-    _init_transformer_weights, trunc_normal_)
-from scepter.modules.model.registry import BACKBONES, BRICKS, STEMS
-from scepter.modules.utils.config import dict_to_yaml
 '''
 The implementations of vivit as https://arxiv.org/abs/2103.15691.
 The following setting alined the proposed model in the paper above.
@@ -38,6 +26,18 @@ TimesFormer:
     branch: TimesformerLayer [attn_dropout = 0.1 ff_dropout=0.1]
     complexity: (n_h * n_w) ** 2 + O(attn_temp)
 '''
+
+import math
+
+import torch
+import torch.nn as nn
+import torch.nn.functional
+from einops import rearrange
+
+from scepter.modules.model.backbone.video.init_helper import (
+    _init_transformer_weights, trunc_normal_)
+from scepter.modules.model.registry import BACKBONES, BRICKS, STEMS
+from scepter.modules.utils.config import dict_to_yaml
 
 
 @BACKBONES.register_class()
