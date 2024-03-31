@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 def update_2level_dict(d, new_dict):
     for first, v in new_dict.items():
         if first in d:

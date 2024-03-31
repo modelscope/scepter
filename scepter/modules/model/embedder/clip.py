@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 """Concise re-implementation of ``https://github.com/openai/CLIP'' and
     ``https://github.com/mlfoundations/open_clip''.
 """

@@ -63,7 +63,7 @@ def run_task(cfg):
                                 f'to {hook.prob_interval} according to the setting epoches '
                                 f'interval {ori_interval}')
                         solver.eval_interval = hook.prob_interval
-            # size 为无限的时候，使用默认值。
+
         solver.solve()
 
 

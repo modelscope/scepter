@@ -339,11 +339,8 @@ class LargenUI(UIBase):
         y1, y2, x1, x2 = tar_yyxx_crop
         crop_tar_image = tar_image[y1:y2, x1:x2, :]
         crop_tar_mask = tar_mask[y1:y2, x1:x2, :]
-
-        # 得到pad之前的HW
         H1, W1 = crop_tar_image.shape[:2]
 
-        # 对tar_mask进行一些预处理
         if use_rectangle_mask:
             tar_bbox_yyxx = get_bbox_from_mask(crop_tar_mask)
             y1, y2, x1, x2 = tar_bbox_yyxx
@@ -351,7 +348,6 @@ class LargenUI(UIBase):
 
         crop_tar_image, pad1, pad2 = pad_to_square(crop_tar_image.astype(np.uint8), pad_value=0)
         crop_tar_mask, _, _ = pad_to_square(crop_tar_mask, pad_value=0)
-        # 得到pad之后的HW
         H2, W2 = crop_tar_image.shape[:2]
 
         aug_tar_image = cv2.resize(crop_tar_image.astype(np.uint8), (output_width, output_height))
@@ -379,8 +375,6 @@ class LargenUI(UIBase):
             crop_ref_image_i = ref_image[y1:y2, x1:x2, :]
             crop_ref_mask_i = ref_mask[y1:y2, x1:x2, :]
 
-            # 通过ref_expand_ratio这个值pad subject image, 从而调整clip输入图像中物体的大小
-            # ref_expand_ratio越大，对应物体越小
             h, w = crop_ref_mask_i.shape[:2]
             ref_expand_size = int(max(h, w) * 1.02)
             pad_op = A.PadIfNeeded(ref_expand_size, ref_expand_size,

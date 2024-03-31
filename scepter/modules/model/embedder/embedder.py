@@ -700,7 +700,6 @@ class GeneralConditioner(BaseEmbedder):
             if isinstance(emb_out, dict):
                 for key, val in emb_out.items():
                     if key in output:
-                        # 重复出现的key必须在（y, crossattn, concat）中，否则raise error
                         assert key in self.KEY2CATDIM
                         output[key] = torch.cat([output[key], val],
                                                 dim=self.KEY2CATDIM[key])
@@ -715,7 +714,6 @@ class GeneralConditioner(BaseEmbedder):
                     emb_out = [emb_out]
 
                 for emb in emb_out:
-                    # 根据emb的维度，判断该cond归属于 (y, concat, crossattn）中的哪一种
                     out_key = self.OUTPUT_DIM2KEYS[emb.dim()]
 
                     if embedder.ucg_rate > 0.0 and embedder.legacy_ucg_val is None:

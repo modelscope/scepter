@@ -117,17 +117,7 @@ def crop_back(pred, tar_image, extra_sizes, tar_box_yyxx_crop):
     H1, W1, H2, W2, pad1, pad2 = extra_sizes
     y1, y2, x1, x2 = tar_box_yyxx_crop
     pred = TF.resize(pred, (H2, W2), antialias=True)
-    # if W1 == H1:
-    #     tar_image[:, y1:y2, x1:x2] = pred
-    #     return tar_image
-    # if W1 < W2:
-    #     pad1 = int((W2 - W1) / 2)
-    #     pad2 = W2 - W1 - pad1
-    #     pred = pred[:, :,pad1:-pad2]
-    # else:
-    #     pad1 = int((H2 - H1) / 2)
-    #     pad2 = H2 - H1 - pad1
-    #     pred = pred[:, pad1:-pad2, :]
+
     if W1 < W2:
         # pad width
         assert H1 == H2 and (pad1 + W1) == (W2 - pad2)

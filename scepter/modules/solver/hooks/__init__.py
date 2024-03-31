@@ -11,7 +11,6 @@ from scepter.modules.solver.hooks.lr import LrHook
 from scepter.modules.solver.hooks.registry import HOOKS
 from scepter.modules.solver.hooks.safetensors import SafetensorsHook
 from scepter.modules.solver.hooks.sampler import DistSamplerHook
-
 """
 Normally, hooks have priorities, below we recommend priority that runs fine (low score MEANS high priority)
 BackwardHook: 0
