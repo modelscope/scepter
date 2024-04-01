@@ -7,7 +7,7 @@ import gradio as gr
 import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
-from scepter.studio.self_train.self_train_ui.inference_ui import InferenceUI
+from scepter.studio.self_train.self_train_ui.model_ui import ModelUI
 from scepter.studio.self_train.self_train_ui.trainer_ui import TrainerUI
 from scepter.studio.self_train.utils.config_parser import get_all_config
 from scepter.studio.utils.env import init_env
@@ -34,20 +34,20 @@ class SelfTrainUI():
                                     BASE_CFG_VALUE,
                                     is_debug=is_debug,
                                     language=language)
-        self.inference_ui = InferenceUI(cfg_general,
-                                        BASE_CFG_VALUE,
-                                        is_debug=is_debug,
-                                        language=language)
+        self.model_ui = ModelUI(cfg_general,
+                                BASE_CFG_VALUE,
+                                is_debug=is_debug,
+                                language=language)
 
     def create_ui(self):
         with gr.Row():
             self.trainer_ui.create_ui()
         with gr.Row():
-            self.inference_ui.create_ui()
+            self.model_ui.create_ui()
 
     def set_callbacks(self, manager):
-        self.trainer_ui.set_callbacks(self.inference_ui)
-        self.inference_ui.set_callbacks(self.trainer_ui, manager)
+        self.trainer_ui.set_callbacks(self.model_ui, manager)
+        self.model_ui.set_callbacks(self.trainer_ui, manager)
 
 
 if __name__ == '__main__':

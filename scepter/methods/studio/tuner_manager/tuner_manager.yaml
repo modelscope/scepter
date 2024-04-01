@@ -1,0 +1,2 @@
+WORK_DIR: "tuner_manager"
+TUNER_LIST_YAML: "tuner_list.yaml"

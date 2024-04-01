@@ -21,17 +21,21 @@ class TunerUI(UIBase):
             'default']
         self.default_pipeline = pipe_manager.model_level_info[
             default_diffusion_model]['pipeline'][0]
+        self.tunner_choices = []
         if self.default_pipeline in self.default_choices['tuners']:
             self.tunner_choices = self.default_choices['tuners'][
                 self.default_pipeline]['choices']
             self.tunner_default = self.default_choices['tuners'][
                 self.default_pipeline]['default']
-        else:
-            self.tunner_choices = []
+        self.custom_tuner_choices = []
+        if self.default_pipeline in self.default_choices.get(
+                'customized_tuners', []):
+            self.custom_tuner_choices = self.default_choices[
+                'customized_tuners'][self.default_pipeline]['choices']
 
         self.tunner_default = None
         self.component_names = TunerUIName(language)
-        self.cfg_tuners = cfg.TUNERS
+        self.cfg_tuners = cfg.TUNERS + cfg.CUSTOM_TUNERS
         self.name_level_tuners = {}
         for one_tuner in tqdm(self.cfg_tuners):
             if one_tuner.BASE_MODEL not in self.name_level_tuners:
@@ -47,8 +51,8 @@ class TunerUI(UIBase):
 
     def create_ui(self, *args, **kwargs):
         self.state = gr.State(value=False)
-        with gr.Column(visible=False) as self.tab:
-            with gr.Row():
+        with gr.Column(equal_height=True, visible=False) as self.tab:
+            with gr.Row(scale=1):
                 with gr.Column(variant='panel', scale=1, min_width=0):
                     with gr.Group(visible=True):
                         with gr.Row(equal_height=True):
@@ -63,10 +67,16 @@ class TunerUI(UIBase):
                                 self.custom_tuner_model = gr.Dropdown(
                                     label=self.component_names.
                                     custom_tuner_model,
-                                    choices=[],
+                                    choices=self.custom_tuner_choices,
                                     value=None,
                                     multiselect=True,
                                     interactive=True)
+                                self.save_button = gr.Button(
+                                    label=self.component_names.save_button,
+                                    value=self.component_names.save_button,
+                                    elem_classes='type_row',
+                                    elem_id='save_button',
+                                    visible=True)
                         with gr.Row(equal_height=True):
                             with gr.Column(scale=1):
                                 self.tuner_type = gr.Text(
@@ -110,6 +120,7 @@ class TunerUI(UIBase):
                 label=self.component_names.example_block_name, open=True)
 
     def set_callbacks(self, model_manage_ui, **kwargs):
+        manager = kwargs.pop('manager')
         gallery_ui = kwargs.pop('gallery_ui')
         with self.example_block:
             gr.Examples(examples=self.component_names.examples,
@@ -121,7 +132,7 @@ class TunerUI(UIBase):
             now_pipeline = diffusion_model_info['pipeline'][0]
             tuner_info = {}
             if tuner_model is not None and len(tuner_model) > 0:
-                tuner_info = self.name_level_tuners[now_pipeline].get(
+                tuner_info = self.name_level_tuners.get(now_pipeline, {}).get(
                     tuner_model[-1], {})
             if tuner_info.get(
                     'IMAGE_PATH',
@@ -141,3 +152,45 @@ class TunerUI(UIBase):
                 self.tuner_example, self.tuner_prompt_example
             ],
             queue=False)
+
+        self.custom_tuner_model.change(
+            tuner_model_change,
+            inputs=[self.custom_tuner_model, model_manage_ui.diffusion_model],
+            outputs=[
+                self.tuner_type, self.base_model, self.tuner_desc,
+                self.tuner_example, self.tuner_prompt_example
+            ],
+            queue=False)
+
+        def save_customized_tuner(tuner_model, diffusion_model):
+            diffusion_model_info = self.pipe_manager.model_level_info[
+                diffusion_model]
+            now_pipeline = diffusion_model_info['pipeline'][0]
+            tuner_info = {}
+            if tuner_model is not None and len(tuner_model) > 0:
+                tuner_info = self.name_level_tuners.get(now_pipeline, {}).get(
+                    tuner_model[-1], {})
+            if tuner_info.get(
+                    'IMAGE_PATH',
+                    None) and not os.path.exists(tuner_info.IMAGE_PATH):
+                tuner_info.IMAGE_PATH = FS.get_from(tuner_info.IMAGE_PATH)
+            return (gr.Tabs(selected='tuner_manager'),
+                    gr.Text(value=tuner_info.NAME), gr.Text(value=''),
+                    gr.Text(value=tuner_info.get('TUNER_TYPE', '')),
+                    gr.Text(value=tuner_info.get('BASE_MODEL', '')),
+                    gr.Text(value=tuner_info.get('DESCRIPTION', '')),
+                    gr.Image(value=tuner_info.get('IMAGE_PATH', None)),
+                    gr.Text(value=tuner_info.get('PROMPT_EXAMPLE', '')))
+
+        self.save_button.click(
+            save_customized_tuner,
+            inputs=[self.custom_tuner_model, model_manage_ui.diffusion_model],
+            outputs=[
+                manager.tabs, manager.tuner_manager.info_ui.tuner_name,
+                manager.tuner_manager.info_ui.new_name,
+                manager.tuner_manager.info_ui.tuner_type,
+                manager.tuner_manager.info_ui.base_model,
+                manager.tuner_manager.info_ui.tuner_desc,
+                manager.tuner_manager.info_ui.tuner_example,
+                manager.tuner_manager.info_ui.tuner_prompt_example
+            ])

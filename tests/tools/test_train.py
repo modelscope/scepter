@@ -9,6 +9,16 @@ class TrainTest(unittest.TestCase):
     def setUp(self):
         print(('Testing %s.%s' % (type(self).__name__, self._testMethodName)))
         self.tmp_dir = './cache/save_data'
+        if not os.path.exists(self.tmp_dir):
+            os.makedirs(self.tmp_dir)
+        self.data_dir = './cache/datasets'
+        if not os.path.exists(self.data_dir):
+            data_cmd = """mkdir -p cache/datasets/ && wget 'https://modelscope.cn/api/v1/models
+                          /damo/scepter_scedit/repo?Revision=master&FilePath=dataset/3D_example_txt.zip'
+                          -O cache/datasets/3D_example_txt.zip &&
+                          unzip cache/datasets/3D_example_txt.zip
+                          -d cache/datasets/ && rm cache/datasets/3D_example_txt.zip"""
+            os.system(data_cmd)
 
     def tearDown(self):
         super().tearDown()

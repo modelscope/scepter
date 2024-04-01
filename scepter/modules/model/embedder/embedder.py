@@ -22,9 +22,10 @@ from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 
 from .base_embedder import BaseEmbedder
+from .resampler import Resampler
 
 try:
-    from transformers import CLIPTextModel, CLIPTokenizer
+    from transformers import CLIPTextModel, CLIPTokenizer, CLIPVisionModelWithProjection
 except Exception as e:
     warnings.warn(
         f'Import transformers error, please deal with this problem: {e}')
@@ -514,6 +515,93 @@ class ConcatTimestepEmbedderND(BaseEmbedder):
 
 
 @EMBEDDERS.register_class()
+class IPAdapterPlusEmbedder(BaseEmbedder):
+    def __init__(self, cfg, logger=None):
+        super().__init__(cfg, logger=logger)
+
+        with FS.get_dir_to_local_dir(cfg.CLIP_DIR,
+                                     wait_finish=True) as local_path:
+            self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
+                local_path)
+
+        self.image_proj_model = Resampler(
+            dim=self.cfg.get('IN_DIM', 768),
+            depth=self.cfg.get('DEPTH', 4),
+            dim_head=64,
+            heads=self.cfg.get('HEADS', 12),
+            num_queries=self.cfg.get('NUM_TOKENS', 16),
+            embedding_dim=self.image_encoder.config.hidden_size,
+            output_dim=self.cfg.get('CROSSATTN_DIM', 768),
+            ff_mult=4,
+        )
+
+        with FS.get_from(cfg.PRETRAINED_MODEL, wait_finish=True) as local_path:
+            ckpt = torch.load(local_path, map_location='cpu')
+            self.image_proj_model.load_state_dict(ckpt['image_proj'],
+                                                  strict=True)
+
+        self.patch_projector = nn.Linear(self.image_encoder.config.hidden_size,
+                                         self.cfg.get('CROSSATTN_DIM', 768))
+
+    def encode(self, ref_ip, ref_detail):
+        encoder_output = self.image_encoder(ref_ip, output_hidden_states=True)
+        image_prompt_embeds = self.image_proj_model(
+            encoder_output.hidden_states[-2])
+        encoder_output_2 = self.image_encoder(ref_detail,
+                                              output_hidden_states=True)
+        image_patch_embeds = self.patch_projector(
+            encoder_output_2.last_hidden_state)
+        out = {
+            'img_crossattn': image_prompt_embeds,
+            'ref_crossattn': image_patch_embeds,
+        }
+        return out
+
+    def forward(self, ref_ip, ref_detail):
+        return self.encode(ref_ip, ref_detail)
+
+
+class RefCrossEmbedder(BaseEmbedder):
+    def __init__(self, cfg, logger=None):
+        super().__init__(cfg, logger=logger)
+
+        with FS.get_dir_to_local_dir(cfg.CLIP_DIR,
+                                     wait_finish=True) as local_path:
+            self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
+                local_path)
+
+        self.patch_projector = nn.Linear(self.image_encoder.config.hidden_size,
+                                         self.cfg.get('CROSSATTN_DIM', 768))
+
+    def encode(self, img):
+        encoder_output = self.image_encoder(img, output_hidden_states=True)
+        image_patch_embeds = self.patch_projector(
+            encoder_output.last_hidden_state)
+        out = {
+            'ref_crossattn': image_patch_embeds,
+        }
+        return out
+
+    def forward(self, img):
+        return self.encode(img)
+
+
+@EMBEDDERS.register_class()
+class TransparentEmbedder(BaseEmbedder):
+    def forward(self, *args):
+        out = dict()
+        for key, val in zip(self.input_keys, args):
+            out[key] = val
+        return out
+
+
+@EMBEDDERS.register_class()
+class NoiseConcatEmbedder(BaseEmbedder):
+    def forward(self, *args):
+        return {'concat': torch.cat(args, dim=1)}
+
+
+@EMBEDDERS.register_class()
 class GeneralConditioner(BaseEmbedder):
     OUTPUT_DIM2KEYS = {2: 'y', 3: 'crossattn', 4: 'concat', 5: 'concat'}
     KEY2CATDIM = {'y': 1, 'crossattn': 2, 'concat': 1}
@@ -598,42 +686,58 @@ class GeneralConditioner(BaseEmbedder):
             with embedding_context():
                 if hasattr(embedder, 'input_key') and (embedder.input_key
                                                        is not None):
+                    if embedder.input_key not in batch:
+                        continue
                     if embedder.legacy_ucg_val is not None:
                         batch = self.possibly_get_ucg_val(embedder, batch)
                     emb_out = embedder(batch[embedder.input_key])
                 elif hasattr(embedder, 'input_keys'):
+                    if any([k not in batch for k in embedder.input_keys]):
+                        continue
                     emb_out = embedder(
                         *[batch[k] for k in embedder.input_keys])
-            assert isinstance(
-                emb_out, (torch.Tensor, list, tuple)
-            ), f'encoder outputs must be tensors or a sequence, but got {type(emb_out)}'
-            if not isinstance(emb_out, (list, tuple)):
-                emb_out = [emb_out]
-            for emb in emb_out:
-                # print("emb.shape", emb.shape)
-                # print("emb.input_keys", embedder.input_keys)
-                out_key = self.OUTPUT_DIM2KEYS[emb.dim()]
-                if embedder.ucg_rate > 0.0 and embedder.legacy_ucg_val is None:
-                    emb = (expand_dims_like(
-                        torch.bernoulli(
-                            (1.0 - embedder.ucg_rate) *
-                            torch.ones(emb.shape[0], device=emb.device)),
-                        emb,
-                    ) * emb)
-                if (hasattr(embedder, 'input_keys')):
-                    if np.sum(
-                            np.array([
-                                key in force_zero_embeddings
-                                for key in embedder.input_keys
-                            ])) > 0:
-                        emb = torch.zeros_like(emb)
-                if out_key in output:
-                    output[out_key] = torch.cat((output[out_key], emb),
-                                                self.KEY2CATDIM[out_key])
-                else:
-                    output[out_key] = emb
-            # if "y" in output:
-            #     print("out.shape", output["y"].shape)
+
+            if isinstance(emb_out, dict):
+                for key, val in emb_out.items():
+                    if key in output:
+                        assert key in self.KEY2CATDIM
+                        output[key] = torch.cat([output[key], val],
+                                                dim=self.KEY2CATDIM[key])
+                    else:
+                        output[key] = val
+            else:
+                assert isinstance(
+                    emb_out, (torch.Tensor, list, tuple)
+                ), f'encoder outputs must be tensors or a sequence, but got {type(emb_out)}'
+
+                if not isinstance(emb_out, (list, tuple)):
+                    emb_out = [emb_out]
+
+                for emb in emb_out:
+                    out_key = self.OUTPUT_DIM2KEYS[emb.dim()]
+
+                    if embedder.ucg_rate > 0.0 and embedder.legacy_ucg_val is None:
+                        emb = (expand_dims_like(
+                            torch.bernoulli(
+                                (1.0 - embedder.ucg_rate) *
+                                torch.ones(emb.shape[0], device=emb.device)),
+                            emb,
+                        ) * emb)
+
+                    if (hasattr(embedder, 'input_keys')):
+                        if np.sum(
+                                np.array([
+                                    key in force_zero_embeddings
+                                    for key in embedder.input_keys
+                                ])) > 0:
+                            emb = torch.zeros_like(emb)
+
+                    if out_key in output:
+                        output[out_key] = torch.cat((output[out_key], emb),
+                                                    self.KEY2CATDIM[out_key])
+                    else:
+                        output[out_key] = emb
+
         return output
 
     def get_unconditional_conditioning(self,

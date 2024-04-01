@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 # For dataset manager
-class InferenceUIName():
+class ModelUIName():
     def __init__(self, language='en'):
         if language == 'en':
             self.output_model_block = 'Model Output'
             self.output_model_name = 'Output Model Name'
+            self.output_ckpt_name = 'Output Ckpt Name'
             self.test_prompt = 'Test Prompt'
             self.test_prefix = 'Test Prefix'
             self.test_n_prompt = 'Negative Prompt'
@@ -21,15 +22,23 @@ class InferenceUIName():
             self.extra_model_gbtn = 'Add Model'
             self.refresh_model_gbtn = 'Refresh Model'
             self.go_to_inference = 'Go to inference'
+            self.btn_export_log = 'Export Log'
+            self.export_file = 'Log File'
+            self.log_block = 'Training Log...'
+            self.gallery_block = 'Gallery Log...'
+            self.eval_gallery = 'Eval Gallery'
             # Error or Warning
             self.inference_err1 = 'Inference failed, please try again.'
             self.inference_err2 = 'Test prompt is empty.'
-            self.inference_err3 = "Doesn't surpport this base model"
-            self.inference_err4 = "This model maybe not finish training, because model doesn't exist."
+            self.model_err3 = "Doesn't surpport this base model"
+            self.model_err4 = "This model maybe not finish training, because model doesn't exist."
+            self.model_err5 = "Model {} doesn't exist."
+            self.training_warn1 = 'No log message util now.'
 
         elif language == 'zh':
             self.output_model_block = '模型产出'
-            self.output_model_name = '产出模型名称'
+            self.output_model_name = '产出名称'
+            self.output_ckpt_name = '产出检查点名称'
             self.test_prompt = '测试提示词'
             self.test_prefix = '测试前缀'
             self.test_n_prompt = '负向提示词'
@@ -44,12 +53,20 @@ class InferenceUIName():
             self.extra_model_gtxt = '额外模型'
             self.extra_model_gbtn = '添加模型'
             self.refresh_model_gbtn = '刷新模型'
+            self.btn_export_log = '导出日志'
+            self.export_file = '日志文件'
+            self.log_block = '训练日志...'
+            self.training_button = '开始训练'
+            self.gallery_block = '图像日志...'
+            self.eval_gallery = '评测图像'
             # Error or Warning
             self.inference_err1 = '推理失败，请重试。'
             self.inference_err2 = '测试提示词为空。'
-            self.inference_err3 = '不支持的基础模型'
+            self.model_err3 = '不支持的基础模型'
             self.go_to_inference = '使用模型'
-            self.inference_err4 = '模型可能没有训练完成或者模型不存在'
+            self.model_err4 = '模型可能没有训练完成或者模型不存在'
+            self.model_err5 = '模型{}不存在'
+            self.training_warn1 = '暂时没有日志文件；任务启动中或失败！'
 
 
 class TrainerUIName():
@@ -80,7 +97,8 @@ class TrainerUIName():
             self.base_model = 'Base Model'
             self.tuner_name = 'Fine-tuning Method'
             self.base_model_revision = 'Model Version Number'
-            self.resolution = 'Resolution'
+            self.resolution_height = 'Resolution Height'
+            self.resolution_width = 'Resolution Width'
             self.train_epoch = 'Number of Training Epochs'
             self.learning_rate = 'Learning Rate'
             self.save_interval = 'Save Interval'
@@ -89,9 +107,8 @@ class TrainerUIName():
             self.replace_keywords = 'Trigger Keywords'
             self.work_name = 'Save Model Name (refresh to get a random value)'
             self.push_to_hub = 'Push to hub'
-            self.log_block = 'Training Log...'
             self.training_button = 'Start Training'
-
+            self.eval_prompts = 'Eval Prompts'
             # Error or Warning
             self.training_err1 = 'CUDA is unavailable.'
             self.training_err2 = 'Currently insufficient VRAM, training failed!'
@@ -121,7 +138,8 @@ class TrainerUIName():
             self.base_model = '基础模型'
             self.tuner_name = '微调方法'
             self.base_model_revision = '模型版本号'
-            self.resolution = '分辨率'
+            self.resolution_height = '训练高度'
+            self.resolution_width = '训练宽度'
             self.train_epoch = '训练轮数'
             self.learning_rate = '学习率'
             self.save_interval = '存储间隔'
@@ -130,8 +148,7 @@ class TrainerUIName():
             self.replace_keywords = '触发关键词'
             self.work_name = '保存模型名称（刷新获得随机值）'
             self.push_to_hub = '推送魔搭社区'
-            self.log_block = '训练日志...'
-            self.training_button = '开始训练'
+            self.eval_prompts = '评测文本'
             # Error or Warning
             self.training_err1 = 'CUDA不可用.'
             self.training_err2 = '目前显存不足，训练失败！'

@@ -6,12 +6,14 @@ import os
 import cv2
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageFile
 
 from scepter.modules.transform.registry import TRANSFORMS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import DATA_FS as FS
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 def pillow_convert(image, rgb_order):

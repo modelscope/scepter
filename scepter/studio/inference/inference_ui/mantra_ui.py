@@ -47,14 +47,15 @@ class MantraUI(UIBase):
 
     def create_ui(self, *args, **kwargs):
         self.state = gr.State(value=False)
-        with gr.Column(visible=False) as self.tab:
-            with gr.Row():
+        with gr.Column(equal_height=True, visible=False) as self.tab:
+            with gr.Row(scale=1):
                 with gr.Column(scale=1):
                     with gr.Group(visible=True):
                         with gr.Row(equal_height=True):
                             self.style = gr.Dropdown(
                                 label=self.component_names.mantra_styles,
-                                choices=self.all_styles[self.default_pipeline],
+                                choices=self.all_styles.get(
+                                    self.default_pipeline, []),
                                 value=None,
                                 multiselect=True,
                                 interactive=True)

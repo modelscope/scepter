@@ -79,6 +79,7 @@ EXTENSION_PARAS:
   MANTRA_BOOK: scepter/methods/studio/extensions/mantra_book/mantra_book.yaml
   OFFICIAL_TUNERS: scepter/methods/studio/extensions/tuners/official_tuners.yaml
   OFFICIAL_CONTROLLERS: scepter/methods/studio/extensions/controllers/official_controllers.yaml
+  TUNER_MANAGER: scepter/methods/studio/tuner_manager/tuner_manager.yaml
 CONTROLABLE_ANNOTATORS:
   -
     NAME: "CannyAnnotator"

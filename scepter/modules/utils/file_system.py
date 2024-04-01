@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+import io
 import os
 import threading
 import time
@@ -327,6 +328,10 @@ class FileSystem(object):
                                                target_path_list):
                 if local_path is None or target_path is None:
                     flg = False
+                elif isinstance(local_path, io.BytesIO):
+                    flg = FS.put_object(local_path.getvalue(), target_path)
+                elif isinstance(local_path, bytes):
+                    flg = FS.put_object(local_path, target_path)
                 elif self.exists(local_path):
                     local_cache = self.get_from(local_path,
                                                 local_path + f'{time.time()}',

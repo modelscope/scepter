@@ -10,13 +10,13 @@ META:
     DEFAULT_SAMPLER: "ddim"
     DEFAULT_SAMPLE_STEPS: 40
     INFERENCE_N_PROMPT: ""
-    RESOLUTION: 512
+    RESOLUTION: [512, 512]
   PARAS:
     -
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 512
+      RESOLUTION: [512, 512]
       MEMORY: 29000
       EPOCHS: 50
       SAVE_INTERVAL: 25
@@ -28,7 +28,7 @@ META:
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 512
+      RESOLUTION: [512, 512]
       MEMORY: 29000
       EPOCHS: 50
       SAVE_INTERVAL: 25
@@ -40,7 +40,7 @@ META:
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 512
+      RESOLUTION: [512, 512]
       MEMORY: 29000
       EPOCHS: 200
       SAVE_INTERVAL: 25
@@ -53,7 +53,7 @@ META:
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 512
+      RESOLUTION: [512, 512]
       MEMORY: 29000
       EPOCHS: 200
       SAVE_INTERVAL: 25
@@ -66,7 +66,7 @@ META:
       TRAIN_BATCH_SIZE: 4
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 512
+      RESOLUTION: [512, 512]
       MEMORY: 29000
       EPOCHS: 50
       SAVE_INTERVAL: 25
@@ -135,6 +135,7 @@ SOLVER:
   MAX_EPOCHS: -1
   NUM_FOLDS: 1
   ACCU_STEP: 1
+  EVAL_INTERVAL: -1
   #
   WORK_DIR:
   LOG_FILE: std_log.txt
@@ -298,15 +299,44 @@ SOLVER:
         KEYS: [ 'image', 'prompt' ]
         META_KEYS: [ 'data_key' ]
   #
+  EVAL_DATA:
+    NAME: Text2ImageDataset
+    MODE: eval
+    PROMPT_FILE:
+    PROMPT_DATA: [ "a boy wearing a jacket", "a dog running on the lawn" ]
+    IMAGE_SIZE: [ 512, 512 ]
+    FIELDS: [ "prompt" ]
+    DELIMITER: '#;#'
+    PROMPT_PREFIX: ''
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    TRANSFORMS:
+      - NAME: Select
+        KEYS: [ 'index', 'prompt' ]
+        META_KEYS: [ 'image_size' ]
+  #
   TRAIN_HOOKS:
-    - NAME: BackwardHook
-      # GRADIENT_CLIP: 1.0
+    -
+      NAME: BackwardHook
       PRIORITY: 0
-    - NAME: LogHook
-      LOG_INTERVAL: 50
+    -
+      NAME: LogHook
+      LOG_INTERVAL: 10
       SHOW_GPU_MEM: True
     -
+      NAME: TensorboardLogHook
+    -
       NAME: CheckpointHook
-      SAVE_LAST: True
       INTERVAL: 10000
       PRIORITY: 200
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+  #
+  EVAL_HOOKS:
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      SAVE_PROBE_PREFIX: 'image'

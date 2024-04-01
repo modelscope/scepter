@@ -147,7 +147,9 @@ class CheckpointHook(Hook):
 
                 if self.save_last and solver.total_iter == solver.max_steps - 1:
                     with FS.get_fs_client(save_path) as client:
-                        last_path = osp.join(solver.work_dir, 'checkpoint.pth')
+                        last_path = osp.join(
+                            solver.work_dir,
+                            f'checkpoints/{self.save_name_prefix}-last')
                         client.make_link(last_path, save_path)
                 self.last_ckpt = save_path
 

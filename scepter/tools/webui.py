@@ -2,8 +2,10 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import argparse
 import datetime
+import importlib
 import os
 import random
+import sys
 
 import gradio as gr
 
@@ -11,6 +13,13 @@ import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger, init_logger
+
+if os.path.exists('__init__.py'):
+    package_name = 'scepter_ext'
+    spec = importlib.util.spec_from_file_location(package_name, '__init__.py')
+    package = importlib.util.module_from_spec(spec)
+    sys.modules[package_name] = package
+    spec.loader.exec_module(package)
 
 
 def prepare(config):
@@ -57,6 +66,13 @@ if __name__ == '__main__':
                         default='en',
                         help='Now we only support english(en) and chinese(zh)')
     args = parser.parse_args()
+    if not os.path.exists(args.config):
+        print(
+            f"{args.config} doesn't exist, find this file in {os.path.dirname(scepter.dirname)}"
+        )
+        args.config = os.path.join(os.path.dirname(scepter.dirname),
+                                   args.config)
+        assert os.path.exists(args.config)
     config = Config(load=True, cfg_file=args.config)
     prepare(config)
 
@@ -74,24 +90,34 @@ if __name__ == '__main__':
         interface = None
         if ifid == 'home':
             from scepter.studio.home.home import HomeUI
+
             interface = HomeUI(info['CONFIG'],
                                is_debug=args.debug,
                                language=args.language,
                                root_work_dir=config.WORK_DIR)
         if ifid == 'preprocess':
             from scepter.studio.preprocess.preprocess import PreprocessUI
+
             interface = PreprocessUI(info['CONFIG'],
                                      is_debug=args.debug,
                                      language=args.language,
                                      root_work_dir=config.WORK_DIR)
         if ifid == 'self_train':
             from scepter.studio.self_train.self_train import SelfTrainUI
+
             interface = SelfTrainUI(info['CONFIG'],
                                     is_debug=args.debug,
                                     language=args.language,
                                     root_work_dir=config.WORK_DIR)
+        if ifid == 'tuner_manager':
+            from scepter.studio.tuner_manager.tuner_manager import TunerManagerUI
+            interface = TunerManagerUI(info['CONFIG'],
+                                       is_debug=args.debug,
+                                       language=args.language,
+                                       root_work_dir=config.WORK_DIR)
         if ifid == 'inference':
             from scepter.studio.inference.inference import InferenceUI
+
             interface = InferenceUI(info['CONFIG'],
                                     is_debug=args.debug,
                                     language=args.language,
@@ -109,6 +135,8 @@ if __name__ == '__main__':
             gr.Markdown(
                 f"<h2><center>{config.get('TITLE', 'scepter studio')}</center></h2>"
             )
+        setattr(tab_manager, 'user_name',
+                gr.Text(value='', visible=False, show_label=False))
         with gr.Tabs(elem_id='tabs') as tabs:
             setattr(tab_manager, 'tabs', tabs)
             for interface, label, ifid in interfaces:
@@ -116,11 +144,29 @@ if __name__ == '__main__':
                     interface.create_ui()
             for interface, label, ifid in interfaces:
                 interface.set_callbacks(tab_manager)
+        auth_info = {}
+        if config.have('AUTH_INFO'):
+            for auth_user in config.AUTH_INFO:
+                auth_info[auth_user.USER] = auth_user.PASSWD
+
+        def check_auth(user_name, password):
+            if user_name in auth_info:
+                return auth_info[user_name] == password
+            else:
+                return False
+
+        def init_value(req: gr.Request):
+            print(req.username, 'have login')
+            return gr.Text(value=req.username, visible=False)
+
+        if len(auth_info) > 0:
+            demo.load(init_value, outputs=[tab_manager.user_name])
 
     demo.queue(status_update_rate=1).launch(
         server_name=args.host if args.host else config['HOST'],
-        server_port=args.port if args.port else config['PORT'],
+        server_port=int(args.port) if args.port else config['PORT'],
         root_path=config['ROOT'],
         show_error=True,
         debug=True,
-        enable_queue=True)
+        enable_queue=True,
+        auth=check_auth if len(auth_info) > 0 else None)

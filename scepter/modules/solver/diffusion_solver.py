@@ -333,12 +333,12 @@ class LatentDiffusionSolver(BaseSolver):
         data_iter = iter(self.datas[self._mode].dataloader)
         self.print_memory_status()
         for step in range(self.max_steps):
-            if 'eval' in self._mode_set and (step % self.eval_interval == 0
-                                             or step == self.max_steps - 1):
+            if 'eval' in self._mode_set and (self.eval_interval > 0 and
+                                             step % self.eval_interval == 0):
                 self.run_eval()
                 self.train_mode()
-            self.before_iter(self.hooks_dict[self._mode])
             batch_data = next(data_iter)
+            self.before_iter(self.hooks_dict[self._mode])
             if self.sample_args:
                 batch_data.update(self.sample_args.get_lowercase_dict())
             if 'meta' in batch_data:
@@ -364,6 +364,9 @@ class LatentDiffusionSolver(BaseSolver):
             self.after_iter(self.hooks_dict[self._mode])
             if we.debug:
                 self.print_trainable_params_status(prefix='model.')
+            if 'eval' in self._mode_set and (self.eval_interval > 0
+                                             and step == self.max_steps - 1):
+                self.run_eval()
         self.after_all_iter(self.hooks_dict[self._mode])
 
     @torch.no_grad()

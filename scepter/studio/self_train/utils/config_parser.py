@@ -10,7 +10,6 @@ paras_keys = [
     'MEMORY', 'EPOCHS', 'SAVE_INTERVAL', 'EPSEC', 'LEARNING_RATE',
     'IS_DEFAULT', 'TUNER'
 ]
-
 control_paras_keys = ['CONTROL_MODE', 'RESOLUTION', 'IS_DEFAULT']
 
 
@@ -25,10 +24,9 @@ def build_meta_index(meta_cfg, config_file):
                         f'Para key {key} not defined in {config_file} META/RARAS[{idx}]'
                     )
                 assert key in para
-            tuner_type[para['TUNER'] + '@' + str(para['RESOLUTION'])] = para
+            tuner_type[para['TUNER']] = para
             if para['IS_DEFAULT']:
-                tuner_type['default'] = para['TUNER'] + '@' + str(
-                    para['RESOLUTION'])
+                tuner_type['default'] = para['TUNER']
 
     tuner_type['choices'] = list(tuner_type.keys())
     if 'default' in tuner_type['choices']:
@@ -37,14 +35,6 @@ def build_meta_index(meta_cfg, config_file):
         tuner_type['default'] = tuner_type['choices'][0] if len(
             tuner_type['choices']) > 0 else ''
 
-    # 重新组织选项
-    choices = {}
-    for t_type in tuner_type['choices']:
-        t_name, resolution = t_type.split('@')
-        if t_name not in choices:
-            choices[t_name] = []
-        choices[t_name].append(int(resolution))
-    tuner_type['choices'] = choices
     tuner_paras = meta_cfg.get('TUNERS', None)
     return tuner_type, tuner_paras
 
@@ -60,13 +50,10 @@ def build_meta_index_control(meta_cfg, config_file):
                         f'Para key {key} not defined in {config_file} META/RARAS[{idx}]'
                     )
                 assert key in para
-            control_type[para['CONTROL_MODE'] + '@' +
-                         str(para['RESOLUTION'])] = para
+            control_type[para['CONTROL_MODE']] = para
             # control_type[para["CONTROL_MODE"]] = para
             if para['IS_DEFAULT']:
-                control_type['default'] = para['CONTROL_MODE'] + '@' + str(
-                    para['RESOLUTION'])
-                # control_type["default"] = para["CONTROL_MODE"]
+                control_type['default'] = para['CONTROL_MODE']
 
     control_type['choices'] = list(control_type.keys())
     if 'default' in control_type['choices']:
@@ -75,14 +62,6 @@ def build_meta_index_control(meta_cfg, config_file):
         control_type['default'] = control_type['choices'][0] if len(
             control_type['choices']) > 0 else ''
 
-    # 重新组织选项
-    choices = {}
-    for t_type in control_type['choices']:
-        t_name, resolution = t_type.split('@')
-        if t_name not in choices:
-            choices[t_name] = []
-        choices[t_name].append(int(resolution))
-    control_type['choices'] = choices
     return control_type, paras
 
 
@@ -166,26 +145,19 @@ def get_default(config_dict):
         return ret_data
     ret_data['version_choices'] = default_version_cfg['choices']
     ret_data['version_default'] = default_version_cfg['default']
-    default_tuner_cfg = default_version_cfg.get(default_version_cfg['default'],
+    default_model_cfg = default_version_cfg.get(default_version_cfg['default'],
                                                 None)
-    if default_tuner_cfg is None:
+    if default_model_cfg is None:
         return ret_data
-    if 'tuner_type' in default_tuner_cfg and default_tuner_cfg['tuner_type'][
+    if 'tuner_type' in default_model_cfg and default_model_cfg['tuner_type'][
             'default'] != '':
-        default_tuner_cfg = default_tuner_cfg['tuner_type']
+        default_tuner_cfg = default_model_cfg['tuner_type']
     else:
         return ret_data
-    ret_data['tuner_choices'] = list(default_tuner_cfg['choices'].keys())
+    ret_data['tuner_choices'] = default_tuner_cfg['choices']
     defalt_t_type = default_tuner_cfg['default']
+    ret_data['tuner_default'] = defalt_t_type
     type_paras = default_tuner_cfg.get(defalt_t_type, None)
-
-    default_t_n = defalt_t_type.split('@')[0]
-    default_r_n = int(defalt_t_type.split('@')[1])
-
-    ret_data['resolution_choices'] = default_tuner_cfg['choices'].get(
-        default_t_n, [])
-    ret_data['tuner_default'] = default_t_n
-    ret_data['resolution_default'] = default_r_n
     if type_paras is not None:
         ret_data.update(type_paras)
     return ret_data
@@ -198,21 +170,15 @@ def get_values_by_model(config_dict, model_name):
         return ret_data
     ret_data['version_choices'] = version_cfg['choices']
     ret_data['version_default'] = version_cfg['default']
-    default_tuner_cfg = version_cfg.get(version_cfg['default'], None)
-    if default_tuner_cfg is None:
+    default_model_cfg = version_cfg.get(version_cfg['default'], None)
+    if default_model_cfg is None:
         return ret_data
-    default_tuner_cfg = default_tuner_cfg['tuner_type']
-    ret_data['tuner_choices'] = list(default_tuner_cfg['choices'].keys())
+
+    default_tuner_cfg = default_model_cfg['tuner_type']
+    ret_data['tuner_choices'] = default_tuner_cfg['choices']
     defalt_t_type = default_tuner_cfg['default']
+    ret_data['tuner_default'] = defalt_t_type
     type_paras = default_tuner_cfg.get(defalt_t_type, None)
-
-    default_t_n = defalt_t_type.split('@')[0]
-    default_r_n = int(defalt_t_type.split('@')[1])
-
-    ret_data['resolution_choices'] = default_tuner_cfg['choices'].get(
-        default_t_n, [])
-    ret_data['tuner_default'] = default_t_n
-    ret_data['resolution_default'] = default_r_n
     if type_paras is not None:
         ret_data.update(type_paras)
     return ret_data
@@ -226,18 +192,12 @@ def get_values_by_model_version(config_dict, model_name, version):
     tuner_cfg = version_cfg.get(version, None)
     if tuner_cfg is None:
         return ret_data
+
     default_tuner_cfg = tuner_cfg['tuner_type']
-    ret_data['tuner_choices'] = list(default_tuner_cfg['choices'].keys())
+    ret_data['tuner_choices'] = default_tuner_cfg['choices']
     defalt_t_type = default_tuner_cfg['default']
+    ret_data['tuner_default'] = defalt_t_type
     type_paras = default_tuner_cfg.get(defalt_t_type, None)
-
-    default_t_n = defalt_t_type.split('@')[0]
-    default_r_n = int(defalt_t_type.split('@')[1])
-
-    ret_data['resolution_choices'] = default_tuner_cfg['choices'].get(
-        default_t_n, [])
-    ret_data['tuner_default'] = default_t_n
-    ret_data['resolution_default'] = default_r_n
     if type_paras is not None:
         ret_data.update(type_paras)
     return ret_data
@@ -249,34 +209,11 @@ def get_values_by_model_version_tuner(config_dict, model_name, version,
     version_cfg = config_dict.get(model_name, None)
     if version_cfg is None:
         return ret_data
-    tuner_cfg = version_cfg.get(version, None)
-    if tuner_cfg is None:
+    model_cfg = version_cfg.get(version, None)
+    if model_cfg is None:
         return ret_data
-    tuner_cfg = tuner_cfg['tuner_type']
-
-    ret_data['resolution_choices'] = tuner_cfg['choices'].get(tuner_name, [])
-
-    if len(ret_data['resolution_choices']) > 0:
-        t_type = '{}@{}'.format(tuner_name, ret_data['resolution_choices'][0])
-        ret_data['resolution_default'] = ret_data['resolution_choices'][0]
-        type_paras = tuner_cfg.get(t_type, None)
-        if type_paras is not None:
-            ret_data.update(type_paras)
-    return ret_data
-
-
-def get_values_by_model_version_tuner_resolution(config_dict, model_name,
-                                                 version, tuner_name,
-                                                 resolution):
-    ret_data = {}
-    version_cfg = config_dict.get(model_name, None)
-    if version_cfg is None:
-        return ret_data
-    tuner_cfg = version_cfg.get(version, None)
-    if tuner_cfg is None:
-        return ret_data
-    tuner_cfg = tuner_cfg['tuner_type']
-    type_paras = tuner_cfg.get('{}@{}'.format(tuner_name, resolution), None)
+    tuner_cfg = model_cfg['tuner_type']
+    type_paras = tuner_cfg.get(tuner_name, None)
     if type_paras is not None:
         ret_data.update(type_paras)
     return ret_data
@@ -371,15 +308,8 @@ def get_control_default(config_dict):
 
     ret_data['control_choices'] = list(default_control_cfg['choices'].keys())
     defalt_t_type = default_control_cfg['default']
+    ret_data['control_default'] = defalt_t_type
     type_paras = default_control_cfg.get(defalt_t_type, None)
-
-    default_t_n = defalt_t_type.split('@')[0]
-    default_r_n = int(defalt_t_type.split('@')[1])
-
-    ret_data['resolution_choices'] = default_control_cfg['choices'].get(
-        default_t_n, [])
-    ret_data['control_default'] = default_t_n
-    ret_data['resolution_default'] = default_r_n
     if type_paras is not None:
         ret_data.update(type_paras)
     return ret_data

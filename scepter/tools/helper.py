@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import argparse
+import importlib
 import os
 import sys
 
 #
 from scepter.modules.utils.registry import REGISTRY_LIST
 
+if os.path.exists('__init__.py'):
+    package_name = 'scepter_ext'
+    spec = importlib.util.spec_from_file_location(package_name, '__init__.py')
+    package = importlib.util.module_from_spec(spec)
+    sys.modules[package_name] = package
+    spec.loader.exec_module(package)
 sys.path.insert(0, os.path.abspath(os.curdir))
 
 

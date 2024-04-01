@@ -10,6 +10,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.transforms.functional as TF
 from einops import rearrange, repeat
 from packaging import version
 
@@ -171,12 +172,14 @@ class TimestepEmbedSequential(nn.Sequential, TimestepBlock):
     A sequential module that passes timestep embeddings to the children that
     support it as an extra input.
     """
-    def forward(self, x, emb, context=None, target_size=None):
+    def forward(self, x, emb, context=None, target_size=None, **kwargs):
         for layer in self:
             if isinstance(layer, TimestepBlock):
                 x = layer(x, emb)
             elif isinstance(layer, SpatialTransformer):
                 x = layer(x, context)
+            elif isinstance(layer, SpatialTransformerV2):
+                x = layer(x, context, **kwargs)
             elif isinstance(layer, Upsample):
                 x = layer(x, target_size)
             else:
@@ -864,6 +867,92 @@ class MemoryEfficientCrossAttention(nn.Module):
         return self.to_out(out)
 
 
+class XFormersMHA_IP(nn.Module):
+    def __init__(self,
+                 query_dim,
+                 context_dim=None,
+                 heads=8,
+                 dim_head=64,
+                 dropout=0.0):
+        super().__init__()
+        inner_dim = dim_head * heads
+        context_dim = default(context_dim, query_dim)
+
+        self.heads = heads
+        self.dim_head = dim_head
+
+        self.to_q = nn.Linear(query_dim, inner_dim, bias=False)
+        self.to_k = nn.Linear(context_dim, inner_dim, bias=False)
+        self.to_v = nn.Linear(context_dim, inner_dim, bias=False)
+        self.to_k_ip = nn.Linear(context_dim, inner_dim, bias=False)
+        self.to_v_ip = nn.Linear(context_dim, inner_dim, bias=False)
+
+        self.to_out = nn.Sequential(nn.Linear(inner_dim, query_dim),
+                                    nn.Dropout(dropout))
+        self.attention_op = None
+
+    def forward(self,
+                x,
+                context=None,
+                mask=None,
+                scale=None,
+                num_img_token=None):
+        q = self.to_q(x)
+        context = default(context, x)
+
+        if scale is not None and num_img_token is not None:
+            eos = context.shape[1] - num_img_token
+            txt_context = context[:, :eos, :]
+            img_context = context[:, eos:, :]
+
+            k = self.to_k(txt_context)
+            v = self.to_v(txt_context)
+            k_i = self.to_k_ip(img_context)
+            v_i = self.to_v_ip(img_context)
+
+            b, _, _ = q.shape
+            q, k, v, k_i, v_i = map(
+                lambda t: t.unsqueeze(3).reshape(b, t.shape[
+                    1], self.heads, self.dim_head).permute(0, 2, 1, 3).reshape(
+                        b * self.heads, t.shape[1], self.dim_head).contiguous(
+                        ),
+                (q, k, v, k_i, v_i),
+            )
+
+            # actually compute the attention, what we cannot get enough of
+            txt_out = xformers.ops.memory_efficient_attention(
+                q, k, v, attn_bias=None, op=self.attention_op)
+            img_out = xformers.ops.memory_efficient_attention(
+                q, k_i, v_i, attn_bias=None, op=self.attention_op)
+            out = txt_out + scale * img_out
+        else:
+            k = self.to_k(context)
+            v = self.to_v(context)
+            b, _, _ = q.shape
+            q, k, v = map(
+                lambda t: t.unsqueeze(3).reshape(b, t.shape[
+                    1], self.heads, self.dim_head).permute(0, 2, 1, 3).reshape(
+                        b * self.heads, t.shape[1], self.dim_head).contiguous(
+                        ),
+                (q, k, v),
+            )
+            out = xformers.ops.memory_efficient_attention(q,
+                                                          k,
+                                                          v,
+                                                          attn_bias=None,
+                                                          op=self.attention_op)
+
+        # TODO: Use this directly in the attention operation, as a bias
+        if exists(mask):
+            raise NotImplementedError
+        out = (out.unsqueeze(0).reshape(
+            b, self.heads, out.shape[1],
+            self.dim_head).permute(0, 2, 1,
+                                   3).reshape(b, out.shape[1],
+                                              self.heads * self.dim_head))
+        return self.to_out(out)
+
+
 class BasicTransformerBlock(nn.Module):
     def __init__(self,
                  dim,
@@ -905,6 +994,65 @@ class BasicTransformerBlock(nn.Module):
                        context=context if self.disable_self_attn else None) + x
         x = self.attn2(self.norm2(x), context=context) + x
         x = self.ff(self.norm3(x)) + x
+        return x
+
+
+class TransformerBlockV2(nn.Module):
+    def __init__(self,
+                 query_dim,
+                 n_heads,
+                 d_head,
+                 dropout=0.,
+                 context_dim=None,
+                 gated_ff=True,
+                 use_checkpoint=False,
+                 disable_self_attn=False):
+        super().__init__()
+        self.disable_self_attn = disable_self_attn
+        self.attn1 = MemoryEfficientCrossAttention(query_dim=query_dim,
+                                                   heads=n_heads,
+                                                   dim_head=d_head,
+                                                   dropout=dropout,
+                                                   context_dim=None)
+        self.ff = FeedForward(query_dim, dropout=dropout, glu=gated_ff)
+        self.attn2 = XFormersMHA_IP(query_dim=query_dim,
+                                    heads=n_heads,
+                                    dim_head=d_head,
+                                    context_dim=context_dim)
+        self.norm1 = nn.LayerNorm(query_dim)
+        self.norm2 = nn.LayerNorm(query_dim)
+        self.norm3 = nn.LayerNorm(query_dim)
+        self.use_checkpoint = use_checkpoint
+
+    def forward(self,
+                x,
+                context,
+                caching=None,
+                cache=None,
+                scale=None,
+                num_img_token=None,
+                **kwargs):
+        y = self.norm1(x)
+        if caching == 'write':
+            assert isinstance(cache, list)
+            cache.append(y)
+            x = self.attn1(y, context=None) + x
+        elif caching == 'read':
+            assert isinstance(cache, list) and len(cache) > 0
+            c = cache.pop(0)
+            self_ctx = torch.cat([y, c], dim=1)
+            x = self.attn1(y, context=self_ctx) + x
+        elif caching is None:
+            x = self.attn1(y, context=None) + x
+        else:
+            assert False
+
+        x = self.attn2(self.norm2(x),
+                       context=context,
+                       scale=scale,
+                       num_img_token=num_img_token) + x
+        x = self.ff(self.norm3(x)) + x
+
         return x
 
 
@@ -997,6 +1145,111 @@ class SpatialTransformer(nn.Module):
             if i > 0 and len(context) == 1:
                 i = 0  # use same context for each block
             x = block(x, context=context[i])
+        if self.use_linear:
+            x = self.proj_out(x)
+        x = rearrange(x, 'b (h w) c -> b c h w', h=h, w=w).contiguous()
+        if not self.use_linear:
+            x = self.proj_out(x)
+        return x + x_in
+
+
+class SpatialTransformerV2(nn.Module):
+    """
+    Transformer block for image-like data.
+    First, project the input (aka embedding)
+    and reshape to b, t, d.
+    Then apply standard transformer action.
+    Finally, reshape to image
+    NEW: use_linear for more efficiency instead of the 1x1 convs
+    """
+    def __init__(self,
+                 in_channels,
+                 n_heads,
+                 d_head,
+                 transformer_block,
+                 depth=1,
+                 dropout=0.,
+                 context_dim=None,
+                 disable_self_attn=False,
+                 use_linear=False,
+                 use_checkpoint=True):
+        super().__init__()
+        if exists(context_dim) and not isinstance(context_dim, list):
+            context_dim = [context_dim]
+
+        if exists(context_dim) and not isinstance(context_dim, (list)):
+            context_dim = [context_dim]
+        if exists(context_dim) and isinstance(context_dim, list):
+            if depth != len(context_dim):
+                print(
+                    f'WARNING: {self.__class__.__name__}: Found context dims {context_dim} of'
+                    f" depth {len(context_dim)}, which does not match the specified 'depth' of"
+                    f' {depth}. Setting context_dim to {depth * [context_dim[0]]} now.'
+                )
+                # depth does not match context dims.
+                assert all(
+                    map(lambda x: x == context_dim[0], context_dim)
+                ), 'need homogenous context_dim to match depth automatically'
+                context_dim = depth * [context_dim[0]]
+        elif context_dim is None:
+            context_dim = [None] * depth
+
+        self.in_channels = in_channels
+        inner_dim = n_heads * d_head
+        self.norm = normalization(in_channels)
+        if not use_linear:
+            self.proj_in = nn.Conv2d(in_channels,
+                                     inner_dim,
+                                     kernel_size=1,
+                                     stride=1,
+                                     padding=0)
+        else:
+            self.proj_in = nn.Linear(in_channels, inner_dim)
+
+        self.transformer_blocks = nn.ModuleList([
+            transformer_block(inner_dim,
+                              n_heads,
+                              d_head,
+                              dropout=dropout,
+                              context_dim=context_dim[d],
+                              disable_self_attn=disable_self_attn,
+                              use_checkpoint=use_checkpoint)
+            for d in range(depth)
+        ])
+        if not use_linear:
+            self.proj_out = zero_module(
+                nn.Conv2d(inner_dim,
+                          in_channels,
+                          kernel_size=1,
+                          stride=1,
+                          padding=0))
+        else:
+            self.proj_out = zero_module(nn.Linear(in_channels, inner_dim))
+        self.use_linear = use_linear
+
+    def forward(self, x, context=None, **kwargs):
+        # note: if no context is given, cross-attention defaults to self-attention
+        if not isinstance(context, list):
+            context = [context]
+        b, c, h, w = x.shape
+
+        ref_mask = kwargs.pop('ref_mask', None)
+        if ref_mask is not None:
+            ref_mask = TF.resize(ref_mask, (h, w), antialias=True)
+            ref_mask = (ref_mask > 0.5).float()
+            ref_mask = rearrange(ref_mask, 'b c h w -> b (h w) c').contiguous()
+
+        x_in = x
+        x = self.norm(x)
+        if not self.use_linear:
+            x = self.proj_in(x)
+        x = rearrange(x, 'b c h w -> b (h w) c').contiguous()
+        if self.use_linear:
+            x = self.proj_in(x)
+        for i, block in enumerate(self.transformer_blocks):
+            if i > 0 and len(context) == 1:
+                i = 0  # use same context for each block
+            x = block(x, context=context[i], ref_mask=ref_mask, **kwargs)
         if self.use_linear:
             x = self.proj_out(x)
         x = rearrange(x, 'b (h w) c -> b c h w', h=h, w=w).contiguous()

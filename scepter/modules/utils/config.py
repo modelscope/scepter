@@ -603,3 +603,6 @@ class Config(object):
             return cfg_new
         else:
             return cfg
+
+    def pop(self, name):
+        self.cfg_dict.pop(name)

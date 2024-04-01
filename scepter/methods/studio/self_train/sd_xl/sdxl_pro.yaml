@@ -11,13 +11,13 @@ META:
     DEFAULT_SAMPLER: "dpmpp_2s_ancestral"
     DEFAULT_SAMPLE_STEPS: 40
     INFERENCE_N_PROMPT: ""
-    RESOLUTION: 1024
+    RESOLUTION: [1024, 1024]
   PARAS:
     -
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 1024
+      RESOLUTION: [1024, 1024]
       MEMORY: 29000
       EPOCHS: 50
       SAVE_INTERVAL: 25
@@ -29,7 +29,7 @@ META:
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 1024
+      RESOLUTION: [1024, 1024]
       MEMORY: 29000
       EPOCHS: 50
       SAVE_INTERVAL: 25
@@ -41,7 +41,7 @@ META:
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 1024
+      RESOLUTION: [1024, 1024]
       MEMORY: 29000
       EPOCHS: 200
       SAVE_INTERVAL: 25
@@ -53,7 +53,7 @@ META:
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 1024
+      RESOLUTION: [1024, 1024]
       MEMORY: 29000
       EPOCHS: 200
       SAVE_INTERVAL: 25
@@ -65,7 +65,7 @@ META:
       TRAIN_BATCH_SIZE: 2
       TRAIN_PREFIX: ""
       TRAIN_N_PROMPT: ""
-      RESOLUTION: 1024
+      RESOLUTION: [1024, 1024]
       MEMORY: 29000
       EPOCHS: 50
       SAVE_INTERVAL: 25
@@ -146,10 +146,12 @@ SOLVER:
   MAX_EPOCHS: -1
   # NUM_FOLDS DESCRIPTION: Num folds for training. TYPE: int default: 1
   NUM_FOLDS: 1
+  #
+  EVAL_INTERVAL: -1
   # WORK_DIR DESCRIPTION: Save dir of the training log or model. TYPE: str default: ''
   WORK_DIR:
   # LOG_FILE DESCRIPTION: Save log path. TYPE: str default: ''
-  LOG_FILE: stg_log.txt
+  LOG_FILE: std_log.txt
   FILE_SYSTEM:
     NAME: "ModelscopeFs"
     TEMP_DIR: "./cache/data"
@@ -586,15 +588,44 @@ SOLVER:
         INPUT_KEY: [ 'img', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left']
         OUTPUT_KEY: [ 'image', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
   #
+  EVAL_DATA:
+    NAME: Text2ImageDataset
+    MODE: eval
+    PROMPT_FILE:
+    PROMPT_DATA: [ "a boy wearing a jacket", "a dog running on the lawn" ]
+    IMAGE_SIZE: [ 1024, 1024 ]
+    FIELDS: [ "prompt" ]
+    DELIMITER: '#;#'
+    PROMPT_PREFIX: ''
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    TRANSFORMS:
+      - NAME: Select
+        KEYS: [ 'index', 'prompt' ]
+        META_KEYS: [ 'image_size' ]
+  #
   TRAIN_HOOKS:
-    - NAME: BackwardHook
-      # GRADIENT_CLIP: 1.0
+    -
+      NAME: BackwardHook
       PRIORITY: 0
-    - NAME: LogHook
-      LOG_INTERVAL: 50
+    -
+      NAME: LogHook
+      LOG_INTERVAL: 10
       SHOW_GPU_MEM: True
     -
+      NAME: TensorboardLogHook
+    -
       NAME: CheckpointHook
-      SAVE_LAST: True
       INTERVAL: 10000
       PRIORITY: 200
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+  #
+  EVAL_HOOKS:
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      SAVE_PROBE_PREFIX: 'image'

@@ -49,11 +49,11 @@ BANNER: |
       <div class="qr-codes">
           <div class="qr-code-container">
               <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/ms_scepter_studio_qr.png" alt="ms_scepter_studio_qr">
-              <div class="caption">Modelscope Studio</div>
+              <div class="caption"><a href="https://www.modelscope.cn/studios/iic/scepter_studio">Modelscope Studio</a></div>
           </div>
           <div class="qr-code-container">
               <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_github_qr.png" alt="scepter_github_qr">
-              <div class="caption">Github</div>
+              <div class="caption"><a href="https://github.com/modelscope/scepter">Github</a></div>
           </div>
       </div>
   </div>
@@ -79,6 +79,10 @@ INTERFACE:
     NAME_EN: Train
     IFID: self_train
     CONFIG: scepter/methods/studio/self_train/self_train.yaml
+  - NAME: 模型管理
+    NAME_EN: Tuner Management
+    IFID: tuner_manager
+    CONFIG: scepter/methods/studio/tuner_manager/tuner_manager.yaml
   - NAME: 推理
     NAME_EN: Inference
     IFID: inference
