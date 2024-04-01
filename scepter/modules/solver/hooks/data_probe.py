@@ -47,7 +47,7 @@ class ProbeDataHook(Hook):
             if we.rank == 0:
                 save_folder = os.path.join(
                     solver.work_dir,
-                    f'{solver.mode}_probe/{self.save_probe_prefix}-{solver.total_iter}'
+                    f'{solver.mode}_probe/{self.save_name_prefix}-{solver.total_iter}'
                 )
                 ret_data = {}
                 for k, v in probe_dict.items():

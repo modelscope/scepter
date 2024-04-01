@@ -169,10 +169,10 @@ python scepter/tools/run_inference.py --cfg scepter/methods/scedit/ctr/sd21_768_
 ```
 
 ### Customize Modules
-Refer to `example`, build your modules in `example/impls`.
+Refer to `example`, build the modules of your task in `example/{task}`.
 ```python
-cd example
-python run.py --cfg example.yaml
+cd example/classifier
+python run.py --cfg classifier.yaml
 ```
 
 
@@ -199,7 +199,7 @@ Therefore, subsequent startups will become much faster (about one minute) as dow
 * LAR-Gen: we release `zoom-out`, `virtual try on`, `inpainting(text guided)`, `inpainting(text + reference image guided)` image editing capabilities.
 Please note that the **Data Preprocess** button must be clicked before clicking the **Generate** button.
 <p align="center">
-<img src="./asset/images/largen.gif">
+<img src="https://raw.githubusercontent.com/ali-vilab/largen-page/main/public/images/largen.gif">
 </p>
 
 ### Modelscope Studio
@@ -208,7 +208,7 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 
 ## 🖼️ Gallery
 
-### LAR-Gen: Zoom-Out
+### LAR-Gen: Zoom Out
 <table>
   <tr>
     <td><strong>Origin Image</strong><br>Prompt: a temple on fire</td>
@@ -218,15 +218,15 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
     <td><strong>Zoom-Out</strong><br>CenterAround:0.75</td>
   </tr>
   <tr>
-    <td><img src="asset/images/zoom_out/ex1_scene_im.jpeg" width="240"></td>
-    <td><img src="asset/images/zoom_out/ex1_zoom_out1.jpeg" width="240"></td>
-    <td><img src="./asset/images/zoom_out/ex1_zoom_out2.jpeg" width="240"></td>
-    <td><img src="./asset/images/zoom_out/ex1_zoom_out3.jpeg" width="240"></td>
-    <td><img src="./asset/images/zoom_out/ex1_zoom_out4.jpeg" width="240"></td>
+    <td><img src="asset/images/zoom_out/ex1_scene_im.jpg" width="240"></td>
+    <td><img src="asset/images/zoom_out/ex1_zoom_out1.jpg" width="240"></td>
+    <td><img src="./asset/images/zoom_out/ex1_zoom_out2.jpg" width="240"></td>
+    <td><img src="./asset/images/zoom_out/ex1_zoom_out3.jpg" width="240"></td>
+    <td><img src="./asset/images/zoom_out/ex1_zoom_out4.jpg" width="240"></td>
   </tr>
 </table>
 
-### LAR-Gen: Virtual-Try-on
+### LAR-Gen: Virtual Try-on
 <table>
   <tr>
     <td><strong>Model Image</strong></td>
@@ -240,11 +240,11 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
     <td><img src="asset/images/virtual_try_on/ex2_scene_mask.jpg" width="240"></td>
     <td><img src="asset/images/virtual_try_on/tshirt.jpg" width="240"></td>
     <td><img src="asset/images/virtual_try_on/ex2_subject_mask.jpg" width="240"></td>
-    <td><img src="asset/images/virtual_try_on/try_on_out.jpeg" width="240"></td>
+    <td><img src="asset/images/virtual_try_on/try_on_out.jpg" width="240"></td>
   </tr>
 </table>
 
-### LAR-Gen: Inpainting(Text-guided)
+### LAR-Gen: Inpainting (Text guided)
 <table>
   <tr>
     <td><strong>Origin Image</strong><br>Prompt: a blue and white porcelain</td>
@@ -256,13 +256,13 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
   <tr>
     <td><img src="asset/images/inpainting_text/ex3_scene_im.jpg" width="240"></td>
     <td><img src="asset/images/inpainting_text/ex3_scene_mask.jpg" width="240"></td>
-    <td><img src="asset/images/inpainting_text/inpainting_text.jpeg" width="240"></td>
+    <td><img src="asset/images/inpainting_text/inpainting_text.jpg" width="240"></td>
     <td><img src="asset/images/inpainting_text/ex3_scene_mask2.jpg" width="240"></td>
-    <td><img src="asset/images/inpainting_text/inpainting_text2.jpeg" width="240"></td>
+    <td><img src="asset/images/inpainting_text/inpainting_text2.jpg" width="240"></td>
   </tr>
 </table>
 
-### LAR-Gen: Inpainting(Text + Reference Image Guided)
+### LAR-Gen: Inpainting (Text and Subject guided)
 <table>
   <tr>
     <td><strong>Origin Image</strong><br>Prompt: a dog wearing sunglasses</td>
@@ -276,7 +276,7 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
     <td><img src="asset/images/inpainting_text_ref/ex4_scene_mask.jpg" width="240"></td>
     <td><img src="asset/images/inpainting_text_ref/ex4_subject_im.jpg" width="240"></td>
     <td><img src="asset/images/inpainting_text_ref/ex4_subject_mask.jpg" width="240"></td>
-    <td><img src="asset/images/inpainting_text_ref/inpainting_text_ref.jpeg" width="240"></td>
+    <td><img src="asset/images/inpainting_text_ref/inpainting_text_ref.jpg" width="240"></td>
   </tr>
 </table>
 
