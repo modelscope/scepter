@@ -395,7 +395,7 @@ class DiffusionInference():
             return self.first_stage_model['paras']['scale_factor'] * z
 
     def decode_first_stage(self, z):
-        _, dtype = self.get_function_info(self.first_stage_model, 'encode')
+        _, dtype = self.get_function_info(self.first_stage_model, 'decode')
         with torch.autocast('cuda',
                             enabled=dtype == 'float16',
                             dtype=getattr(torch, dtype)):

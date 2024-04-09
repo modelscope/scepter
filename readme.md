@@ -176,7 +176,6 @@ python run.py --cfg classifier.yaml
 ```
 
 
-
 ## 🖥️ SCEPTER Studio
 
 ### Launch

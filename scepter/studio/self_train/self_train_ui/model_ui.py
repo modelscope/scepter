@@ -171,16 +171,26 @@ class ModelUI(UIBase):
             status = trainer_ui.trainer_ins.get_status(model_name)
             ckpt_list = self.get_ckpt_list(model_name)
             ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else ''
+            if ckpt_value is not None and len(ckpt_value) > 0:
+                gallery_value = self.get_gallery_list(model_name, ckpt_value)
+            else:
+                gallery_value = []
+            select_index = 0 if len(gallery_value) > 0 else None
             return (message, gr.Column(visible=status in ('running',
                                                           'success')),
-                    gr.Dropdown(choices=ckpt_list, value=ckpt_value))
+                    gr.Dropdown(choices=ckpt_list, value=ckpt_value),
+                    gr.Gallery(value=gallery_value,
+                               preview=True,
+                               selected_index=select_index)
+                    )
 
         self.output_model_name.change(fn=model_name_change,
                                       inputs=[self.output_model_name],
                                       outputs=[
                                           self.log_message,
                                           self.export_log_panel,
-                                          self.output_ckpt_name
+                                          self.output_ckpt_name,
+                                          self.eval_gallery
                                       ],
                                       queue=False)
 
@@ -243,8 +253,9 @@ class ModelUI(UIBase):
             ckpt_list = self.get_ckpt_list(model_name)
             ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else ''
             ret_gallery = ckpt_name_change(model_name, ckpt_value)
-            return (message, gr.Column(visible=status in ('running',
-                                                          'success')),
+            return (message,
+                    gr.Column(visible=status in ('running', 'success')),
+                    gr.Dropdown(choices=self.model_list, value=model_name),
                     gr.Dropdown(choices=ckpt_list,
                                 value=ckpt_value), ret_gallery)
 
@@ -254,7 +265,7 @@ class ModelUI(UIBase):
             outputs=[
                 self.log_message,
                 self.export_log_panel,
-                # self.output_model_name,
+                self.output_model_name,
                 self.output_ckpt_name,
                 self.eval_gallery
             ],
@@ -305,10 +316,13 @@ class ModelUI(UIBase):
                 image_dir = os.path.join(self.work_dir, output_model,
                                          'eval_probe', output_ckpt_name,
                                          'image')
-                image_path = [
-                    os.path.join(image_dir, name)
-                    for name in os.listdir(image_dir)
-                ]
+                if os.path.exists(image_dir):
+                    image_path = [
+                        os.path.join(image_dir, name)
+                        for name in os.listdir(image_dir)
+                    ]
+                else:
+                    image_path = []
             else:
                 _, base_model, base_model_revision, tuner_name, _ = output_model.split(
                     '@', 4)
