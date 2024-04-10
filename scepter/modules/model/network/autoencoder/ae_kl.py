@@ -52,7 +52,7 @@ class DiagonalGaussianDistribution(object):
                                dim=dims)
 
     def mode(self):
-        print('*** use DiagonalGaussianDistribution.mode() ***')
+        # print('*** use DiagonalGaussianDistribution.mode() ***')
         return self.mean
 
 
