@@ -13,8 +13,9 @@ import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 from einops import rearrange, repeat
 from packaging import version
+from torch.utils.checkpoint import checkpoint
 
-from scepter.modules.model.utils.basic_utils import checkpoint, default, exists
+from scepter.modules.model.utils.basic_utils import default, exists
 
 try:
     import xformers
@@ -360,8 +361,10 @@ class ResBlock(TimestepBlock):
         :param emb: an [N x emb_channels] Tensor of timestep embeddings.
         :return: an [N x C x ...] Tensor of outputs.
         """
-        return checkpoint(self._forward, (x, emb), self.parameters(),
-                          self.use_checkpoint)
+        if self.use_checkpoint:
+            return checkpoint(self._forward, x, emb)
+        else:
+            return self._forward(x, emb)
 
     def _forward(self, x, emb):
         if self.updown:
@@ -422,8 +425,10 @@ class AttentionBlock(nn.Module):
         self.proj_out = zero_module(conv_nd(1, channels, channels, 1))
 
     def forward(self, x):
-        return checkpoint(self._forward, (x, ), self.parameters(),
-                          self.use_checkpoint)
+        if self.use_checkpoint:
+            return checkpoint(self._forward, x)
+        else:
+            return self._forward(x)
 
     def _forward(self, x):
         b, c, *spatial = x.shape
@@ -986,8 +991,11 @@ class BasicTransformerBlock(nn.Module):
         self.use_checkpoint = use_checkpoint
 
     def forward(self, x, context=None):
-        return checkpoint(self._forward, (x, context), self.parameters(),
-                          self.use_checkpoint)
+
+        if self.use_checkpoint:
+            return checkpoint(self._forward, x, context)
+        else:
+            return self._forward(x, context)
 
     def _forward(self, x, context=None):
         x = self.attn1(self.norm1(x),

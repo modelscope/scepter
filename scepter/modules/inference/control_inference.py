@@ -94,7 +94,7 @@ class ControlInference():
     def get_control_input(self, control_model, control_cond_image, height,
                           width):
         hints = []
-        if control_cond_image and control_model:
+        if control_cond_image is not None and control_model is not None:
             if not isinstance(control_model, list):
                 control_model = [control_model]
             if not isinstance(control_cond_image, list):

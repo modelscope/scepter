@@ -7,7 +7,7 @@ import numbers
 import os
 import sys
 from collections.abc import Iterable
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 import torch
@@ -15,6 +15,8 @@ import torch.distributed as dist
 
 from scepter.modules.data.sampler.base_sampler import BaseSampler
 from scepter.modules.data.sampler.registry import SAMPLERS
+from scepter.modules.data.utils.data_bucket import (BucketBatchIndex,
+                                                    BucketManager)
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.directory import osp_path
 from scepter.modules.utils.distribute import we
@@ -588,4 +590,106 @@ class LoopSampler(BaseSampler):
         return dict_to_yaml('SAMPLERS',
                             __class__.__name__,
                             LoopSampler.para_dict,
+                            set_name=True)
+
+
+@SAMPLERS.register_class()
+class ResolutionBatchSampler(BaseSampler):
+    para_dict = {}
+
+    def __init__(self, cfg, logger):
+        super().__init__(cfg, logger)
+        self.data_file = cfg.DATA_FILE
+        self.fields = cfg.get('FIELDS', [])
+        self.num_fields = len(self.fields)
+        self.delimiter = cfg.get('DELIMITER', ',')
+        self.path_prefix = cfg.get('PATH_PREFIX', '')
+        self.batch_size = cfg.BATCH_SIZE
+        max_reso = cfg.get('MAX_RESO', (1024, 1024))
+        min_bucket_reso = cfg.get('MIN_BUCKET_RESO', 256)
+        max_bucket_reso = cfg.get('MAX_BUCKET_RESO', 1024)
+        bucket_reso_steps = cfg.get('BUCKET_RESO_STEPS', 64)
+        bucket_no_upscale = cfg.get('BUCKET_NO_UPSCALE', False)
+        rank = we.rank
+        self.rng = np.random.default_rng(self.seed + rank)
+        assert 'img_path' in self.fields and 'width' in self.fields and 'height' in self.fields
+
+        self.bucket_manager = BucketManager(max_reso=max_reso,
+                                            min_size=min_bucket_reso,
+                                            max_size=max_bucket_reso,
+                                            reso_steps=bucket_reso_steps,
+                                            no_upscale=bucket_no_upscale)
+        if not bucket_no_upscale:
+            self.bucket_manager.make_buckets()
+        else:
+            self.logger.info(
+                'min_bucket_reso and max_bucket_reso are ignored if bucket_no_upscale is set, '
+                'because bucket reso is defined by image size automatically / bucket_no_upscale'
+            )
+
+        self.data_map = {}
+        img_path_idx, width_idx, height_idx = self.fields.index(
+            'img_path'), self.fields.index('width'), self.fields.index(
+                'height')
+        with FS.get_from(self.data_file) as local_path:
+            with open(local_path) as f:
+                for i, line in enumerate(f):
+                    items = line.strip()
+                    item_sp = items.split(self.delimiter, self.num_fields - 1)
+                    img_path, width, height = item_sp[img_path_idx], int(
+                        item_sp[width_idx]), int(item_sp[height_idx])
+                    item_sp[img_path_idx] = os.path.join(
+                        self.path_prefix, img_path)
+                    bucket_reso, resized_size, ar_error = self.bucket_manager.select_bucket(
+                        width, height)
+                    self.bucket_manager.add_image(reso=bucket_reso, image=i)
+                    self.data_map[i] = item_sp
+
+        for i, (reso, bucket) in enumerate(
+                zip(self.bucket_manager.resos, self.bucket_manager.buckets)):
+            count = len(bucket)
+            if count > 0:
+                # self.logger.info(f"bucket {i}: resolution {reso}, bucket {bucket}, count: {len(bucket)}")
+                self.logger.info(
+                    f'bucket {i}: resolution {reso}, count: {len(bucket)}')
+
+        self.buckets_indices: List[BucketBatchIndex] = []
+        for bucket_index, (reso, bucket) in enumerate(
+                zip(self.bucket_manager.resos, self.bucket_manager.buckets)):
+            batch_count = int(math.ceil(len(bucket) / self.batch_size))
+            for batch_index in range(batch_count):
+                self.buckets_indices.append(
+                    BucketBatchIndex(bucket_index, self.batch_size,
+                                     batch_index, reso))
+        self.shuffle_buckets()
+
+    def shuffle_buckets(self):
+        np.random.shuffle(self.buckets_indices)
+        self.bucket_manager.shuffle()
+
+    def __iter__(self):
+        while True:
+            index = self.rng.choice(len(self.buckets_indices))
+            bucket_reso = self.buckets_indices[index].bucket_reso
+            bucket_width, bucket_height = bucket_reso
+            bucket = self.bucket_manager.buckets[
+                self.buckets_indices[index].bucket_index]
+            batches = self.rng.choice(bucket, self.batch_size)
+            # image_index = self.buckets_indices[index].batch_index * self.batch_size
+            # batch = bucket[image_index : image_index + self.batch_size]
+            fields = self.fields + ['image_size', 'prompt_prefix']
+            batches = [
+                self.data_map[idx] + [[bucket_height, bucket_width], fields]
+                for idx in batches
+            ]
+            yield batches
+
+    def __len__(self):
+        return sys.maxsize
+
+    @staticmethod
+    def get_config_template():
+        return dict_to_yaml('SAMPLERS',
+                            __class__.__name__,
+                            ResolutionBatchSampler.para_dict,
                             set_name=True)

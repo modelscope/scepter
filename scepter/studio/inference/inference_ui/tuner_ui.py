@@ -118,6 +118,17 @@ class TunerUI(UIBase):
 
             self.example_block = gr.Accordion(
                 label=self.component_names.example_block_name, open=True)
+        gallery_ui = kwargs.pop('gallery_ui', None)
+        gallery_ui.register_components({
+            'tuner_state':
+            self.state,
+            'tuner_model':
+            self.tuner_model,
+            'tuner_scale':
+            self.tuner_scale,
+            'custom_tuner_model':
+            self.custom_tuner_model,
+        })
 
     def set_callbacks(self, model_manage_ui, **kwargs):
         manager = kwargs.pop('manager')

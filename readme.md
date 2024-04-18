@@ -21,6 +21,7 @@
 - [Acknowledgement](#acknowledgement)
 
 ## 🎉 News
+- [2024.04]: New [StyleBooth](https://ali-vilab.github.io/stylebooth-page/) demo on SCEPTER Studio, supporting `Text-Based Style Editing`.
 - [2024.03]: We optimize the training UI and checkpoint management. New [LAR-Gen](https://arxiv.org/abs/2403.19534) model has been added on SCEPTER Studio, supporting `zoom-out`, `virtual try on`, `inpainting`.
 - [2024.02]: We release new SCEdit controllable image synthesis models for SD v2.1 and SD XL. Multiple strategies applied to accelerate inference time for SCEPTER Studio.
 - [2024.01]: We release **SCEPTER Studio**, an integrated toolkit for data management, model training and inference based on [Gradio](https://www.gradio.app/).
@@ -90,14 +91,14 @@ print(next(iter(ms_train_dataset)))
 
 #### CSV Format
 
-For the data format used by SCEPTER Studio, please refer to [3D_example_csv.zip](https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip).
+For the data format used by SCEPTER Studio, please refer to [3D_example_csv.zip](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip).
 
 #### TXT Format
 
-To facilitate starting training in command-line mode, you can use a dataset in text format, please refer to [3D_example_txt.zip](https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=datasets/3D_example_txt.zip)
+To facilitate starting training in command-line mode, you can use a dataset in text format, please refer to [3D_example_txt.zip](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_txt.zip)
 
 ```shell
-mkdir -p cache/datasets/ && wget 'https://modelscope.cn/api/v1/models/damo/scepter_scedit/repo?Revision=master&FilePath=dataset/3D_example_txt.zip' -O cache/datasets/3D_example_txt.zip && unzip cache/datasets/3D_example_txt.zip -d cache/datasets/ && rm cache/datasets/3D_example_txt.zip
+mkdir -p cache/datasets/ && wget 'https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_txt.zip' -O cache/datasets/3D_example_txt.zip && unzip cache/datasets/3D_example_txt.zip -d cache/datasets/ && rm cache/datasets/3D_example_txt.zip
 ```
 
 ### Training
@@ -207,6 +208,25 @@ Please note that the **Data Preprocess** button must be clicked before clicking 
 We deploy a work studio on Modelscope that includes only the inference tab, please refer to [ms_scepter_studio](https://www.modelscope.cn/studios/damo/scepter_studio/summary)
 
 ## 🖼️ Gallery
+
+### StyleBooth
+<table>
+  <tr>
+    <td><strong>Origin Image</strong><br>Gold Dragon Tuner</td>
+    <td><strong>Graffiti Art</strong></td>
+    <td><strong>Adorable Kawaii</strong></td>
+    <td><strong>game-retro game</strong></td>
+    <td><strong>Vincent van Gogh</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/hanzhn/datas/blob/main/scepter/readme/tuner_gold_dragon.jpeg?raw=true" width="240"></td>
+    <td><img src="asset/images/stylebooth/graffiti.jpeg" width="240"></td>
+    <td><img src="asset/images/stylebooth/kawaii.jpeg" width="240"></td>
+    <td><img src="asset/images/stylebooth/retrogame.jpeg" width="240"></td>
+    <td><img src="asset/images/stylebooth/vangogh.jpeg" width="240"></td>
+  </tr>
+</table>
+
 
 ### LAR-Gen: Zoom Out
 <table>
@@ -340,6 +360,12 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 |:---------:|:----------:|:----------:|:----------:|
 |   SD XL   |     🪄     |    🪄       |     ⏳     |
 
+- StyleBooth
+
+| **Text-Based** | **Exemplar-Based** |
+|:--------------:|:-----------------:|
+|   🪄           |         ⏳         |
+
 ### Model URL
 
 - ✅ indicates support for both training and inference.
@@ -347,10 +373,11 @@ We deploy a work studio on Modelscope that includes only the inference tab, plea
 - ⏳ denotes that the module has not been integrated currently.
 - More models will be released in the future.
 
-| Model  | URL                                                                                                                                            |
-|--------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| Model  | URL                                                                                                                                       |
+|--------|-------------------------------------------------------------------------------------------------------------------------------------------|
 | SCEdit | [ModelScope](https://modelscope.cn/models/iic/scepter_scedit/summary) [HuggingFace](https://huggingface.co/scepter-studio/scepter_scedit) |
-| LAR-Gen | [ModelScope](https://www.modelscope.cn/models/iic/LARGEN/summary) |
+| LAR-Gen | [ModelScope](https://www.modelscope.cn/models/iic/LARGEN/summary)                                                                         |
+| StyleBooth | [ModelScope](https://www.modelscope.cn/models/iic/stylebooth/summary)                                                                     |
 
 PS: Scripts running within the SCEPTER framework will automatically fetch and load models based on the required dependency files, eliminating the need for manual downloads.
 

@@ -15,3 +15,9 @@ def init_env(cfg_general):
     is_flag = FS.make_dir(work_dir)
     assert is_flag
     return cfg_general
+
+
+def get_available_memory():
+    import psutil
+    mem = psutil.virtual_memory()
+    return {'total': mem.total, 'available': mem.available}

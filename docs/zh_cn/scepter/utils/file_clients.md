@@ -6,10 +6,10 @@
 
 支持3类文件IO Handler:
 
-1. scepter.utils.file_clients.AliyunOssFs
-2. scepter.utils.file_clients.LocalFs
-3. scepter.utils.file_clients.HttpFs
-4. scepter.utils.file_clients.ModelscopeFs
+1. scepter.modules.utils.file_clients.AliyunOssFs
+2. scepter.modules.utils.file_clients.LocalFs
+3. scepter.modules.utils.file_clients.HttpFs
+4. scepter.modules.utils.file_clients.ModelscopeFs
 
 
 <hr/>
@@ -17,8 +17,8 @@
 ## 基础用法
 
 ```python
-from scepter.utils.file_system import FS
-from scepter.utils.config import Config
+from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.config import Config
 
 fs_cfg = Config(load=False, cfg_dict={
     "NAME": "AliyunOssFs",

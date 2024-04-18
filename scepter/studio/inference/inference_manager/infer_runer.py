@@ -2,6 +2,7 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 from scepter.modules.inference.diffusion_inference import DiffusionInference
 from scepter.modules.inference.largen_inference import LargenInference
+from scepter.modules.inference.stylebooth_inference import StyleboothInference
 from scepter.modules.utils.logger import get_logger
 
 
@@ -99,6 +100,8 @@ class PipelineManager():
         pipeline_name = cfg.NAME
         if 'LARGEN' in pipeline_name:
             PipelineBuilder = LargenInference
+        elif pipeline_name.startswith('EDIT'):
+            PipelineBuilder = StyleboothInference
         else:
             PipelineBuilder = DiffusionInference
         new_inference = PipelineBuilder(logger=self.logger)

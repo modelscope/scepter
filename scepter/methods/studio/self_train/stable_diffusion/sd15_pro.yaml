@@ -4,6 +4,7 @@ META:
   VERSION: 'SD1.5'
   DESCRIPTION: "Stable Diffusion v1.5"
   IS_DEFAULT: False
+  IS_SHARE: True
   INFERENCE_PARAS:
     INFERENCE_BATCH_SIZE: 1
     INFERENCE_PREFIX: ""
@@ -244,7 +245,6 @@ SOLVER:
     GUIDE_SCALE: 7.5
     GUIDE_RESCALE:
     DISCRETIZATION: trailing
-    IMAGE_SIZE: [512, 512]
     RUN_TRAIN_N: False
   #
   OPTIMIZER:
@@ -274,14 +274,14 @@ SOLVER:
       - NAME: LoadImageFromFile
         RGB_ORDER: RGB
         BACKEND: pillow
-      - NAME: Resize
-        SIZE: 512
+      - NAME: FlexibleResize
         INTERPOLATION: bilinear
+        SIZE: [ 512, 512 ]
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
-      - NAME: CenterCrop
-        SIZE: 512
+      - NAME: FlexibleCenterCrop
+        SIZE: [ 512, 512 ]
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow

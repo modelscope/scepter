@@ -336,7 +336,7 @@ class LatentDiffusion(TrainModule):
                 h = int(meta['image_size'][0][0])
                 w = int(meta['image_size'][1][0])
                 image_size = [h, w]
-        if 'image_size' in kwargs:
+        if 'image_size' in kwargs and kwargs['image_size'] is not None:
             image_size = kwargs.pop('image_size')
         if isinstance(image_size, numbers.Number):
             image_size = [image_size, image_size]

@@ -11,6 +11,13 @@ import yaml
 
 from scepter.modules.utils.model import StdMsg
 
+_SECURE_KEYWORDS = [
+    'ENDPOINT', 'BUCKET', 'OSS_AK', 'OSS_SK', 'OSS', 'TOKEN', 'APPKEY'
+    'SECRET', 'ACCESS_ID', 'ACCESS_KEY', 'PASSWORD', 'TEMP_DIR'
+]  # -> "*****"
+
+_SECURE_VALUEWORDS = ['oss://', 'oss-']  # -> "#####"
+
 
 def dict_to_yaml(module_name, name, json_config, set_name=False):
     '''
@@ -517,8 +524,29 @@ class Config(object):
     def __repr__(self):
         return '{}\n'.format(self.dump())
 
-    def dump(self):
-        return json.dumps(self.cfg_dict, indent=2)
+    def dump(self, is_secure=False):
+        if not is_secure:
+            return json.dumps(self.cfg_dict, indent=2)
+        else:
+
+            def make_secure(cfg):
+                if isinstance(cfg, dict):
+                    for key, val in cfg.items():
+                        if key in _SECURE_KEYWORDS and type(val) is str:
+                            cfg[key] = '*****'
+                        else:
+                            cfg[key] = make_secure(cfg[key])
+                elif isinstance(cfg, list):
+                    cfg = [make_secure(t) for t in cfg]
+                elif isinstance(cfg, str):
+                    for sval in _SECURE_VALUEWORDS:
+                        if sval in cfg:
+                            cfg = '#####'
+                return cfg
+
+            cfg_dict_copy = copy.deepcopy(self.cfg_dict)
+            cfg_dict_copy = make_secure(cfg_dict_copy)
+            return json.dumps(cfg_dict_copy, indent=2)
 
     def deep_copy(self):
         return copy.deepcopy(self)
@@ -603,6 +631,9 @@ class Config(object):
             return cfg_new
         else:
             return cfg
+
+    def __len__(self):
+        return len(self.cfg_dict)
 
     def pop(self, name):
         self.cfg_dict.pop(name)

@@ -1,2 +1,14 @@
 WORK_DIR: "tuner_manager"
+SELF_TRAIN_DIR: "self_train"
+EXPORT_DIR: "export_model"
 TUNER_LIST_YAML: "tuner_list.yaml"
+README_EN: "scepter/methods/studio/tuner_manager/readme_en.md"
+README_ZH: "scepter/methods/studio/tuner_manager/readme_zh.md"
+
+BASE_MODEL_VERSION:
+  - BASE_MODEL: 'SD_XL1.0'
+    TUNER_TYPE: [ 'TEXT_SCE', 'SCE', 'LORA', 'TEXT_LORA', 'FULL' ]
+  - BASE_MODEL: 'SD1.5'
+    TUNER_TYPE: [ 'TEXT_SCE', 'SCE', 'LORA', 'TEXT_LORA', 'FULL' ]
+  - BASE_MODEL: 'SD2.1'
+    TUNER_TYPE: [ 'SCE', 'LORA', 'FULL' ]

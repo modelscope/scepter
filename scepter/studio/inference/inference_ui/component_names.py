@@ -24,7 +24,8 @@ class InferenceUIName():
         if language == 'en':
             self.advance_block_name = 'Advance Setting'
             self.check_box_for_setting = [
-                'Use Mantra', 'Use Tuners', 'Use Controller', 'LAR-Gen'
+                'Use Mantra', 'Use Tuners', 'Use Controller', 'LAR-Gen',
+                'StyleBooth'
             ]
             self.diffusion_paras = 'Generation Setting'
             self.mantra_paras = 'Mantra Book'
@@ -32,15 +33,19 @@ class InferenceUIName():
             self.control_paras = 'Controlable Generation'
             self.refiner_paras = 'Refiner Setting'
             self.largen_paras = 'LAR-Gen'
+            self.stylebooth_paras = 'StyleBooth'
         elif language == 'zh':
             self.advance_block_name = '生成选项'
-            self.check_box_for_setting = ['使用咒语', '使用微调', '使用控制', 'LAR-Gen']
+            self.check_box_for_setting = [
+                '使用咒语', '使用微调', '使用控制', 'LAR-Gen', 'StyleBooth'
+            ]
             self.diffusion_paras = '生成参数设置'
             self.mantra_paras = '咒语书'
             self.tuner_paras = '微调模型'
             self.control_paras = '可控生成'
             self.refiner_paras = 'Refine设置'
             self.largen_paras = 'LAR-Gen'
+            self.stylebooth_paras = 'StyleBooth'
 
 
 class ModelManageUIName():
@@ -499,3 +504,82 @@ class LargenUIName():
                 1024
             ],
         ]
+
+
+class StyleboothUIName():
+    def __init__(self, language='en'):
+        if language == 'en':
+            self.dropdown_name = 'Application'
+            self.apps = ['Text-based Style Editing']
+            # self.apps = ["Text-based Style Editing", "Exemplar-based Style Editing"]
+            self.source_image = 'Source Image'
+            self.exemplar_image = 'Exemplar Image'
+            self.ins_format = 'Instruction Format (select or rewrite, en only)'
+            self.style_format = '{} (select or rewrite, en only)'
+            self.guide_scale_image = 'Guide Scale For Uncondition Image'
+            self.guide_scale_text = 'Guide Scale For Uncondition Text'
+            self.guide_rescale = 'Guide Rescale'
+            self.resolution = 'Resolution of Short Edge'
+            self.compose_button = 'Assemble Style Editing Instruction to Prompt'
+        elif language == 'zh':
+            self.dropdown_name = '应用'
+            self.apps = ['根据文本编辑风格']
+            # self.apps = ["根据文本编辑风格", "根据风格样例编辑风格"]
+            self.source_image = '源图片'
+            self.exemplar_image = '样例图片'
+            self.ins_format = '指令模版 (选择或者新写，仅英文)'
+            self.style_format = '{} (选择或者新写，仅英文)'
+            self.guide_scale_image = '图片条件引导比例'
+            self.guide_scale_text = '文本条件引导比例'
+            self.guide_rescale = '引导缩放'
+            self.resolution = '短边分辨率'
+            self.compose_button = '组装风格编辑指令到Prompt栏'
+        self.tb_ins_format_choice = [
+            'Let this image be in the style of <style>',
+            'Please edit this image to embody the characteristics of <style> style.',
+            'Transform this image to reflect the distinct aesthetic of <style>.',
+            'Can you infuse this image with the signature techniques representative of <style>?',
+            'Adjust the visual elements of this image to emulate the <style> style.',
+            'Reinterpret this image through the artistic lens of <style>.',
+            'Apply the <style> style to this image to capture its unique essence.',
+            'Modify this photograph to mirror the thematic qualities of <style>.',
+            "I'd like you to rework this image to pay homage to the <style> movement.",
+            'Ensure that this image adopts the brushwork and color palette typical of <style>.',
+            'Give this image a makeover so that it aligns with the <style> stylistic approach.',
+            'Retouch this image to channel the spirit and technique of <style>.',
+            'Merge this image with the foundational elements of <style>.',
+            'Re-envision this image to fit within the <style> genre.',
+            'Adapt this image to exhibit the soft edges and vibrant light of <style>.',
+            'Craft this image to resonate with the visual themes found in <style>.',
+        ]
+        self.eb_ins_format_choice = [
+            'Let this image be in the style of <image>',
+            'Please match the aesthetic of this image to that of <image>.',
+            'Adjust the current image to mimic the visual style of <image>.',
+            'Edit this photo so that it reflects the artistic style found in <image>.',
+            'Transform this picture to be stylistically similar to <image>.',
+            'Recreate the ambiance and look of <image> in this one.',
+            'Harmonize the visual elements of this image with those in <image>.',
+            'Ensure the editing of this image captures the essence of the style in <image>.',
+            'Can you make this image resonate with the artistic flair of <image>?',
+            "I'd like this image to have the same feel and tone as the style reference in <image>.",
+            'Retouch this image to align with the creative direction of <image>.',
+            'Replicate the style characteristics of <image> onto this one.',
+            'Adapt the visual theme of this image to be consistent with <image>.',
+            "Conform this image's aesthetic to the distinctive look of <image>.",
+            'Make over this image so it conforms to the stylistic cues of <image>.',
+            "Modify this image's style to echo the artistic qualities of <image>.",
+        ]
+        self.tb_target_style = [
+            'Adorable 3D Character', 'Color Field Painting',
+            'Colored Pencil Art', 'Graffiti Art', 'futuristic-retro futurism',
+            'game-retro arcade', 'Simple Vector Art', 'Sketchup', 'mre-comic',
+            'sai-comic book', 'sai-lowpoly', 'misc-stained glass',
+            'misc-zentangle', 'papercraft-papercut collage', 'Pop Art 2',
+            'photo-silhouette', 'Adorable Kawaii', 'sai-anime', 'sai-origami',
+            'futuristic-vaporwave', 'game-retro game', 'misc-disco',
+            'papercraft-flat papercut'
+        ]
+        self.eb_target_style = ['<image>']
+        self.tb_identifier = '<style>'
+        self.eb_identifier = '<image>'

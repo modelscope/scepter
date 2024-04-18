@@ -128,7 +128,11 @@ if __name__ == '__main__':
             interfaces.append((interface, name, ifid))
             setattr(tab_manager, ifid, interface)
 
-    with gr.Blocks() as demo:
+    css = """
+    .upload_zone { height: 100px; }
+    """
+
+    with gr.Blocks(css=css) as demo:
         if 'BANNER' in config:
             gr.HTML(config.BANNER)
         else:
@@ -136,7 +140,7 @@ if __name__ == '__main__':
                 f"<h2><center>{config.get('TITLE', 'scepter studio')}</center></h2>"
             )
         setattr(tab_manager, 'user_name',
-                gr.Text(value='', visible=False, show_label=False))
+                gr.Text(value='admin', visible=False, show_label=False))
         with gr.Tabs(elem_id='tabs') as tabs:
             setattr(tab_manager, 'tabs', tabs)
             for interface, label, ifid in interfaces:

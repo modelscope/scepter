@@ -6,17 +6,17 @@ This is the File System Module, designed to handle file transfer functionalities
 
 The component currently supports three types of IO Handler:
 
-1. scepter.utils.file_clients.AliyunOssFs
-2. scepter.utils.file_clients.LocalFs
-3. scepter.utils.file_clients.HttpFs
+1. scepter.modules.utils.file_clients.AliyunOssFs
+2. scepter.modules.utils.file_clients.LocalFs
+3. scepter.modules.utils.file_clients.HttpFs
 
 <hr/>
 
 ## Basic Usage
 
 ```python
-from scepter.utils.file_system import FS
-from scepter.utils.config import Config
+from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.config import Config
 
 fs_cfg = Config(load=False, cfg_dict={
     "NAME": "AliyunOssFs",

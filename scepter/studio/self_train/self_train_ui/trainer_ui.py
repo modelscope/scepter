@@ -47,6 +47,32 @@ def get_work_name(model, version, tuner):
             [str(random.randint(1, 10)) for i in range(3)])
 
 
+def judge_tuner_visible(tuner_name):
+    lora_visible = tuner_name in ['LORA', 'TEXT_LORA']
+    text_lora_visible = tuner_name in ['TEXT_SCE']
+    sce_visible = tuner_name in ['SCE', 'TEXT_SCE']
+    return lora_visible, text_lora_visible, sce_visible
+
+
+def update_tuner_cfg(tuner_name, tuner_cfg, **kwargs):
+    update_info = {}
+    if tuner_name in ['LORA', 'TEXT_LORA']:
+        update_info = {
+            'LORA_ALPHA': kwargs['lora_alpha'],
+            'R': kwargs['lora_rank']
+        }
+    elif tuner_name == 'SCE' or (tuner_name == 'TEXT_SCE'
+                                 and tuner_cfg['NAME'] == 'SwiftSCETuning'):
+        update_info = {'DOWN_RATIO': kwargs['sce_ratio']}
+    elif tuner_name == 'TEXT_SCE' and tuner_cfg['NAME'] == 'SwiftLoRA':
+        update_info = {
+            'LORA_ALPHA': kwargs['text_lora_alpha'],
+            'R': kwargs['text_lora_rank']
+        }
+    tuner_cfg.update(update_info)
+    return tuner_cfg
+
+
 class TrainerUI(UIBase):
     def __init__(self, cfg, all_cfg_value, is_debug=False, language='en'):
         self.BASE_CFG_VALUE = all_cfg_value
@@ -80,6 +106,11 @@ class TrainerUI(UIBase):
                         choices=self.component_names.data_type_choices,
                         value=self.component_names.data_type_value,
                         label=self.component_names.data_type_name,
+                        interactive=True)
+                    self.ori_data_name = gr.Textbox(
+                        label=self.component_names.ori_data_name,
+                        max_lines=1,
+                        placeholder=self.component_names.ori_data_name,
                         interactive=True)
                     self.ms_data_name = gr.Textbox(
                         label=' or '.join(
@@ -130,7 +161,51 @@ class TrainerUI(UIBase):
                                     interactive=True)
 
                         with gr.Row():
-                            with gr.Column(scale=1, min_width=0):
+                            with gr.Accordion(
+                                    label=self.component_names.tuner_param,
+                                    open=False):
+                                if 'TUNER' in self.para_data:
+                                    lora_visible, text_lora_visible, sce_visible = judge_tuner_visible(
+                                        self.para_data['TUNER'])
+                                else:
+                                    lora_visible, text_lora_visible, sce_visible = False, False, False
+                                with gr.Row(visible=lora_visible
+                                            ) as self.lora_param:
+                                    self.lora_alpha = gr.Number(
+                                        label='LoRA Alpha',
+                                        value=self.para_data.get(
+                                            'lora_alpha', 256),
+                                        interactive=True)
+                                    self.lora_rank = gr.Number(
+                                        label='LoRA Rank',
+                                        value=self.para_data.get(
+                                            'lora_rank', 256),
+                                        interactive=True)
+                                with gr.Row(visible=text_lora_visible
+                                            ) as self.text_lora_param:
+                                    self.text_lora_alpha = gr.Number(
+                                        label='Text LoRA Alpha',
+                                        value=self.para_data.get(
+                                            'text_lora_alpha', 256),
+                                        interactive=True)
+                                    self.text_lora_rank = gr.Number(
+                                        label='Text LoRA Rank',
+                                        value=self.para_data.get(
+                                            'text_lora_rank', 256),
+                                        interactive=True)
+                                with gr.Row(
+                                        visible=sce_visible) as self.sce_param:
+                                    self.sce_ratio = gr.Slider(
+                                        label='SCE Ratio',
+                                        minimum=0.2,
+                                        maximum=2.0,
+                                        step=0.1,
+                                        value=self.para_data.get(
+                                            'sce_ratio', 1.0),
+                                        interactive=True)
+
+                        with gr.Row():
+                            with gr.Column(scale=2, min_width=0):
                                 self.resolution_height = gr.Dropdown(
                                     choices=list(self.h_level_dict.keys()),
                                     value=self.para_data.get(
@@ -140,7 +215,7 @@ class TrainerUI(UIBase):
                                     allow_custom_value=True,
                                     interactive=True)
 
-                            with gr.Column(scale=1, min_width=0):
+                            with gr.Column(scale=2, min_width=0):
                                 self.resolution_width = gr.Dropdown(
                                     choices=self.h_level_dict[
                                         self.resolution_height.value],
@@ -150,6 +225,46 @@ class TrainerUI(UIBase):
                                     resolution_width,
                                     allow_custom_value=True,
                                     interactive=True)
+
+                        with gr.Row():
+                            with gr.Accordion(label=self.component_names.
+                                              resolution_param,
+                                              open=False):
+                                self.enable_resolution_bucket = gr.Checkbox(
+                                    value=False,
+                                    container=True,
+                                    interactive=True,
+                                    label=self.component_names.
+                                    enable_resolution_bucket)
+                                with gr.Column(
+                                        visible=self.enable_resolution_bucket.
+                                        value) as self.resolution_bucket_param:
+                                    with gr.Row():
+                                        self.min_bucket_resolution = gr.Number(
+                                            label=self.component_names.
+                                            min_bucket_resolution,
+                                            value=self.para_data.get(
+                                                'min_bucket_resolution', 256),
+                                            interactive=True)
+                                        self.max_bucket_resolution = gr.Number(
+                                            label=self.component_names.
+                                            max_bucket_resolution,
+                                            value=self.para_data.get(
+                                                'max_bucket_resolution', 1024),
+                                            interactive=True)
+                                    with gr.Row():
+                                        self.bucket_resolution_steps = gr.Number(
+                                            label=self.component_names.
+                                            bucket_resolution_steps,
+                                            value=self.para_data.get(
+                                                'bucket_resolution_steps', 64),
+                                            interactive=True)
+                                        self.bucket_no_upscale = gr.Checkbox(
+                                            value=False,
+                                            container=True,
+                                            interactive=True,
+                                            label=self.component_names.
+                                            bucket_no_upscale)
 
                         with gr.Row():
                             with gr.Column(scale=1, min_width=0):
@@ -232,7 +347,7 @@ class TrainerUI(UIBase):
                         [
                             self.component_names.data_type_choices[0],
                             '',
-                            'https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip',  # noqa
+                            'https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip',  # noqa
                             ''
                         ],
                         [
@@ -373,6 +488,8 @@ class TrainerUI(UIBase):
             ret_data = get_values_by_model_version_tuner(
                 self.BASE_CFG_VALUE, base_model, base_model_revision,
                 tuner_name)
+            lora_visible, text_lora_visible, sce_visible = judge_tuner_visible(
+                tuner_name)
             return ret_data.get('EPOCHS', 10), \
                 ret_data.get('LEARNING_RATE', 0.0001), \
                 ret_data.get('SAVE_INTERVAL', 10), \
@@ -383,7 +500,10 @@ class TrainerUI(UIBase):
                             interactive=True), \
                 gr.Dropdown(value=ret_data.get('RESOLUTION', 1024)[1],
                             choices=self.h_level_dict[ret_data.get('RESOLUTION', 1024)[0]],
-                            interactive=True)
+                            interactive=True), \
+                gr.Row.update(visible=lora_visible), \
+                gr.Row.update(visible=text_lora_visible), \
+                gr.Row.update(visible=sce_visible)
 
         #
         self.tuner_name.change(fn=change_train_value_by_model_version_tuner,
@@ -395,7 +515,8 @@ class TrainerUI(UIBase):
                                    self.train_epoch, self.learning_rate,
                                    self.save_interval, self.train_batch_size,
                                    self.prompt_prefix, self.resolution_height,
-                                   self.resolution_width
+                                   self.resolution_width, self.lora_param,
+                                   self.text_lora_param, self.sce_param
                                ],
                                queue=False)
 
@@ -411,13 +532,36 @@ class TrainerUI(UIBase):
                                       outputs=[self.resolution_width],
                                       queue=False)
 
-        def run_train(work_name, data_type, ms_data_space, ms_data_name,
-                      ms_data_subname, base_model, base_model_revision,
-                      tuner_name, resolution_height, resolution_width,
-                      train_epoch, learning_rate, save_interval,
-                      train_batch_size, prompt_prefix, replace_keywords,
-                      push_to_hub, eval_prompts):
+        def change_resolution_bucket(evt: gr.SelectData):
+            is_selected = evt.selected
+            return (
+                gr.update(
+                    label=self.component_names.resolution_height_max if
+                    is_selected else self.component_names.resolution_height),
+                gr.update(
+                    label=self.component_names.resolution_width_max
+                    if is_selected else self.component_names.resolution_width),
+                gr.update(visible=is_selected))
 
+        self.enable_resolution_bucket.select(change_resolution_bucket,
+                                             inputs=[],
+                                             outputs=[
+                                                 self.resolution_height,
+                                                 self.resolution_width,
+                                                 self.resolution_bucket_param
+                                             ],
+                                             queue=False)
+
+        def run_train(work_name, data_type, ori_data_name, ms_data_space,
+                      ms_data_name, ms_data_subname, base_model,
+                      base_model_revision, tuner_name, resolution_height,
+                      resolution_width, train_epoch, learning_rate,
+                      save_interval, train_batch_size, prompt_prefix,
+                      replace_keywords, push_to_hub, eval_prompts, lora_alpha,
+                      lora_rank, text_lora_alpha, text_lora_rank, sce_ratio,
+                      enable_resolution_bucket, min_bucket_resolution,
+                      max_bucket_resolution, bucket_resolution_steps,
+                      bucket_no_upscale):
             # Check Cuda
             if not torch.cuda.is_available() and not self.is_debug:
                 raise gr.Error(self.component_names.training_err1)
@@ -529,6 +673,49 @@ class TrainerUI(UIBase):
                         int(resolution_height),
                         int(resolution_width)
                     ]
+                    if enable_resolution_bucket:
+                        local_data_dir = data_cfg['MS_DATASET_NAME']
+                        local_file_list = os.path.join(local_data_dir,
+                                                       'file.txt')
+                        data_num = sum(1 for line in open(local_file_list))
+                        if os.path.exists(local_data_dir) and os.path.exists(
+                                local_file_list):
+                            data_cfg.update({
+                                'NAME': 'ImageTextPairDataset',
+                                'SAMPLER': {
+                                    'NAME':
+                                    'ResolutionBatchSampler',
+                                    'DATA_FILE':
+                                    local_file_list,
+                                    'FIELDS':
+                                    ['img_path', 'width', 'height', 'prompt'],
+                                    'DELIMITER':
+                                    '#;#',
+                                    'MAX_RESO': [
+                                        int(resolution_width),
+                                        int(resolution_height)
+                                    ],
+                                    'MIN_BUCKET_RESO':
+                                    int(min_bucket_resolution),
+                                    'MAX_BUCKET_RESO':
+                                    int(max_bucket_resolution),
+                                    'BUCKET_RESO_STEPS':
+                                    int(bucket_resolution_steps),
+                                    'BUCKET_NO_UPSCALE':
+                                    bucket_no_upscale
+                                },
+                                'DATA_NUM': data_num
+                            })
+                            for trans in data_cfg['TRANSFORMS']:
+                                if trans['NAME'] == 'Select':
+                                    trans['META_KEYS'] = [
+                                        'img_path', 'image_size'
+                                    ]
+                        else:
+                            raise Exception(
+                                'Cannot find right data format for resolution_bucket'
+                            )
+
                 return data_cfg
 
             def prepare_eval_data(data_cfg):
@@ -565,7 +752,6 @@ class TrainerUI(UIBase):
                                     v[c_k] = current_val
                                     current_val = v
                                 cfg = current_val
-
                 # update config
                 cfg['SOLVER']['WORK_DIR'] = work_dir
                 cfg['SOLVER']['OPTIMIZER']['LEARNING_RATE'] = float(
@@ -574,11 +760,25 @@ class TrainerUI(UIBase):
                 cfg['SOLVER']['TRAIN_DATA']['BATCH_SIZE'] = int(
                     train_batch_size)
                 if 'TUNER' in cfg['SOLVER']:
-                    cfg['SOLVER']['TUNER'] = current_model_info['tuner_para'][
+                    tuner_cfg_list = current_model_info['tuner_para'][
                         tuner_name] if isinstance(
                             current_model_info['tuner_para'],
                             dict) and tuner_name in current_model_info[
                                 'tuner_para'] else None
+                    if tuner_cfg_list is not None:
+                        tuner_params = dict(
+                            lora_alpha=int(lora_alpha),
+                            lora_rank=int(lora_rank),
+                            text_lora_alpha=int(text_lora_alpha),
+                            text_lora_rank=int(text_lora_rank),
+                            sce_ratio=sce_ratio)
+                        tuner_cfg_list = [
+                            update_tuner_cfg(tuner_name, tuner_cfg,
+                                             **tuner_params)
+                            for tuner_cfg in tuner_cfg_list
+                        ]
+                    cfg['SOLVER']['TUNER'] = tuner_cfg_list
+
                 cfg['SOLVER']['TRAIN_DATA'] = prepare_train_data(
                     cfg['SOLVER']['TRAIN_DATA'])
                 if eval_prompts is not None and len(eval_prompts) > 0:
@@ -586,7 +786,8 @@ class TrainerUI(UIBase):
                         cfg['SOLVER']['EVAL_DATA'])
                 else:
                     cfg['SOLVER'].pop('EVAL_DATA')
-                if 'SAMPLE_ARGS' in cfg['SOLVER']:
+                if 'SAMPLE_ARGS' in cfg[
+                        'SOLVER'] and not enable_resolution_bucket:
                     cfg['SOLVER']['SAMPLE_ARGS']['IMAGE_SIZE'] = [
                         int(resolution_height),
                         int(resolution_width)
@@ -610,10 +811,17 @@ class TrainerUI(UIBase):
                 return cfg_file
 
             before_kill_inference = self.trainer_ins.check_memory()
-            for k, v in manager.inference.pipe_manager.pipeline_level_modules.items(
-            ):
-                if hasattr(v, 'dynamic_unload'):
-                    v.dynamic_unload(name='all')
+            if hasattr(manager, 'inference'):
+                for k, v in manager.inference.pipe_manager.pipeline_level_modules.items(
+                ):
+                    if hasattr(v, 'dynamic_unload'):
+                        v.dynamic_unload(name='all')
+            if (hasattr(manager, 'preprocess') and hasattr(
+                    manager.preprocess.dataset_gallery.processors_manager,
+                    'dynamic_unload')):
+                manager.preprocess.dataset_gallery.processors_manager.dynamic_unload(
+                )
+
             after_kill_inference = self.trainer_ins.check_memory()
             message = f'GPU info: {before_kill_inference}. \n\n'
             message += f'After unloading inference models, the GPU info: {after_kill_inference}. \n\n'
@@ -629,13 +837,18 @@ class TrainerUI(UIBase):
         self.training_button.click(
             run_train,
             inputs=[
-                self.work_name, self.data_type, self.ms_data_space,
-                self.ms_data_name, self.ms_data_subname, self.base_model,
-                self.base_model_revision, self.tuner_name,
+                self.work_name, self.data_type, self.ori_data_name,
+                self.ms_data_space, self.ms_data_name, self.ms_data_subname,
+                self.base_model, self.base_model_revision, self.tuner_name,
                 self.resolution_height, self.resolution_width,
                 self.train_epoch, self.learning_rate, self.save_interval,
                 self.train_batch_size, self.prompt_prefix,
-                self.replace_keywords, self.push_to_hub, self.eval_prompts
+                self.replace_keywords, self.push_to_hub, self.eval_prompts,
+                self.lora_alpha, self.lora_rank, self.text_lora_alpha,
+                self.text_lora_rank, self.sce_ratio,
+                self.enable_resolution_bucket, self.min_bucket_resolution,
+                self.max_bucket_resolution, self.bucket_resolution_steps,
+                self.bucket_no_upscale
             ],
             outputs=[inference_ui.output_model_name],
             queue=True)

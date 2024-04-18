@@ -153,6 +153,20 @@ class DiffusionUI(UIBase):
                                              interactive=True)
             with gr.Column(scale=1):
                 self.refresh_seed = gr.Button(value=refresh_symbol)
+        gallery_ui = kwargs.pop('gallery_ui', None)
+        gallery_ui.register_components({
+            'negative_prompt': self.negative_prompt,
+            'prompt_prefix': self.prompt_prefix,
+            'sample': self.sampler,
+            'discretization': self.discretization,
+            'output_height': self.output_height,
+            'output_width': self.output_width,
+            'image_number': self.image_number,
+            'sample_steps': self.sample_steps,
+            'guide_scale': self.guide_scale,
+            'guide_rescale': self.guide_rescale,
+            'image_seed': self.image_seed,
+        })
 
     def set_callbacks(self, model_manage_ui, **kwargs):
         gallery_ui = kwargs.pop('gallery_ui')

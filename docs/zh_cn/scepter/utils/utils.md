@@ -3,18 +3,18 @@
 依赖SDK，该部分用于对框架全局经常复用的模块和sdk进行整理，并根据功能相关性进行聚合。
 
 ## 总览
-1. 参数sdk(scepter.utils.config)
-2. 路径sdk(scepter.utils.directory)
-3. torch分布式sdk(scepter.utils.distribute)
-4. 模型导出sdk(scepter.utils.export_model)
-5. 文件系统sdk(scepter.utils.file_system)
-6. 日志sdk(scepter.utils.logger)
-7. 视频处理sdk(scepter.utils.video_reader)，文档参考(video_reader.md)
-8. 模块注册sdk(scepter.utils.registry)
-9. 数据sdk(scepter.utils.data)
-10. 模型sdk(scepter.utils.model)
-11. 采样器sdk(scepter.utils.sampler)
-12. 探针器sdk(scepter.utils.probe)
+1. 参数sdk(scepter.modules.utils.config)
+2. 路径sdk(scepter.modules.utils.directory)
+3. torch分布式sdk(scepter.modules.utils.distribute)
+4. 模型导出sdk(scepter.modules.utils.export_model)
+5. 文件系统sdk(scepter.modules.utils.file_system)
+6. 日志sdk(scepter.modules.utils.logger)
+7. 视频处理sdk(scepter.modules.utils.video_reader)，文档参考(video_reader.md)
+8. 模块注册sdk(scepter.modules.utils.registry)
+9. 数据sdk(scepter.modules.utils.data)
+10. 模型sdk(scepter.modules.utils.model)
+11. 采样器sdk(scepter.modules.utils.sampler)
+12. 探针器sdk(scepter.modules.utils.probe)
 
 <hr/>
 
@@ -23,7 +23,7 @@
 ### 基础用法
 
 ```python
-from scepter.utils.config import Config
+from scepter.modules.utils.config import Config
 
 # 从一个dict对象 初始化 Config对象
 fs_cfg = Config(load=False, cfg_dict={"NAME": "LocalFs"})
@@ -97,7 +97,7 @@ print(fs_cfg.args)
 ### 基础用法
 
 ```python
-from scepter.utils.directory import osp_path
+from scepter.modules.utils.directory import osp_path
 
 # 根据路径前缀进行自动化路径拼接
 prefix = "xxxx"
@@ -108,7 +108,7 @@ print(osp_path(prefix, data_file))
 data_file = "xxxx/example_videos/1.mp4"
 print(osp_path(prefix, data_file))
 
-from scepter.utils.directory import get_relative_folder
+from scepter.modules.utils.directory import get_relative_folder
 
 # 根据路径获取指定层级的文件夹路径
 # 默认最后一级 xxxx/example_videos/
@@ -116,7 +116,7 @@ print(get_relative_folder(data_file))
 # 倒数第二级 xxxx/
 print(get_relative_folder(data_file, keep_index=-2))
 
-from scepter.utils.directory import get_md5
+from scepter.modules.utils.directory import get_md5
 
 # 获取文本/路径的md5码 34a447fb46d0b786a3999c9dad01d470
 print(get_md5(data_file))
@@ -172,8 +172,8 @@ torch分布式初始化sdk，使用该sdk，可以让用户不要关注torch的�
 ### 基础用法
 
 ```python
-from scepter.utils.distribute import we
-from scepter.utils.config import Config
+from scepter.modules.utils.distribute import we
+from scepter.modules.utils.config import Config
 
 cfg = Config(cfg_dict={}, load=False)
 
@@ -304,12 +304,12 @@ we.init_env(cfg, fn, logger=None)
 **Returns**
   - **tensor** —— 输出的在进程rank=0上的cpu的tensor。
 
-## 4. 模型导出sdk(scepter.utils.export_model)
+## 4. 模型导出sdk(scepter.modules.utils.export_model)
  用于模型导出为torchscript/Onnx格式的api。
 ### 基础用法
 
 ```python
-from scepter.utils.export_model import save_develop_model_multi_io
+from scepter.modules.utils.export_model import save_develop_model_multi_io
 
 save_develop_model_multi_io(
     model,
@@ -347,16 +347,16 @@ input_type 一一对应。
 **Returns**
   - **tensor** —— 输出的在进程rank=0上的cpu的tensor。
 
-## 5. 文件系统sdk(scepter.utils.file_system)
+## 5. 文件系统sdk(scepter.modules.utils.file_system)
 参考[file_clients](file_clients.md)
 
-## 6. 日志sdk(scepter.utils.logger)
+## 6. 日志sdk(scepter.modules.utils.logger)
 用于实例化一个标准的日志实例，用于打印信息。
 
 ### 基础用法
 
 ```python
-from scepter.utils.logger import get_logger, init_logger
+from scepter.modules.utils.logger import get_logger, init_logger
 
 std_logger = get_logger(name="scepter")
 init_logger(std_logger, log_file="", dist_launcher="pytorch")
@@ -407,14 +407,14 @@ init_logger(std_logger, log_file="", dist_launcher="pytorch")
 **Returns**
   - **str** —— 格式化的输出。
 
-## 7. 视频处理sdk(scepter.utils.video_reader)
+## 7. 视频处理sdk(scepter.modules.utils.video_reader)
 用于处理视频读取的api。
 
 ### 基础用法
 
 ```python
-from scepter.utils.video_reader.frame_sampler import do_frame_sample
-from scepter.utils.video_reader.video_reader import (
+from scepter.modules.utils.video_reader.frame_sampler import do_frame_sample
+from scepter.modules.utils.video_reader.video_reader import (
     VideoReaderWrapper, EasyVideoReader, FramesReaderWrapper
 )
 ```
@@ -556,14 +556,14 @@ overlap: Union[float, Fraction, str] = Fraction(0), transforms: Optional[Callabl
 **Returns**
   - **tensor** —— 视频片段的tensor。
 
-## 8. 模块注册sdk(scepter.utils.registry)
+## 8. 模块注册sdk(scepter.modules.utils.registry)
 用于管理各种注册的类。
 
 ### 基础用法
 
 ```python
-from scepter.utils.registry import Registry
-from scepter.utils.config import Config
+from scepter.modules.utils.registry import Registry
+from scepter.modules.utils.config import Config
 
 MODELS = Registry('MODELS')
 
@@ -616,14 +616,14 @@ build目标类的实例
 **Returns**
   - **name** —— 注册名称。
 
-## 9. 数据sdk(scepter.utils.data)
+## 9. 数据sdk(scepter.modules.utils.data)
 用于数据在设备间转移
 
 ### 基础用法
 
 ```python
 import torch
-from scepter.utils.data import transfer_data_to_numpy, transfer_data_to_cpu, transfer_data_to_cuda
+from scepter.modules.utils.data import transfer_data_to_numpy, transfer_data_to_cpu, transfer_data_to_cuda
 
 data = {"a": torch.Tensor([0])}
 transfer_data_to_numpy(data)
@@ -670,7 +670,7 @@ transfer_data_to_cuda(data)
 
 ```python
 import torch
-from scepter.utils.model import move_model_to_cpu, load_pretrained,
+from scepter.modules.utils.model import move_model_to_cpu, load_pretrained,
     count_params, init_weights
 ```
 <hr/>
@@ -718,14 +718,14 @@ from scepter.utils.model import move_model_to_cpu, load_pretrained,
 **Parameters**
   - **module** —— torch.nn.Module模型实例。
 
-## 11. 采样器sdk(scepter.utils.sampler)
+## 11. 采样器sdk(scepter.modules.utils.sampler)
 采样器比较具有通用性，大多数情况下不会进行定制开发，这里提供了几类常用的sampler采样器。
 
 ### 基础用法
 
 ```python
 import torch
-from scepter.utils.sampler import MultiFoldDistributedSampler,
+from scepter.modules.utils.sampler import MultiFoldDistributedSampler,
     EvalDistributedSampler, MultiLevelBatchSampler, MixtureOfSamplers
 ```
 <hr/>
@@ -832,17 +832,17 @@ from scepter.utils.sampler import MultiFoldDistributedSampler,
 
 迭代器，每迭代一次得到一个样本的index
 
-## 12. 探针器sdk(scepter.utils.probe)
+## 12. 探针器sdk(scepter.modules.utils.probe)
 用于探针各个组件的变量统计
 
 ### 基础用法
 
 ```python
 import numpy as np
-from scepter.model.base_model import BaseModel
-from scepter.utils.config import Config
-from scepter.utils.file_system import FS
-from scepter.utils.probe import ProbeData
+from scepter.modules.model.base_model import BaseModel
+from scepter.modules.utils.config import Config
+from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.probe import ProbeData
 
 
 class TestModel(BaseModel):

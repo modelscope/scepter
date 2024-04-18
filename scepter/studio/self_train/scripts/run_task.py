@@ -95,7 +95,7 @@ def save_config(cfg):
                                    cfg.args.cfg_file.split('/')[-1])
         with FS.put_to(config_path) as local_config_path:
             with open(local_config_path, 'w') as f_out:
-                f_out.write(cfg.dump())
+                f_out.write(cfg.dump(is_secure=True))
 
 
 def update_config(cfg):

@@ -260,6 +260,7 @@ class RenameMeta(object):
         self.input_key = cfg.INPUT_KEY
         self.output_key = cfg.OUTPUT_KEY
         self.force = cfg.get('FORCE', False)
+        self.move = cfg.get('MOVE', False)
 
     def __call__(self, item):
         if 'meta' in item:
@@ -270,10 +271,16 @@ class RenameMeta(object):
                 have_key_set = set(self.input_key)
             else:
                 have_key_set = set(self.input_key + self.output_key)
-            for k, v in item['meta'].items():
-                if k not in have_key_set:
-                    data[k] = v
-            item['meta'] = data
+            if not self.move:
+                for k, v in item['meta'].items():
+                    if k not in have_key_set:
+                        data[k] = v
+                item['meta'] = data
+            else:
+                for k, v in item.items():
+                    if k not in have_key_set:
+                        data[k] = v
+                item.update(data)
         return item
 
     @staticmethod

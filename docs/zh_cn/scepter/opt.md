@@ -9,8 +9,8 @@
 子lr_schedulers继承时用法：
 
 ```python
-from scepter.opt.lr_schedulers import LR_SCHEDULERS
-from scepter.opt.lr_schedulers.base_scheduler import BaseScheduler
+from scepter.modules.opt.lr_schedulers import LR_SCHEDULERS
+from scepter.modules.opt.lr_schedulers.base_scheduler import BaseScheduler
 
 
 @LR_SCHEDULERS.register_class()
@@ -48,8 +48,8 @@ lr_schedulers的基类，支持注册操作，可根据需要自定义；
 子optimizers继承时用法：
 
 ```python
-from scepter.opt.optimizers.base_optimizer import BaseOptimize
-from scepter.opt.optimizers.registry import OPTIMIZERS
+from scepter.modules.opt.optimizers.base_optimizer import BaseOptimize
+from scepter.modules.opt.optimizers.registry import OPTIMIZERS
 
 
 @OPTIMIZERS.register_class()

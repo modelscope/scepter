@@ -4,18 +4,18 @@ Relies on SDKs, which are used to organize modules and SDKs that are frequently 
 
 ## Overview
 
-1. Parameter sdk (scepter.utils.config)
-2. Path sdk (scepter.utils.directory)
-3. PyTorch distributed sdk (scepter.utils.distribute)
-4. Model export sdk (scepter.utils.export_model)
-5. File system sdk (scepter.utils.file_system)
-6. Logging sdk (scepter.utils.logger)
-7. Video processing sdk (scepter.utils.video_reader), see the document (video_reader.md)
-8. Module registration sdk (scepter.utils.registry)
-9. Data sdk (scepter.utils.data)
-10. Model sdk (scepter.utils.model)
-11. Sampler sdk (scepter.utils.sampler)
-12. Probing sdk (scepter.utils.probe)
+1. Parameter sdk (scepter.modules.utils.config)
+2. Path sdk (scepter.modules.utils.directory)
+3. PyTorch distributed sdk (scepter.modules.utils.distribute)
+4. Model export sdk (scepter.modules.utils.export_model)
+5. File system sdk (scepter.modules.utils.file_system)
+6. Logging sdk (scepter.modules.utils.logger)
+7. Video processing sdk (scepter.modules.utils.video_reader), see the document (video_reader.md)
+8. Module registration sdk (scepter.modules.utils.registry)
+9. Data sdk (scepter.modules.utils.data)
+10. Model sdk (scepter.modules.utils.model)
+11. Sampler sdk (scepter.modules.utils.sampler)
+12. Probing sdk (scepter.modules.utils.probe)
 
 <hr/>
 
@@ -24,7 +24,7 @@ Relies on SDKs, which are used to organize modules and SDKs that are frequently 
 ### Basic Usage
 
 ```python
-from scepter.utils.config import Config
+from scepter.modules.utils.config import Config
 # Initialize Config object from a dict
 fs_cfg = Config(load=False, cfg_dict={"NAME": "LocalFs"})
 print(fs_cfg.NAME)
@@ -105,7 +105,7 @@ print(fs_cfg.args)
 Some commonly used path functions
 ### Basic Usage
 ```python
-from scepter.utils.directory import osp_path
+from scepter.modules.utils.directory import osp_path
 # Automatically join paths based on the path prefix
 prefix = "xxxx"
 data_file = "example_videos/1.mp4"
@@ -114,13 +114,13 @@ print(osp_path(prefix, data_file))
 # Also outputs as xxxx/example_videos/1.mp4
 data_file = "xxxx/example_videos/1.mp4"
 print(osp_path(prefix, data_file))
-from scepter.utils.directory import get_relative_folder
+from scepter.modules.utils.directory import get_relative_folder
 # Get the folder path at a specified level according to the path
 # By default, the last level xxxx/example_videos/
 print(get_relative_folder(data_file))
 # The second last level xxxx/
 print(get_relative_folder(data_file, keep_index=-2))
-from scepter.utils.directory import get_md5
+from scepter.modules.utils.directory import get_md5
 # Get the md5 code of the text/path 34a447fb46d0b786a3999c9dad01d470
 print(get_md5(data_file))
 ```
@@ -175,8 +175,8 @@ PyTorch distributed initialization SDK. By using this SDK, users can avoid focus
 ### Basic Usage
 
 ```python
-from scepter.utils.distribute import we
-from scepter.utils.config import Config
+from scepter.modules.utils.distribute import we
+from scepter.modules.utils.config import Config
 
 cfg = Config(cfg_dict={}, load=False)
 
@@ -304,12 +304,12 @@ Since cloning is involved, this may cause additional GPU memory waste.
 **Returns**
   - **tensor** —— The output tensor on the CPU for process rank=0.
 
-## 4. 模型导出sdk(scepter.utils.export_model)
+## 4. 模型导出sdk(scepter.modules.utils.export_model)
  APIs for exporting models to TorchScript/ONNX formats.
 ### Basic Usage
 
 ```python
-from scepter.utils.export_model import save_develop_model_multi_io
+from scepter.modules.utils.export_model import save_develop_model_multi_io
 
 save_develop_model_multi_io(
     model,
@@ -345,16 +345,16 @@ Supports importing and exporting models with multiple inputs and outputs
 **Returns**
   - **tensor** —— The output tensor on the CPU for process rank=0.
 
-## 5. 文件系统sdk(scepter.utils.file_system)
+## 5. 文件系统sdk(scepter.modules.utils.file_system)
 Refer to [file_clients](file_clients.md)
 
-## 6. Logging SDK(scepter.utils.logger)
+## 6. Logging SDK(scepter.modules.utils.logger)
 Used to instantiate a standard logging instance for printing information.
 
 ### Basic Usage
 
 ```python
-from scepter.utils.logger import get_logger, init_logger
+from scepter.modules.utils.logger import get_logger, init_logger
 
 std_logger = get_logger(name="scepter")
 init_logger(std_logger, log_file="", dist_launcher="pytorch")
@@ -405,14 +405,14 @@ Calculate the time remaining until completion based on the current usage time an
 **Returns**
   - **str** —— Formatted output.
 
-## 7. Video Processing SDK (scepter.utils.video_reader)
+## 7. Video Processing SDK (scepter.modules.utils.video_reader)
 APIs for handling video reading.
 
 ### Basic Usage
 
 ```python
-from scepter.utils.video_reader.frame_sampler import do_frame_sample
-from scepter.utils.video_reader.video_reader import (
+from scepter.modules.utils.video_reader.frame_sampler import do_frame_sample
+from scepter.modules.utils.video_reader.video_reader import (
     VideoReaderWrapper, EasyVideoReader, FramesReaderWrapper
 )
 ```
@@ -554,14 +554,14 @@ Iterator, with each iteration returning a tensor of a segment.
 **Returns**
   - **tensor** —— The tensor of the video segment.
 
-## 8. Module Registration SDK (scepter.utils.registry)
+## 8. Module Registration SDK (scepter.modules.utils.registry)
 Used for managing various registered classes.
 
 ### Basic Usage
 
 ```python
-from scepter.utils.registry import Registry
-from scepter.utils.config import Config
+from scepter.modules.utils.registry import Registry
+from scepter.modules.utils.config import Config
 
 MODELS = Registry('MODELS')
 
@@ -614,14 +614,14 @@ Register a function
 **Returns**
   - **name** —— Registration name.
 
-## 9. Data SDK(scepter.utils.data)
+## 9. Data SDK(scepter.modules.utils.data)
 Used for transferring data between devices
 
 ### Basic Usage
 
 ```python
 import torch
-from scepter.utils.data import transfer_data_to_numpy, transfer_data_to_cpu, transfer_data_to_cuda
+from scepter.modules.utils.data import transfer_data_to_numpy, transfer_data_to_cpu, transfer_data_to_cuda
 
 data = {"a": torch.Tensor([0])}
 transfer_data_to_numpy(data)
@@ -668,7 +668,7 @@ Used for operations such as loading and evaluating models
 
 ```python
 import torch
-from scepter.utils.model import move_model_to_cpu, load_pretrained,
+from scepter.modules.utils.model import move_model_to_cpu, load_pretrained,
     count_params, init_weights
 ```
 <hr/>
@@ -716,14 +716,14 @@ Initialize the parameters of the model modules.
 **Parameters**
   - **module** —— The torch.nn.Module model instance.
 
-## 11. Sampler SDK(scepter.utils.sampler)
+## 11. Sampler SDK(scepter.modules.utils.sampler)
 Samplers are quite universal, and in most cases, custom development is not required. Here are provided several common types of sampler.
 
 ### Basic Usage
 
 ```python
 import torch
-from scepter.utils.sampler import MultiFoldDistributedSampler,
+from scepter.modules.utils.sampler import MultiFoldDistributedSampler,
     EvalDistributedSampler, MultiLevelBatchSampler, MixtureOfSamplers
 ```
 <hr/>
@@ -830,17 +830,17 @@ A sampler for multi-level indexing of large-scale data.
 
 Iterator, each iteration returns an index of a sample.
 
-## 12. Prober SDK(scepter.utils.probe)
+## 12. Prober SDK(scepter.modules.utils.probe)
 Used for probing variable statistics of various components.
 
 ### Basic Usage
 
 ```python
 import numpy as np
-from scepter.model.base_model import BaseModel
-from scepter.utils.config import Config
-from scepter.utils.file_system import FS
-from scepter.utils.probe import ProbeData
+from scepter.modules.model.base_model import BaseModel
+from scepter.modules.utils.config import Config
+from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.probe import ProbeData
 
 
 class TestModel(BaseModel):

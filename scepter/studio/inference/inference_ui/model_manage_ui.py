@@ -101,6 +101,15 @@ class ModelManageUI(UIBase):
             #                               open=False):
             #                 self.tuner_name = gr.Text(
             #                     label='tuner_name')
+        gallery_ui = kwargs.pop('gallery_ui', None)
+        gallery_ui.register_components({
+            'diffusion_model':
+            self.diffusion_model,
+            'first_stage_model':
+            self.first_stage_model,
+            'cond_stage_model':
+            self.cond_stage_model,
+        })
 
     def set_callbacks(self, diffusion_ui, tuner_ui, control_ui, mantra_ui,
                       **kwargs):

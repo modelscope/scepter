@@ -5,3 +5,169 @@ FILE_SYSTEM:
     # NAME DESCRIPTION:  TYPE:  default: ''
     NAME: LocalFs
     AUTO_CLEAN: False
+
+PROCESSORS:
+  - NAME: BlipImageBase
+    TYPE: caption
+    MODEL_PATH: ms://cubeai/blip-image-captioning-base
+    DEVICE: "gpu"
+    MEMORY: 1200
+    PARAS:
+      - LANGUAGE_NAME: English
+        LANGUAGE_ZH_NAME: 英语
+  - NAME: QWVL
+    TYPE: caption
+    MODEL_PATH: ms://qwen/Qwen-VL:v1.0.3
+    DEVICE: "gpu"
+    MEMORY: 19968
+    PARAS:
+      - PROMPT: 用中文描述这张图片
+        LANGUAGE_NAME: Chinese
+        LANGUAGE_ZH_NAME: 中文
+        MAX_NEW_TOKENS:
+          VALUE: 1024
+          MAX: 2048
+          STEP: 128
+          MIN: 256
+        MIN_NEW_TOKENS:
+          VALUE: 16
+          MAX: 1024
+          STEP: 16
+          MIN: 0
+        NUM_BEAMS:
+          VALUE: 1
+          MAX: 12
+          STEP: 1
+          MIN: 1
+        REPETITION_PENALTY:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+        TEMPERATURE:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+      - PROMPT: Generate the caption in English
+        LANGUAGE_NAME: English
+        LANGUAGE_ZH_NAME: 英语
+        MAX_NEW_TOKENS:
+          VALUE: 1024
+          MAX: 2048
+          STEP: 128
+          MIN: 256
+        MIN_NEW_TOKENS:
+          VALUE: 16
+          MAX: 1024
+          STEP: 16
+          MIN: 0
+        NUM_BEAMS:
+          VALUE: 1
+          MAX: 12
+          STEP: 1
+          MIN: 1
+        REPETITION_PENALTY:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+        TEMPERATURE:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+  -
+    NAME: QWVLQuantize
+    TYPE: caption
+    DEVICE: "gpu"
+    MEMORY: 7885
+    MODEL_PATH: ms://qwen/Qwen-VL:v1.0.3
+    PARAS:
+      - PROMPT: 用中文描述这张图片
+        LANGUAGE_NAME: Chinese
+        LANGUAGE_ZH_NAME: 中文
+        MAX_NEW_TOKENS:
+          VALUE: 1024
+          MAX: 2048
+          STEP: 128
+          MIN: 256
+        MIN_NEW_TOKENS:
+          VALUE: 16
+          MAX: 1024
+          STEP: 16
+          MIN: 0
+        NUM_BEAMS:
+          VALUE: 1
+          MAX: 12
+          STEP: 1
+          MIN: 1
+        REPETITION_PENALTY:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+        TEMPERATURE:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+      - PROMPT: Generate the caption in English
+        LANGUAGE_NAME: English
+        LANGUAGE_ZH_NAME: 英语
+        MAX_NEW_TOKENS:
+          VALUE: 1024
+          MAX: 2048
+          STEP: 128
+          MIN: 256
+        MIN_NEW_TOKENS:
+          VALUE: 16
+          MAX: 1024
+          STEP: 16
+          MIN: 0
+        NUM_BEAMS:
+          VALUE: 1
+          MAX: 12
+          STEP: 1
+          MIN: 1
+        REPETITION_PENALTY:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+        TEMPERATURE:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+  -
+    NAME: CenterCrop
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      HEIGHT_RATIO:
+        VALUE: 1
+        MAX: 20
+        STEP: 1
+        MIN: 1
+      WIDTH_RATIO:
+        VALUE: 1
+        MAX: 20
+        STEP: 1
+        MIN: 1
+#  - NAME: PaddingCrop
+#    TYPE: image
+#    DEVICE: "cpu"
+#    MEMORY: 10
+#    PARAS:
+#      HEIGHT_RATIO:
+#        VALUE: 3
+#        MAX: 25
+#        STEP: 1
+#        MIN: 1
+#      WIDTH_RATIO:
+#        VALUE: 4
+#        MAX: 20
+#        STEP: 1
+#        MIN: 1
