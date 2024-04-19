@@ -2,7 +2,7 @@ albumentations
 bezier
 einops
 modelscope
-ms-swift>=1.5.2
+ms-swift>=2.0.1
 numpy
 open_clip_torch
 opencv-python

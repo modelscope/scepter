@@ -16,7 +16,7 @@ from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, MODELS,
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 
-from ...studio.utils.env import get_available_memory
+from scepter.studio.utils.env import get_available_memory
 from .control_inference import ControlInference
 from .tuner_inference import TunerInference
 
