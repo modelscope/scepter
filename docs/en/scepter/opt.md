@@ -9,8 +9,8 @@
 Usage when subclassing lr_schedulers:
 
 ```python
-from scepter.opt.lr_schedulers import LR_SCHEDULERS
-from scepter.opt.lr_schedulers.base_scheduler import BaseScheduler
+from scepter.modules.opt.lr_schedulers import LR_SCHEDULERS
+from scepter.modules.opt.lr_schedulers.base_scheduler import BaseScheduler
 
 
 @LR_SCHEDULERS.register_class()
@@ -48,8 +48,8 @@ Sets up the schedule for the passed-in optimizer object;
 Usage when subclassing optimizers:
 
 ```python
-from scepter.opt.optimizers.base_optimizer import BaseOptimize
-from scepter.opt.optimizers.registry import OPTIMIZERS
+from scepter.modules.opt.optimizers.base_optimizer import BaseOptimize
+from scepter.modules.opt.optimizers.registry import OPTIMIZERS
 
 
 @OPTIMIZERS.register_class()

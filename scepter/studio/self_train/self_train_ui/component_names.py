@@ -84,21 +84,24 @@ class TrainerUIName():
                  refresh the interface and then click [Refresh Model] at the bottom of the page.
                  The trained model should appear in the [Output Model Name] if training was successful;
                  if not, the training may be incomplete or have failed.
-                - zip example: https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip
+                - zip example: https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip
                 - For processing and training with large-scale data, it is recommended to use the command line.
             '''  # noqa
             self.data_type_choices = ['Dataset zip', 'MaaS Dataset']
             self.data_type_value = 'Dataset zip'
             self.data_type_name = 'Data Source'
+            self.ori_data_name = 'Data Name'
             self.ms_data_name_place_hold = 'Supports MaaS dataset/local/HTTP Zip package'
             self.ms_data_space = 'ModelScope Space'
             self.ms_data_subname = 'MaaS Dataset - Subset'
             self.training_block = 'Training Parameters'
             self.base_model = 'Base Model'
-            self.tuner_name = 'Fine-tuning Method'
+            self.tuner_name = 'Tuner Method'
             self.base_model_revision = 'Model Version Number'
             self.resolution_height = 'Resolution Height'
             self.resolution_width = 'Resolution Width'
+            self.resolution_height_max = 'Resolution Height Max'
+            self.resolution_width_max = 'Resolution Width Max'
             self.train_epoch = 'Number of Training Epochs'
             self.learning_rate = 'Learning Rate'
             self.save_interval = 'Save Interval'
@@ -109,6 +112,13 @@ class TrainerUIName():
             self.push_to_hub = 'Push to hub'
             self.training_button = 'Start Training'
             self.eval_prompts = 'Eval Prompts'
+            self.tuner_param = 'Tuner Parameters'
+            self.enable_resolution_bucket = 'Enable Resolution Bucket'
+            self.resolution_param = 'Resolution Parameters'
+            self.min_bucket_resolution = 'Min Bucket Resolution'
+            self.max_bucket_resolution = 'Max Bucket Resolution'
+            self.bucket_resolution_steps = 'Bucket Resolution Steps'
+            self.bucket_no_upscale = 'Bucket No Upscale'
             # Error or Warning
             self.training_err1 = 'CUDA is unavailable.'
             self.training_err2 = 'Currently insufficient VRAM, training failed!'
@@ -125,12 +135,13 @@ class TrainerUIName():
                 - 训练: 点击【开始训练】
                 - 测试: 完成训练后点击【使用模型】
                 - 注意：超时可能导致连接断开(出现Error)，可以等差不多可能训完后，刷新界面再点击页面最后的[刷新模型]，即可在[产出模型名称中]出现已经完成训练的模型，若不存在则没有完成训练或训练失败
-                - ZIP样例：https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip
+                - ZIP样例：https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip
                 - 对于大规模数据的处理和训练，建议使用命令行形式
                 '''  # noqa
             self.data_type_choices = ['数据集zip', 'MaaS数据集']
             self.data_type_value = '数据集zip'
             self.data_type_name = '数据集来源'
+            self.ori_data_name = '数据集名称'
             self.ms_data_name_place_hold = '支持MaaS数据集/本地/Http Zip包'
             self.ms_data_space = 'ModelScope 空间'
             self.ms_data_subname = 'MaaS数据集-子集'
@@ -140,6 +151,8 @@ class TrainerUIName():
             self.base_model_revision = '模型版本号'
             self.resolution_height = '训练高度'
             self.resolution_width = '训练宽度'
+            self.resolution_height_max = '最大训练高度'
+            self.resolution_width_max = '最大训练宽度'
             self.train_epoch = '训练轮数'
             self.learning_rate = '学习率'
             self.save_interval = '存储间隔'
@@ -149,6 +162,13 @@ class TrainerUIName():
             self.work_name = '保存模型名称（刷新获得随机值）'
             self.push_to_hub = '推送魔搭社区'
             self.eval_prompts = '评测文本'
+            self.tuner_param = '微调参数'
+            self.enable_resolution_bucket = '开启分辨率分桶'
+            self.resolution_param = '分辨率参数'
+            self.min_bucket_resolution = '最小分桶分辨率'
+            self.max_bucket_resolution = '最大分桶分辨率'
+            self.bucket_resolution_steps = '分桶分辨率步长'
+            self.bucket_no_upscale = '分桶分辨率不做放大'
             # Error or Warning
             self.training_err1 = 'CUDA不可用.'
             self.training_err2 = '目前显存不足，训练失败！'

@@ -18,6 +18,8 @@ class TunerManagerUI():
         cfg_general = Config(cfg_file=cfg_general_file)
         cfg_general.WORK_DIR = os.path.join(root_work_dir,
                                             cfg_general.WORK_DIR)
+        cfg_general.SELF_TRAIN_DIR = os.path.join(root_work_dir,
+                                                  cfg_general.SELF_TRAIN_DIR)
         if not FS.exists(cfg_general.WORK_DIR):
             FS.make_dir(cfg_general.WORK_DIR)
 

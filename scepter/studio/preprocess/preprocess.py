@@ -32,22 +32,26 @@ class PreprocessUI():
         self.create_dataset = CreateDatasetUI.get_instance(cfg_general,
                                                            is_debug=is_debug,
                                                            language=language)
-        self.dataset_gallery = DatasetGalleryUI.get_instance(cfg_general,
-                                                             is_debug=is_debug,
-                                                             language=language)
-        self.export_dataset = ExportDatasetUI.get_instance(cfg_general,
-                                                           is_debug=is_debug,
-                                                           language=language)
+        self.dataset_gallery = DatasetGalleryUI.get_instance(
+            cfg_general,
+            is_debug=is_debug,
+            language=language,
+            create_ins=self.create_dataset)
+        self.export_dataset = ExportDatasetUI.get_instance(
+            cfg_general,
+            is_debug=is_debug,
+            language=language,
+            gallery_ins=self.dataset_gallery)
 
     def create_ui(self):
         self.create_dataset.create_ui()
-        self.dataset_gallery.create_ui()
         self.export_dataset.create_ui()
+        self.dataset_gallery.create_ui()
 
     def set_callbacks(self, manager):
         self.create_dataset.set_callbacks(self.dataset_gallery,
                                           self.export_dataset, manager)
-        self.dataset_gallery.set_callbacks(self.create_dataset)
+        self.dataset_gallery.set_callbacks(self.create_dataset, manager)
         self.export_dataset.set_callbacks(self.create_dataset, manager)
 
 

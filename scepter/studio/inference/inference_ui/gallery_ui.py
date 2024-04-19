@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
+from collections import OrderedDict
 
 import gradio as gr
 import numpy as np
@@ -19,6 +20,8 @@ class GalleryUI(UIBase):
         self.work_dir = cfg.WORK_DIR
         self.local_work_dir, _ = FS.map_to_local(self.work_dir)
         os.makedirs(self.local_work_dir, exist_ok=True)
+        self.component_mapping = OrderedDict()
+        self.manager = None
 
     def create_ui(self, *args, **kwargs):
         with gr.Group():
@@ -55,164 +58,157 @@ class GalleryUI(UIBase):
                         elem_classes='type_row',
                         elem_id='generate_button',
                         visible=True)
+        self.register_components({'prompt': self.prompt})
 
-    def generate_gallery(self,
-                         prompt,
-                         mantra_state,
-                         tuner_state,
-                         control_state,
-                         refine_state,
-                         diffusion_model,
-                         first_stage_model,
-                         cond_stage_model,
-                         refiner_cond_model,
-                         refiner_diffusion_model,
-                         tuner_model,
-                         tuner_scale,
-                         custom_tuner_model,
-                         control_model,
-                         control_scale,
-                         crop_type,
-                         control_cond_image,
-                         negative_prompt,
-                         prompt_prefix,
-                         sample,
-                         discretization,
-                         output_height,
-                         output_width,
-                         image_number,
-                         sample_steps,
-                         guide_scale,
-                         guide_rescale,
-                         refine_strength,
-                         refine_sampler,
-                         refine_discretization,
-                         refine_guide_scale,
-                         refine_guide_rescale,
-                         style_template,
-                         style_negative_template,
-                         image_seed,
-                         largen_state,
-                         largen_task,
-                         largen_image_scale,
-                         largen_tar_image,
-                         largen_tar_mask,
-                         largen_masked_image,
-                         largen_ref_image,
-                         largen_ref_mask,
-                         largen_ref_clip,
-                         largen_base_image,
-                         largen_extra_sizes,
-                         largen_bbox_yyxx,
-                         largen_history,
-                         show_jpeg_image=True):
-        if control_state and control_cond_image is None:
-            raise gr.Error(self.component_names.control_err1)
+    def register_components(self, components):
+        common_keys = self.component_mapping.keys() & components.keys()
+        assert len(
+            common_keys) == 0, f'Component key already exist: {common_keys}'
+        self.component_mapping.update(components)
 
-        current_pipeline = self.pipe_manager.get_pipeline_given_modules({
-            'diffusion_model':
-            diffusion_model,
-            'first_stage_model':
-            first_stage_model,
-            'cond_stage_model':
-            cond_stage_model,
-            'refiner_cond_model':
-            refiner_cond_model,
-            'refiner_diffusion_model':
-            refiner_diffusion_model
-        })
-        now_pipeline = self.pipe_manager.model_level_info[diffusion_model][
-            'pipeline'][0]
-        used_tuner_model = []
-        if not isinstance(tuner_model, list):
-            tuner_model = [tuner_model]
-        for tuner_m in tuner_model:
-            if tuner_m is None or tuner_m == '':
-                continue
-            if now_pipeline in self.pipe_manager.model_level_info['tuners'] and \
-               tuner_m in self.pipe_manager.model_level_info['tuners'][now_pipeline]:
-                tuner_m = self.pipe_manager.model_level_info['tuners'][
-                    now_pipeline][tuner_m]['model_info']
-                used_tuner_model.append(tuner_m)
-        used_custom_tuner_model = []
-        if not isinstance(custom_tuner_model, list):
-            custom_tuner_model = [custom_tuner_model]
-        for tuner_m in custom_tuner_model:
-            if tuner_m is None or tuner_m == '':
-                continue
+    def generate_gallery(self, *args, show_jpeg_image=True):
+        # unload all image preprocess model.
+        if self.manager is not None:
+            if (hasattr(self.manager, 'preprocess') and hasattr(
+                    self.manager.preprocess.dataset_gallery.processors_manager,
+                    'dynamic_unload')):
+                self.manager.preprocess.dataset_gallery.processors_manager.dynamic_unload(
+                )
+
+        def pipeline_init(args):
+            return self.pipe_manager.get_pipeline_given_modules(args)
+
+        def control_init(args):
+            control_state, tuner_state = args['control_state'], args[
+                'tuner_state']
+            control_cond_image = args.pop('control_cond_image')
+            control_model = args.pop('control_model')
+
+            if control_state and control_cond_image is None:
+                raise gr.Error(self.component_names.control_err1)
+
+            now_pipeline = self.pipe_manager.model_level_info[
+                args['diffusion_model']]['pipeline'][0]
             if (now_pipeline
-                    in self.pipe_manager.model_level_info['customized_tuners']
-                    and tuner_m in self.pipe_manager.
-                    model_level_info['customized_tuners'][now_pipeline]):
-                tuner_m = self.pipe_manager.model_level_info[
-                    'customized_tuners'][now_pipeline][tuner_m]['model_info']
-                used_custom_tuner_model.append(tuner_m)
+                    in self.pipe_manager.model_level_info['controllers']
+                    and control_model in self.pipe_manager.
+                    model_level_info['controllers'][now_pipeline]):
+                control_model = self.pipe_manager.model_level_info[
+                    'controllers'][now_pipeline][control_model]['model_info']
 
-        if (now_pipeline in self.pipe_manager.model_level_info['controllers']
-                and control_model in self.pipe_manager.
-                model_level_info['controllers'][now_pipeline]):
-            control_model = self.pipe_manager.model_level_info['controllers'][
-                now_pipeline][control_model]['model_info']
+            args.update({
+                'control_model':
+                control_model if control_state else None,
+                'control_scale':
+                args.pop('control_scale')
+                if tuner_state or control_state else None,
+                'control_cond_image':
+                control_cond_image if control_state else None,
+                'crop_type':
+                args.pop('crop_type') if control_state else None
+            })
 
-        prompt_rephrased = style_template.replace(
-            '{prompt}',
-            prompt) if not style_template == '' and mantra_state else prompt
-        prompt_rephrased = f'{prompt_prefix}{prompt_rephrased}' if not prompt_prefix == '' else prompt_rephrased
-        negative_prompt_rephrased = negative_prompt + style_negative_template if mantra_state else negative_prompt
-        pipeline_input = {
-            'prompt': prompt_rephrased,
-            'negative_prompt': negative_prompt_rephrased,
-            'sample': sample,
-            'sample_steps': sample_steps,
-            'discretization': discretization,
-            'original_size_as_tuple': [int(output_height),
-                                       int(output_width)],
-            'target_size_as_tuple': [int(output_height),
-                                     int(output_width)],
-            'crop_coords_top_left': [0, 0],
-            'guide_scale': guide_scale,
-            'guide_rescale': guide_rescale,
-        }
-        if refine_state:
-            pipeline_input['refine_sampler'] = refine_sampler
-            pipeline_input['refine_discretization'] = refine_discretization
-            pipeline_input['refine_guide_scale'] = refine_guide_scale
-            pipeline_input['refine_guide_rescale'] = refine_guide_rescale
-        else:
-            refine_strength = 0
-        if largen_state:
-            largen_cfg = {
-                'largen_task': largen_task,
-                'largen_image_scale': largen_image_scale,
-                'largen_tar_image': largen_tar_image,
-                'largen_tar_mask': largen_tar_mask,
-                'largen_ref_image': largen_ref_image,
-                'largen_ref_mask': largen_ref_mask,
-                'largen_masked_image': largen_masked_image,
-                'largen_ref_clip': largen_ref_clip,
-                'largen_base_image': largen_base_image,
-                'largen_extra_sizes': largen_extra_sizes,
-                'largen_bbox_yyxx': largen_bbox_yyxx,
+        def tuner_init(args):
+            control_state, tuner_state = args['control_state'], args[
+                'tuner_state']
+            tuner_model = args.pop('tuner_model')
+            custom_tuner_model = args.pop('custom_tuner_model')
+
+            now_pipeline = self.pipe_manager.model_level_info[
+                args['diffusion_model']]['pipeline'][0]
+            used_tuner_model = []
+            if not isinstance(tuner_model, list):
+                tuner_model = [tuner_model]
+            for tuner_m in tuner_model:
+                if tuner_m is None or tuner_m == '':
+                    continue
+                if now_pipeline in self.pipe_manager.model_level_info['tuners'] and \
+                   tuner_m in self.pipe_manager.model_level_info['tuners'][now_pipeline]:
+                    tuner_m = self.pipe_manager.model_level_info['tuners'][
+                        now_pipeline][tuner_m]['model_info']
+                    used_tuner_model.append(tuner_m)
+            used_custom_tuner_model = []
+            if not isinstance(custom_tuner_model, list):
+                custom_tuner_model = [custom_tuner_model]
+            for tuner_m in custom_tuner_model:
+                if tuner_m is None or tuner_m == '':
+                    continue
+                if (now_pipeline in
+                        self.pipe_manager.model_level_info['customized_tuners']
+                        and tuner_m in self.pipe_manager.
+                        model_level_info['customized_tuners'][now_pipeline]):
+                    tuner_m = self.pipe_manager.model_level_info[
+                        'customized_tuners'][now_pipeline][tuner_m][
+                            'model_info']
+                    used_custom_tuner_model.append(tuner_m)
+            args.update({
+                'tuner_model':
+                used_tuner_model +
+                used_custom_tuner_model if tuner_state else None,
+                'tuner_scale':
+                args.pop('tuner_scale')
+                if tuner_state or control_state else None,
+            })
+
+        def input_init(args):
+            mantra_state = args['mantra_state']
+            prompt = args.pop('prompt')
+            negative_prompt = args.pop('negative_prompt')
+            prompt_prefix = args.pop('prompt_prefix')
+            style_template = args.pop('style_template')
+            size = [
+                int(args.pop('output_height')),
+                int(args.pop('output_width'))
+            ]
+
+            prompt_rephrased = style_template.replace(
+                '{prompt}', prompt
+            ) if not style_template == '' and mantra_state else prompt
+
+            pipeline_input = {
+                'prompt':
+                f'{prompt_prefix}{prompt_rephrased}'
+                if not prompt_prefix == '' else prompt_rephrased,
+                'negative_prompt':
+                negative_prompt + args.pop('style_negative_template')
+                if mantra_state else negative_prompt,
+                'sample':
+                args.pop('sample'),
+                'sample_steps':
+                args.pop('sample_steps'),
+                'discretization':
+                args.pop('discretization'),
+                'original_size_as_tuple':
+                size,
+                'target_size_as_tuple':
+                size,
+                'crop_coords_top_left': [0, 0],
+                'guide_scale':
+                args.pop('guide_scale'),
+                'guide_rescale':
+                args.pop('guide_rescale')
             }
-        else:
-            largen_cfg = {}
+            args.update({'input': pipeline_input})
 
-        results = current_pipeline(
-            pipeline_input,
-            num_samples=image_number,
-            intermediate_callback=None,
-            refine_strength=refine_strength,
-            img_to_img_strength=0,
-            tuner_model=used_tuner_model +
-            used_custom_tuner_model if tuner_state else None,
-            tuner_scale=tuner_scale if tuner_state or control_state else None,
-            control_model=control_model if control_state else None,
-            control_scale=control_scale
-            if tuner_state or control_state else None,
-            control_cond_image=control_cond_image if control_state else None,
-            crop_type=crop_type if control_state else None,
-            seed=int(image_seed),
-            **largen_cfg)
+        def appedix_init(args):
+            args.update({
+                'num_samples': args.pop('image_number'),
+                'intermediate_callback': None,
+                'img_to_img_strength': 0,
+                'seed': int(args.pop('image_seed')),
+            })
+
+        args = dict(zip(self.component_mapping.keys(), args))
+        largen_history = args.pop('largen_history')
+
+        current_pipeline = pipeline_init(args)
+        control_init(args)
+        tuner_init(args)
+        input_init(args)
+        appedix_init(args)
+
+        results = current_pipeline(**args)
+
         images = []
         before_images = []
         if 'images' in results:
@@ -233,9 +229,12 @@ class GalleryUI(UIBase):
         if 'seed' in results:
             print(results['seed'])
         print(images, before_images)
-        largen_history.extend(images)
-        if len(largen_history) > 10:
-            largen_history = largen_history[-10:]
+
+        if args['largen_state']:
+            largen_history.extend(images)
+            if len(largen_history) > 5:
+                largen_history = largen_history[-5:]
+
         if show_jpeg_image:
             save_list = []
             for i, img in enumerate(images):
@@ -258,35 +257,20 @@ class GalleryUI(UIBase):
         before_refine_panel, before_refine_gallery, output_gallery, _ = gallery_result
         return (before_refine_panel, before_refine_gallery, output_gallery[0])
 
-    def set_callbacks(self, inference_ui, model_manage_ui, diffusion_ui,
-                      mantra_ui, tuner_ui, refiner_ui, control_ui, largen_ui,
+    def set_callbacks(self,
+                      inference_ui,
+                      model_manage_ui,
+                      diffusion_ui,
+                      mantra_ui,
+                      tuner_ui,
+                      refiner_ui,
+                      control_ui,
+                      largen_ui,
+                      manager=None,
                       **kwargs):
-
-        self.gen_inputs = [
-            self.prompt, mantra_ui.state, tuner_ui.state, control_ui.state,
-            refiner_ui.state, model_manage_ui.diffusion_model,
-            model_manage_ui.first_stage_model,
-            model_manage_ui.cond_stage_model, refiner_ui.refiner_cond_model,
-            refiner_ui.refiner_diffusion_model, tuner_ui.tuner_model,
-            tuner_ui.tuner_scale, tuner_ui.custom_tuner_model,
-            control_ui.control_model, control_ui.control_scale,
-            control_ui.crop_type, control_ui.cond_image,
-            diffusion_ui.negative_prompt, diffusion_ui.prompt_prefix,
-            diffusion_ui.sampler, diffusion_ui.discretization,
-            diffusion_ui.output_height, diffusion_ui.output_width,
-            diffusion_ui.image_number, diffusion_ui.sample_steps,
-            diffusion_ui.guide_scale, diffusion_ui.guide_rescale,
-            refiner_ui.refine_strength, refiner_ui.refine_sampler,
-            refiner_ui.refine_discretization, refiner_ui.refine_guide_scale,
-            refiner_ui.refine_guide_rescale, mantra_ui.style_template,
-            mantra_ui.style_negative_template, diffusion_ui.image_seed,
-            largen_ui.state, largen_ui.task, largen_ui.image_scale,
-            largen_ui.tar_image, largen_ui.tar_mask, largen_ui.masked_image,
-            largen_ui.ref_image, largen_ui.ref_mask, largen_ui.ref_clip,
-            largen_ui.base_image, largen_ui.extra_sizes, largen_ui.bbox_yyxx,
-            largen_ui.image_history
-        ]
-
+        self.manager = manager
+        self.gen_inputs = list(self.component_mapping.values())
+        print(self.gen_inputs, len(self.gen_inputs))
         self.gen_outputs = [
             self.before_refine_panel,
             self.before_refine_gallery,

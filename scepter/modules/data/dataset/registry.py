@@ -288,8 +288,12 @@ class DataObject(object):
                 self.shuffle = False
                 self.data_sampler_config.SEED = seed
                 self.data_sampler_config.BATCH_SIZE = self.batch_size
-                self.sampler = SAMPLERS.build(self.data_sampler_config,
-                                              logger=self.logger)
+                sampler = SAMPLERS.build(self.data_sampler_config,
+                                         logger=self.logger)
+                if sampler_name.endswith('BatchSampler'):
+                    self.batch_sampler = sampler
+                else:
+                    self.sampler = sampler
 
     def _instantiate_multi_level_batch_sampler(self, sampler_config,
                                                batch_size, rank, seed):

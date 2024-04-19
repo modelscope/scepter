@@ -13,8 +13,8 @@ class TrainTest(unittest.TestCase):
             os.makedirs(self.tmp_dir)
         self.data_dir = './cache/datasets'
         if not os.path.exists(self.data_dir):
-            data_cmd = """mkdir -p cache/datasets/ && wget 'https://modelscope.cn/api/v1/models
-                          /damo/scepter_scedit/repo?Revision=master&FilePath=dataset/3D_example_txt.zip'
+            data_cmd = """mkdir -p cache/datasets/ && wget 'https://www.modelscope.cn/api/v1/models
+                          /iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_txt.zip'
                           -O cache/datasets/3D_example_txt.zip &&
                           unzip cache/datasets/3D_example_txt.zip
                           -d cache/datasets/ && rm cache/datasets/3D_example_txt.zip"""

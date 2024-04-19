@@ -1,0 +1,348 @@
+ENV:
+  BACKEND: nccl
+SOLVER:
+  NAME: LatentDiffusionSolver
+  RESUME_FROM:
+  LOAD_MODEL_ONLY: True
+  USE_FSDP: False
+  SHARDING_STRATEGY:
+  USE_AMP: True
+  DTYPE: float16
+  CHANNELS_LAST: True
+  MAX_STEPS: 2000
+  MAX_EPOCHS: -1
+  NUM_FOLDS: 1
+  ACCU_STEP: 1
+  EVAL_INTERVAL: 100
+  #
+  WORK_DIR: ./cache/save_data/sdxl_1024_textsce_t2i_swift
+  LOG_FILE: std_log.txt
+  #
+  FILE_SYSTEM:
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "./cache/data"
+  #
+  TUNER:
+    -
+      NAME: SwiftSCETuning
+      DIMS: [1280, 1280, 640, 640, 640, 320, 320, 320, 320]
+      TARGET_MODULES: model.lsc_identity\.\d+$
+      DOWN_RATIO: 1.0
+      TUNER_MODE: identity
+    -
+      NAME: SwiftLoRA
+      R: 64
+      LORA_ALPHA: 64
+      LORA_DROPOUT: 0.0
+      BIAS: "none"
+      TARGET_MODULES: "cond_stage_model.embedders.0.*(q_proj|k_proj|v_proj|out_proj|mlp.fc1|mlp.fc2)$"
+  #
+  MODEL:
+    NAME: LatentDiffusionXL
+    PARAMETERIZATION: eps
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-xl-base-1.0@sd_xl_base_1.0.safetensors
+    IGNORE_KEYS: [ ]
+    SCALE_FACTOR: 0.13025
+    SIZE_FACTOR: 8
+    # DEFAULT_N_PROMPT: 'lowres, error, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature'
+    DEFAULT_N_PROMPT:
+    SCHEDULE_ARGS:
+      "NAME": "scaled_linear"
+      "BETA_MIN": 0.00085
+      "BETA_MAX": 0.0120
+    USE_EMA: False
+    LOAD_REFINER: False
+    #
+    DIFFUSION_MODEL:
+      NAME: DiffusionUNetXL
+      PRETRAINED_MODEL:
+      IN_CHANNELS: 4
+      OUT_CHANNELS: 4
+      NUM_RES_BLOCKS: 2
+      MODEL_CHANNELS: 320
+      ATTENTION_RESOLUTIONS: [ 4, 2 ]
+      DROPOUT: 0
+      CHANNEL_MULT: [ 1, 2, 4 ]
+      CONV_RESAMPLE: True
+      DIMS: 2
+      NUM_CLASSES: sequential
+      USE_CHECKPOINT: False
+      NUM_HEADS: -1
+      NUM_HEADS_CHANNELS: 64
+      USE_SCALE_SHIFT_NORM: False
+      RESBLOCK_UPDOWN: False
+      USE_NEW_ATTENTION_ORDER: True
+      USE_SPATIAL_TRANSFORMER: True
+      TRANSFORMER_DEPTH: [ 1, 2, 10 ]
+      CONTEXT_DIM: 2048
+      DISABLE_MIDDLE_SELF_ATTN: False
+      USE_LINEAR_IN_TRANSFORMER: True
+      ADM_IN_CHANNELS: 2816
+      USE_SENTENCE_EMB: False
+      USE_WORD_MAPPING: False
+    #
+    FIRST_STAGE_MODEL:
+      NAME: AutoencoderKL
+      EMBED_DIM: 4
+      PRETRAINED_MODEL:
+      IGNORE_KEYS: []
+      BATCH_SIZE: 1
+      #
+      ENCODER:
+        NAME: Encoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DOUBLE_Z: True
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+      #
+      DECODER:
+        NAME: Decoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+        GIVE_PRE_END: False
+        TANH_OUT: False
+    #
+    COND_STAGE_MODEL:
+      NAME: GeneralConditioner
+      PRETRAINED_MODEL:
+      USE_GRAD: True
+      EMBEDDERS:
+        -
+          NAME: FrozenCLIPEmbedder
+          PRETRAINED_MODEL: ms://AI-ModelScope/clip-vit-large-patch14
+          TOKENIZER_PATH: ms://AI-ModelScope/clip-vit-large-patch14
+          MAX_LENGTH: 77
+          FREEZE: True
+          LAYER: hidden
+          LAYER_IDX: 11
+          USE_FINAL_LAYER_NORM: False
+          IS_TRAINABLE: False
+          UCG_RATE: 0.0
+          INPUT_KEYS: [ "prompt" ]
+          LEGACY_UCG_VALUE:
+        -
+          NAME: FrozenOpenCLIPEmbedder2
+          ARCH: ViT-bigG-14
+          PRETRAINED_MODEL:
+          MAX_LENGTH: 77
+          FREEZE: True
+          ALWAYS_RETURN_POOLED: True
+          LEGACY: False
+          LAYER: penultimate
+          IS_TRAINABLE: False
+          UCG_RATE: 0.0
+          INPUT_KEYS: [ "prompt" ]
+          LEGACY_UCG_VALUE:
+        -
+          NAME: ConcatTimestepEmbedderND
+          OUT_DIM: 256
+          IS_TRAINABLE: False
+          UCG_RATE: 0.0
+          INPUT_KEYS: [ "original_size_as_tuple" ]
+          LEGACY_UCG_VALUE:
+        -
+          NAME: ConcatTimestepEmbedderND
+          OUT_DIM: 256
+          IS_TRAINABLE: False
+          UCG_RATE: 0.0
+          INPUT_KEYS: [ "crop_coords_top_left" ]
+          LEGACY_UCG_VALUE:
+        -
+          NAME: ConcatTimestepEmbedderND
+          OUT_DIM: 256
+          IS_TRAINABLE: False
+          UCG_RATE: 0.0
+          INPUT_KEYS: [ "target_size_as_tuple" ]
+          LEGACY_UCG_VALUE:
+      #
+      REFINER_MODEL:
+        NAME: DiffusionUNetXL
+        PRETRAINED_MODEL:
+        IN_CHANNELS: 4
+        OUT_CHANNELS: 4
+        NUM_RES_BLOCKS: 2
+        MODEL_CHANNELS: 384
+        ATTENTION_RESOLUTIONS: [ 4, 2 ]
+        DROPOUT: 0
+        CHANNEL_MULT: [ 1, 2, 4, 4 ]
+        CONV_RESAMPLE: True
+        DIMS: 2
+        NUM_CLASSES: sequential
+        USE_CHECKPOINT: False
+        NUM_HEADS: -1
+        NUM_HEADS_CHANNELS: 64
+        USE_SCALE_SHIFT_NORM: False
+        RESBLOCK_UPDOWN: False
+        USE_NEW_ATTENTION_ORDER: True
+        USE_SPATIAL_TRANSFORMER: True
+        TRANSFORMER_DEPTH: 4
+        CONTEXT_DIM: [ 1280, 1280, 1280, 1280 ]
+        DISABLE_MIDDLE_SELF_ATTN: False
+        USE_LINEAR_IN_TRANSFORMER: True
+        ADM_IN_CHANNELS: 2560
+        USE_SENTENCE_EMB: False
+        USE_WORD_MAPPING: False
+      REFINER_COND_MODEL:
+        NAME: GeneralConditioner
+        PRETRAINED_MODEL:
+        EMBEDDERS:
+          -
+            NAME: FrozenOpenCLIPEmbedder2
+            ARCH: ViT-bigG-14
+            PRETRAINED_MODEL:
+            MAX_LENGTH: 77
+            FREEZE: True
+            ALWAYS_RETURN_POOLED: True
+            LEGACY: False
+            LAYER: penultimate
+            IS_TRAINABLE: False
+            UCG_RATE: 0.0
+            INPUT_KEYS: [ "prompt" ]
+            LEGACY_UCG_VALUE:
+          -
+            NAME: ConcatTimestepEmbedderND
+            OUT_DIM: 256
+            IS_TRAINABLE: False
+            UCG_RATE: 0.0
+            INPUT_KEYS: [ "original_size_as_tuple" ]
+            LEGACY_UCG_VALUE:
+          -
+            NAME: ConcatTimestepEmbedderND
+            OUT_DIM: 256
+            IS_TRAINABLE: False
+            UCG_RATE: 0.0
+            INPUT_KEYS: [ "crop_coords_top_left" ]
+            LEGACY_UCG_VALUE:
+          -
+            NAME: ConcatTimestepEmbedderND
+            OUT_DIM: 256
+            IS_TRAINABLE: False
+            UCG_RATE: 0.0
+            INPUT_KEYS: [ "aesthetic_score" ]
+            LEGACY_UCG_VALUE:
+    #
+    LOSS:
+      NAME: ReconstructLoss
+      LOSS_TYPE: l2
+  #
+  SAMPLE_ARGS:
+    SAMPLER: ddim
+    SAMPLE_STEPS: 50
+    SEED: 2023
+    GUIDE_SCALE: 7.5
+    GUIDE_RESCALE: 0.5
+    DISCRETIZATION: trailing
+    IMAGE_SIZE: [1024, 1024]
+    RUN_TRAIN_N: False
+  #
+  OPTIMIZER:
+    NAME: AdamW
+    LEARNING_RATE: 0.064
+    BETAS: [ 0.9, 0.999 ]
+    EPS: 1e-8
+    WEIGHT_DECAY: 1e-2
+    AMSGRAD: False
+  #
+  TRAIN_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: train
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_DATASET_SPLIT: train_short
+    MS_REMAP_KEYS: { 'Image:FILE': 'Target:FILE' }
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    SAMPLER:
+      NAME: LoopSampler
+    TRANSFORMS:
+      - NAME: LoadImageFromFile
+        RGB_ORDER: RGB
+        BACKEND: pillow
+      - NAME: FlexibleResize
+        INTERPOLATION: bicubic
+        SIZE: 1024
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: FlexibleCropXL
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: Normalize
+        MEAN: [ 0.5,  0.5,  0.5 ]
+        STD: [ 0.5,  0.5,  0.5 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: torchvision
+      - NAME: Select
+        KEYS: [ 'img', 'prompt', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
+        META_KEYS: [ 'data_key', 'img_path' ]
+      - NAME: Rename
+        INPUT_KEY: [ 'img', 'img_original_size_as_tuple', 'img_target_size_as_tuple', 'img_crop_coords_top_left' ]
+        OUTPUT_KEY: [ 'image', 'original_size_as_tuple', 'target_size_as_tuple', 'crop_coords_top_left' ]
+  #
+  EVAL_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: eval
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_REMAP_KEYS: { 'Image': 'Target:FILE' }
+    MS_DATASET_SPLIT: test_short
+    OUTPUT_SIZE: [ 1024, 1024 ]
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 4
+    NUM_WORKERS: 4
+    FILE_SYSTEM:
+      NAME: "ModelscopeFs"
+      TEMP_DIR: "./cache/data"
+    #
+    TRANSFORMS:
+      - NAME: Select
+        KEYS: [ 'prompt' ]
+        META_KEYS: [ 'image_size' ]
+  #
+  TRAIN_HOOKS:
+    -
+      NAME: BackwardHook
+      PRIORITY: 0
+    -
+      NAME: LogHook
+      LOG_INTERVAL: 50
+    -
+      NAME: CheckpointHook
+      INTERVAL: 1000
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+  #
+  EVAL_HOOKS:
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100

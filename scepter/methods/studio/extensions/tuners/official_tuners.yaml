@@ -1,7 +1,7 @@
 TUNERS:
   - NAME: Azure-Dragon
     NAME_ZH: 青龙
-    SOURCE: wanx
+    SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
     MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/azure_dragon/
@@ -10,7 +10,7 @@ TUNERS:
     PROMPT_EXAMPLE: Azure Dragon, 8K, high quality,Ultra High Detail.One of the Four Divine Creatures in Charge of Water.
   - NAME: Gold-Dragon
     NAME_ZH: 金龙
-    SOURCE: wanx
+    SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
     MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/gold_dragon/
@@ -19,7 +19,7 @@ TUNERS:
     PROMPT_EXAMPLE: Chinese Gold Dragon in the clouds. Translucent Texture. Zbrush.  Fuzzy Art. Exquisite Craftsmanship. 3D. 8K. Ultra High Detail
   - NAME: SpringFestival-Dragon
     NAME_ZH: 春节龙
-    SOURCE: wanx
+    SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
     MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/spring_festival_dragon/
@@ -28,7 +28,7 @@ TUNERS:
     PROMPT_EXAMPLE: Chinese dragon. Spring Festival.Festive.Street.Lanterns.32K.High quality.expressive, dramatic, dreamlike and mysterious, Surrealism
   - NAME: Red-Dragon
     NAME_ZH: 红龙
-    SOURCE: wanx
+    SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
     MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/red_dragon/
@@ -37,7 +37,7 @@ TUNERS:
     PROMPT_EXAMPLE: Traditional Red Dragon of China. Low Water Level. Studio Ghibli Style. Mural Illustration. White Background. High Detail
   - NAME: ChinesePunk-Dragon
     NAME_ZH: 中国朋克龙
-    SOURCE: wanx
+    SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
     MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/chinese_punk_dragon/
@@ -46,7 +46,7 @@ TUNERS:
     PROMPT_EXAMPLE: uhd Image,Dragon,Chinese Dragon, Dunhuang Mural Style, Traditional Maritime Art Style
   - NAME: Cute-Dragon
     NAME_ZH: 喜庆龙
-    SOURCE: wanx
+    SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
     MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/cute_dragon/
@@ -55,7 +55,7 @@ TUNERS:
     PROMPT_EXAMPLE: China Kawaii Dragon. Contest Winner. Minimalist Illustration. White Background. Flat Style. Digital Painting Style. Red. 32k uhd. Fun Comics. Fuzzy Art. Bold. Comic-Inspired Characters
   - NAME: Dragon-Baby
     NAME_ZH: 龙宝宝
-    SOURCE: wanx
+    SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
     MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/baby_dragon/
@@ -64,7 +64,7 @@ TUNERS:
     PROMPT_EXAMPLE: Warm Colors, Soft,Chinese Dragon Baby, Felt Style,Dragon Baby, Best Quality, 3D Doll, Macaron Tones, Glittering Big Eyes, Winter,Dragon
   - NAME: Sloppy-Dragon
     NAME_ZH: 潦草龙
-    SOURCE: wanx
+    SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
     MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sloppy_dragon/

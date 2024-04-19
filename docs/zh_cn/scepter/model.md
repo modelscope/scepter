@@ -15,8 +15,8 @@
 子类注册：
 
 ```python
-from scepter.model.registry import BACKBONES
-from scepter.model.base_model import BaseModel
+from scepter.modules.model.registry import BACKBONES
+from scepter.modules.model.base_model import BaseModel
 
 
 @BACKBONES.register_class("ResNet")
@@ -26,8 +26,8 @@ class ResNet(BaseModel):
 ```
 
 ```python
-from scepter.model.registry import NECKS
-from scepter.model.base_model import BaseModel
+from scepter.modules.model.registry import NECKS
+from scepter.modules.model.base_model import BaseModel
 
 
 @NECKS.register_class()
@@ -37,8 +37,8 @@ class GlobalAveragePooling(BaseModel):
 ```
 
 ```python
-from scepter.model.registry import HEADS
-from scepter.model.base_model import BaseModel
+from scepter.modules.model.registry import HEADS
+from scepter.modules.model.base_model import BaseModel
 
 
 @HEADS.register_class()
@@ -48,7 +48,7 @@ class ClassifierHead(BaseModel):
 ```
 
 ```python
-from scepter.model.registry import LOSSES
+from scepter.modules.model.registry import LOSSES
 import torch.nn as nn
 
 
@@ -60,7 +60,7 @@ class CrossEntropy(nn.Module):
 实际调用：
 
 ```python
-from scepter.model.registry import BACKBONES, NECKS, HEADS, LOSSES, TUNERS
+from scepter.modules.model.registry import BACKBONES, NECKS, HEADS, LOSSES, TUNERS
 
 backbone = BACKBONES.build(cfg.BACKBONE, logger=logger)
 neck = NECKS.build(cfg.NECK, logger=logger)
@@ -85,8 +85,8 @@ tuner = TUNERS.build(cfg.TUNER, logger=logger)
 子类注册：
 
 ```python
-from scepter.model.metrics.registry import METRICS
-from scepter.model.metrics.base_metric import BaseMetric
+from scepter.modules.model.metrics.registry import METRICS
+from scepter.modules.model.metrics.base_metric import BaseMetric
 
 
 @METRICS.register_class("AccuracyMetric")
@@ -97,7 +97,7 @@ class AccuracyMetric(BaseMetric):
 实际用法：
 
 ```python
-from scepter.model.metrics.registry import METRICS
+from scepter.modules.model.metrics.registry import METRICS
 
 metric = METRICS.build(cfgs, logger)
 ```
@@ -119,8 +119,8 @@ metric = METRICS.build(cfgs, logger)
 子类注册：
 
 ```python
-from scepter.model.registry import TOKENIZERS
-from scepter.model.tokenizers import BaseTokenizer
+from scepter.modules.model.registry import TOKENIZERS
+from scepter.modules.model.tokenizers import BaseTokenizer
 
 
 @TOKENIZERS.register_class()
@@ -131,7 +131,7 @@ class BaseBertTokenizer(BaseTokenizer):
 实际用法：
 
 ```python
-from scepter.model.registry import TOKENIZERS
+from scepter.modules.model.registry import TOKENIZERS
 
 tokenizer = TOKENIZERS.build(cfgs, logger)
 ```
@@ -149,8 +149,8 @@ tokenizer = TOKENIZERS.build(cfgs, logger)
 子类注册：
 
 ```python
-from scepter.model.registry import MODELS
-from scepter.model.networks.train_module import TrainModule
+from scepter.modules.model.registry import MODELS
+from scepter.modules.model.networks.train_module import TrainModule
 
 
 @MODELS.register_class()
@@ -161,7 +161,7 @@ class Classifier(TrainModule):
 实际用法：
 
 ```python
-from scepter.model.registry import MODELS
+from scepter.modules.model.registry import MODELS
 
 model = MODELS.build(self.cfg.MODEL, logger=self.logger)
 ```

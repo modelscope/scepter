@@ -16,6 +16,7 @@ from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, MODELS,
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 
+from scepter.studio.utils.env import get_available_memory
 from .control_inference import ControlInference
 from .tuner_inference import TunerInference
 
@@ -243,8 +244,19 @@ class DiffusionInference():
     def unload(self, module):
         if module is None:
             return module
-        module['model'] = module['model'].to('cpu')
-        module['device'] = 'cpu'
+        mem = get_available_memory()
+        free_mem = int(mem['available'] / (1024**2))
+        total_mem = int(mem['total'] / (1024**2))
+        if free_mem < 0.5 * total_mem:
+            if module['model'] is not None:
+                module['model'] = module['model'].to('cpu')
+                del module['model']
+            module['model'] = None
+            module['device'] = 'offline'
+            print('delete module')
+        else:
+            module['model'] = module['model'].to('cpu')
+            module['device'] = 'cpu'
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
         return module

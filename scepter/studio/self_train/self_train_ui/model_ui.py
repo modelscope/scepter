@@ -181,8 +181,7 @@ class ModelUI(UIBase):
                     gr.Dropdown(choices=ckpt_list, value=ckpt_value),
                     gr.Gallery(value=gallery_value,
                                preview=True,
-                               selected_index=select_index)
-                    )
+                               selected_index=select_index))
 
         self.output_model_name.change(fn=model_name_change,
                                       inputs=[self.output_model_name],
@@ -253,23 +252,22 @@ class ModelUI(UIBase):
             ckpt_list = self.get_ckpt_list(model_name)
             ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else ''
             ret_gallery = ckpt_name_change(model_name, ckpt_value)
-            return (message,
-                    gr.Column(visible=status in ('running', 'success')),
+            return (message, gr.Column(visible=status in ('running',
+                                                          'success')),
                     gr.Dropdown(choices=self.model_list, value=model_name),
                     gr.Dropdown(choices=ckpt_list,
                                 value=ckpt_value), ret_gallery)
 
-        self.refresh_model_gbtn.click(
-            fn=refresh_model,
-            inputs=[self.output_model_name],
-            outputs=[
-                self.log_message,
-                self.export_log_panel,
-                self.output_model_name,
-                self.output_ckpt_name,
-                self.eval_gallery
-            ],
-            queue=False)
+        self.refresh_model_gbtn.click(fn=refresh_model,
+                                      inputs=[self.output_model_name],
+                                      outputs=[
+                                          self.log_message,
+                                          self.export_log_panel,
+                                          self.output_model_name,
+                                          self.output_ckpt_name,
+                                          self.eval_gallery
+                                      ],
+                                      queue=False)
 
         def delete_model(model_name):
             index = 0
@@ -306,7 +304,7 @@ class ModelUI(UIBase):
             if os.path.exists(params_path):
                 params_info = json.loads(open(params_path).read())
                 assert params_info['work_name'] == output_model
-                # base_model = params_info['base_model']
+                base_model = params_info['base_model']
                 base_model_revision = params_info['base_model_revision']
                 tuner_name = params_info['tuner_name']
                 model_path = os.path.join(self.work_dir, output_model,
@@ -341,18 +339,32 @@ class ModelUI(UIBase):
                                     f'meta_{output_ckpt_name}.yaml')
             output_model = output_model + '@' + output_ckpt_name
             tuner_dict = {
-                'NAME': output_model,
-                'NAME_ZH': output_model,
+                'NAME':
+                output_model,
+                'NAME_ZH':
+                output_model,
                 # 'BASE_MODEL': base_model,
-                'BASE_MODEL': base_model_revision,
-                'TUNER_TYPE': tuner_name,
-                'DESCRIPTION': '',
-                'MODEL_PATH': model_path,
-                'IMAGE_PATH': image_path,
-                'PROMPT_EXAMPLE': eval_prompts,
-                'SOURCE': 'self_train',
-                'CKPT_NAME': output_ckpt_name,
-                'PARAMS': params_info
+                'BASE_MODEL':
+                base_model_revision,
+                'TUNER_TYPE':
+                tuner_name,
+                'DESCRIPTION':
+                '',
+                'MODEL_PATH':
+                model_path,
+                'IMAGE_PATH':
+                image_path,
+                'PROMPT_EXAMPLE':
+                eval_prompts,
+                'SOURCE':
+                'self_train',
+                'CKPT_NAME':
+                output_ckpt_name,
+                'PARAMS':
+                params_info,
+                'IS_SHARE':
+                self.BASE_CFG_VALUE[base_model][base_model_revision]
+                ['is_share']
             }
             tuner_cfg = Config(cfg_dict=tuner_dict, load=False)
 

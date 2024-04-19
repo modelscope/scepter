@@ -96,7 +96,8 @@ def get_all_config(config_root, global_meta):
             'inference_para': inference_paras,
             'tuner_type': tuner_type,
             'tuner_para': tuner_para,
-            'modify_para': modify_para
+            'modify_para': modify_para,
+            'is_share': 'IS_SHARE' in meta_cfg and meta_cfg['IS_SHARE']
         }
         if 'CONTROL_PARAS' in meta_cfg:
             control_type, control_para = build_meta_index_control(

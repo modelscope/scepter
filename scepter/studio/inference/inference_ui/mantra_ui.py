@@ -111,6 +111,16 @@ class MantraUI(UIBase):
             self.example_block = gr.Accordion(
                 label=self.component_names.example_block_name, open=True)
 
+        gallery_ui = kwargs.pop('gallery_ui', None)
+        gallery_ui.register_components({
+            'mantra_state':
+            self.state,
+            'style_template':
+            self.style_template,
+            'style_negative_template':
+            self.style_negative_template,
+        })
+
     def set_callbacks(self, model_manage_ui, **kwargs):
         gallery_ui = kwargs.pop('gallery_ui')
         with self.example_block:

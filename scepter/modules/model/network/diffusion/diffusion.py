@@ -448,22 +448,23 @@ class GaussianDiffusion(object):
             # denoising
             t = self._sigma_to_t(sigma).repeat(len(xt)).round().long()
 
-            if isinstance(
-                    model_kwargs[0]['cond'], dict) and \
-                    'tar_x0' in model_kwargs[0]['cond'] and \
-                    'tar_mask_latent' in model_kwargs[0]['cond']:
-                tar_x0 = model_kwargs[0]['cond']['tar_x0']
-                tar_mask = model_kwargs[0]['cond']['tar_mask_latent']
+            if isinstance(model_kwargs, list) and len(model_kwargs) == 2:
+                if isinstance(
+                        model_kwargs[0]['cond'], dict) and \
+                        'tar_x0' in model_kwargs[0]['cond'] and \
+                        'tar_mask_latent' in model_kwargs[0]['cond']:
+                    tar_x0 = model_kwargs[0]['cond']['tar_x0']
+                    tar_mask = model_kwargs[0]['cond']['tar_mask_latent']
 
-                tar_xt = self.diffuse(x0=tar_x0, t=t)
-                xt = tar_xt * (1.0 - tar_mask) + xt * tar_mask
+                    tar_xt = self.diffuse(x0=tar_x0, t=t)
+                    xt = tar_xt * (1.0 - tar_mask) + xt * tar_mask
 
-            if isinstance(model_kwargs[0]['cond'],
-                          dict) and 'ref_x0' in model_kwargs[0]['cond']:
-                model_kwargs[0]['cond']['ref_xt'] = self.diffuse(
-                    x0=model_kwargs[0]['cond']['ref_x0'], t=t)
-                model_kwargs[1]['cond']['ref_xt'] = self.diffuse(
-                    x0=model_kwargs[1]['cond']['ref_x0'], t=t)
+                if isinstance(model_kwargs[0]['cond'],
+                              dict) and 'ref_x0' in model_kwargs[0]['cond']:
+                    model_kwargs[0]['cond']['ref_xt'] = self.diffuse(
+                        x0=model_kwargs[0]['cond']['ref_x0'], t=t)
+                    model_kwargs[1]['cond']['ref_xt'] = self.diffuse(
+                        x0=model_kwargs[1]['cond']['ref_x0'], t=t)
 
             if solver in ('onestep', 'multistep', 'multistep2', 'multistep3'):
                 x0 = self.denoise(xt,

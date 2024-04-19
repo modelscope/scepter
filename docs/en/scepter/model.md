@@ -14,8 +14,8 @@ Model modules are divided into backbones, necks, heads, loss, metrics, networks,
 Subclass registration:
 
 ```python
-from scepter.model.registry import BACKBONES
-from scepter.model.base_model import BaseModel
+from scepter.modules.model.registry import BACKBONES
+from scepter.modules.model.base_model import BaseModel
 
 
 @BACKBONES.register_class("ResNet")
@@ -25,8 +25,8 @@ class ResNet(BaseModel):
 ```
 
 ```python
-from scepter.model.registry import NECKS
-from scepter.model.base_model import BaseModel
+from scepter.modules.model.registry import NECKS
+from scepter.modules.model.base_model import BaseModel
 
 
 @NECKS.register_class()
@@ -36,8 +36,8 @@ class GlobalAveragePooling(BaseModel):
 ```
 
 ```python
-from scepter.model.registry import HEADS
-from scepter.model.base_model import BaseModel
+from scepter.modules.model.registry import HEADS
+from scepter.modules.model.base_model import BaseModel
 
 
 @HEADS.register_class()
@@ -47,7 +47,7 @@ class ClassifierHead(BaseModel):
 ```
 
 ```python
-from scepter.model.registry import LOSSES
+from scepter.modules.model.registry import LOSSES
 import torch.nn as nn
 
 
@@ -59,7 +59,7 @@ class CrossEntropy(nn.Module):
 Actual usage：
 
 ```python
-from scepter.model.registry import BACKBONES, NECKS, HEADS, LOSSES
+from scepter.modules.model.registry import BACKBONES, NECKS, HEADS, LOSSES
 
 backbone = BACKBONES.build(cfg.BACKBONE, logger=logger)
 neck = NECKS.build(cfg.NECK, logger=logger)
@@ -83,8 +83,8 @@ To be implemented specifically as needed;
 Basic Usage Subclass registration:
 
 ```python
-from scepter.model.metrics.registry import METRICS
-from scepter.model.metrics.base_metric import BaseMetric
+from scepter.modules.model.metrics.registry import METRICS
+from scepter.modules.model.metrics.base_metric import BaseMetric
 
 
 @METRICS.register_class("AccuracyMetric")
@@ -95,7 +95,7 @@ class AccuracyMetric(BaseMetric):
 Actual usage:
 
 ```python
-from scepter.model.metrics.registry import METRICS
+from scepter.modules.model.metrics.registry import METRICS
 
 metric = METRICS.build(cfgs, logger)
 ```
@@ -117,8 +117,8 @@ Typically takes logits and labels as well as other necessary variables as inputs
 Subclass registration:
 
 ```python
-from scepter.model.registry import TOKENIZERS
-from scepter.model.tokenizers import BaseTokenizer
+from scepter.modules.model.registry import TOKENIZERS
+from scepter.modules.model.tokenizers import BaseTokenizer
 
 
 @TOKENIZERS.register_class()
@@ -129,7 +129,7 @@ class BaseBertTokenizer(BaseTokenizer):
 Actual usage：
 
 ```python
-from scepter.model.registry import TOKENIZERS
+from scepter.modules.model.registry import TOKENIZERS
 
 tokenizer = TOKENIZERS.build(cfgs, logger)
 ```
@@ -147,8 +147,8 @@ Takes a list of texts that need tokenization as input and outputs token id seque
 Subclass registration:
 
 ```python
-from scepter.model.registry import MODELS
-from scepter.model.networks.train_module import TrainModule
+from scepter.modules.model.registry import MODELS
+from scepter.modules.model.networks.train_module import TrainModule
 
 
 @MODELS.register_class()
@@ -159,7 +159,7 @@ class Classifier(TrainModule):
 Actual usage：
 
 ```python
-from scepter.model.registry import MODELS
+from scepter.modules.model.registry import MODELS
 
 model = MODELS.build(self.cfg.MODEL, logger=self.logger)
 ```

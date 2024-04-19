@@ -101,6 +101,10 @@ class ImageTextPairDataset(BaseDataset):
         'NEGTIVE_PROMPT': {
             'value': '',
             'description': 'The default negtive prompt',
+        },
+        'DATA_NUM': {
+            'value': '',
+            'description': '',
         }
     }
     para_dict.update(BaseDataset.para_dict)
@@ -108,6 +112,7 @@ class ImageTextPairDataset(BaseDataset):
     def __init__(self, cfg, logger=None):
         super(ImageTextPairDataset, self).__init__(cfg, logger=logger)
         self.p_zero = cfg.get('P_ZERO', 0.0)
+        self.real_number = cfg.get('DATA_NUM', None)
         self._default_item = {
             'meta': {},
             'prompt':

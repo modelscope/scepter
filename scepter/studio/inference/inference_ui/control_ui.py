@@ -118,6 +118,14 @@ class ControlUI(UIBase):
 
             self.example_block = gr.Accordion(
                 label=self.component_names.example_block_name, open=True)
+        gallery_ui = kwargs.pop('gallery_ui', None)
+        gallery_ui.register_components({
+            'control_state': self.state,
+            'control_model': self.control_model,
+            'control_scale': self.control_scale,
+            'crop_type': self.crop_type,
+            'control_cond_image': self.cond_image,
+        })
 
     def set_callbacks(self, model_manage_ui, diffusion_ui, **kwargs):
         gallery_ui = kwargs.pop('gallery_ui')
