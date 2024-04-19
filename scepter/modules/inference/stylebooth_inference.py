@@ -5,19 +5,19 @@ import os.path
 import random
 from collections import OrderedDict
 
+from PIL.Image import Image
+
 import torch
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
-from PIL.Image import Image
-
 from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, MODELS,
                                             TOKENIZERS)
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
+from scepter.studio.utils.env import get_available_memory
 
-from ...studio.utils.env import get_available_memory
 from .control_inference import ControlInference
 from .tuner_inference import TunerInference
 
