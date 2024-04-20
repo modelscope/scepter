@@ -12,6 +12,7 @@ from torchvision.utils import save_image
 
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.inference.diffusion_inference import DiffusionInference
+from scepter.modules.inference.stylebooth_inference import StyleboothInference
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
@@ -151,6 +152,21 @@ class DiffusionInferenceTest(unittest.TestCase):
         }
         output = diff_infer(input_data, **input_params)
         save_path = os.path.join(self.tmp_dir, 'sdxl_flower_canny.png')
+        save_image(output['images'], save_path)
+
+    # @unittest.skip('')
+    def test_stylebooth(self):
+        config_file = 'scepter/methods/studio/inference/edit/stylebooth_tb_pro.yaml'
+        cfg = Config(cfg_file=config_file)
+        diff_infer = StyleboothInference(logger=self.logger)
+        diff_infer.init_from_cfg(cfg)
+
+        output = diff_infer({'prompt': 'Let this image be in the style of sai-lowpoly'},
+                            style_edit_image=Image.open('asset/images/inpainting_text_ref/ex4_scene_im.jpg'),
+                            style_guide_scale_text=7.5,
+                            style_guide_scale_image=0.5)
+        save_path = os.path.join(self.tmp_dir,
+                                 'stylebooth_test_lowpoly_cute_dog.png')
         save_image(output['images'], save_path)
 
 
