@@ -49,6 +49,12 @@ class CheckpointHook(Hook):
             '',
             'description':
             'If save the best model, which order should be sorted, +/-!'
+        },
+        'DISABLE_SNAPSHOT': {
+            'value':
+            False,
+            'description':
+            'Skip to save snapshot checkpoint.'
         }
     }]
 
@@ -62,6 +68,7 @@ class CheckpointHook(Hook):
         self.save_best_by = cfg.get('SAVE_BEST_BY', '')
         self.push_to_hub = cfg.get('PUSH_TO_HUB', False)
         self.hub_model_id = cfg.get('HUB_MODEL_ID', None)
+        self.disable_save_snapshot = cfg.get('DISABLE_SNAPSHOT', False)
         self.last_ckpt = None
         if self.save_best and not self.save_best_by:
             warnings.warn(
@@ -110,10 +117,11 @@ class CheckpointHook(Hook):
                     solver.work_dir,
                     'checkpoints/{}-{}.pth'.format(self.save_name_prefix,
                                                    solver.total_iter + 1))
-                with FS.put_to(save_path) as local_path:
-                    with open(local_path, 'wb') as f:
-                        checkpoint = solver.save_checkpoint()
-                        torch.save(checkpoint, f)
+                if not self.disable_save_snapshot:
+                    with FS.put_to(save_path) as local_path:
+                        with open(local_path, 'wb') as f:
+                            checkpoint = solver.save_checkpoint()
+                            torch.save(checkpoint, f)
 
                 from swift import SwiftModel
                 if isinstance(solver.model, SwiftModel):

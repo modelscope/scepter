@@ -276,7 +276,7 @@ class LargenInference():
                     module = self.load(module)
                     self.loaded_model[name] = module
                     return module
-                elif module['device'] == 'cpu':
+                elif module['device'] == 'cpu' or module['device'] == 'offline':
                     module = self.load(module)
                     return module
                 else:
@@ -498,7 +498,7 @@ class LargenInference():
 
         self.dynamic_unload(self.first_stage_model,
                             'first_stage_model',
-                            skip_loaded=True)
+                            skip_loaded=False)
 
         # cond stage
         self.dynamic_load(self.cond_stage_model, 'cond_stage_model')
@@ -513,7 +513,7 @@ class LargenInference():
 
         self.dynamic_unload(self.cond_stage_model,
                             'cond_stage_model',
-                            skip_loaded=True)
+                            skip_loaded=False)
 
         # get noise
         seed = kwargs.pop('seed', -1)
@@ -582,7 +582,7 @@ class LargenInference():
             x_samples = self.decode_first_stage(latent).float()
             self.dynamic_unload(self.first_stage_model,
                                 'first_stage_model',
-                                skip_loaded=True)
+                                skip_loaded=False)
             images = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
             if base_image is not None:
                 stitch_images = []

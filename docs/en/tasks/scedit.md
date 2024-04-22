@@ -21,7 +21,7 @@
         <a href='https://github.com/modelscope/swift'><img src='https://img.shields.io/badge/swift-SCEdit-blue'></a>
     <br>
   </p>
-  
+
 SCEdit is an efficient generative fine-tuning framework proposed by Alibaba TongYi Vision Intelligence Lab. This framework enhances the fine-tuning capabilities for text-to-image generation downstream tasks and enables quick adaptation to specific generative scenarios, **saving 30%-50% of training memory costs compared to LoRA**. Furthermore, it can be directly extended to controllable image generation tasks, **requiring only 7.9% of the parameters that ControlNet needs for conditional generation and saving 30% of memory usage**. It supports various conditional generation tasks including edge maps, depth maps, segmentation maps, poses, color maps, and image completion.
 
 ## Usage
@@ -48,7 +48,7 @@ python scepter/tools/run_train.py --cfg scepter/methods/scedit/ctr/sdxl_1024_sce
 
 ### Gradio
 ```shell
-python -m scepter.tools.webui  # Then click [Use Tuners] or [Use Controller] 
+python -m scepter.tools.webui  # Then click [Use Tuners] or [Use Controller]
 ```
 
 ## Models
@@ -75,7 +75,7 @@ python -m scepter.tools.webui  # Then click [Use Tuners] or [Use Controller]
 |   SD XL   |     🪄     |    🪄    |     🪄     |     🪄    |     🪄     |
 
 
-## Application Gallery 
+## Application Gallery
 
 ### Dragon Year Special: Dragon Tuner
 
@@ -120,8 +120,6 @@ python -m scepter.tools.webui  # Then click [Use Tuners] or [Use Controller]
     title = {SCEdit: Efficient and Controllable Image Diffusion Generation via Skip Connection Editing},
     author = {Jiang, Zeyinzi and Mao, Chaojie and Pan, Yulin and Han, Zhen and Zhang, Jingfeng},
     year = {2023},
-    journal = {arXiv preprint arXiv:2312.11392}  
+    journal = {arXiv preprint arXiv:2312.11392}
 }
 ```
-
-

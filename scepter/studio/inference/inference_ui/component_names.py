@@ -8,8 +8,7 @@ from scepter.modules.utils.file_system import FS
 def download_image(image):
     if image is not None:
         name = get_md5(image)
-        local_path = FS.get_from(image,
-                                 f'/tmp/gradio/scepter_examples/{name}')
+        local_path = FS.get_from(image, f'/tmp/gradio/scepter_examples/{name}')
         return local_path
     else:
         return image

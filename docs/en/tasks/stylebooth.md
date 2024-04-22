@@ -5,7 +5,7 @@ Zhen Han, Chaojie Mao, Zeyinzi Jiang, Yulin Pan, Jingfeng Zhang
 
 Alibaba Group
 
-[[paper](https://arxiv.org/abs/2404.12154)][[Model](https://modelscope.cn/models/iic/stylebooth/summary)] [[Dataset](https://modelscope.cn/models/iic/stylebooth/summary)] 
+[[paper](https://arxiv.org/abs/2404.12154)][[Model](https://modelscope.cn/models/iic/stylebooth/summary)] [[Dataset](https://modelscope.cn/models/iic/stylebooth/summary)]
 
 ## Abstract
 
@@ -45,7 +45,7 @@ Given an original image, image editing aims to generate an image that align with
 ## Run StyleBooth
 - Code implementation: See model configuration and code based on [🪄SCEPTER](https://github.com/modelscope/scepter).
 
-- Demo: Try [🖥️SCEPTER Studio](https://github.com/modelscope/scepter/tree/main?tab=readme-ov-file#%EF%B8%8F-scepter-studio). 
+- Demo: Try [🖥️SCEPTER Studio](https://github.com/modelscope/scepter/tree/main?tab=readme-ov-file#%EF%B8%8F-scepter-studio).
 
 - Easy run:
 Try the following example script to run StyleBooth modified from [tests/modules/test_diffusion_inference.py](https://github.com/modelscope/scepter/blob/main/tests/modules/test_diffusion_inference.py):

@@ -5,10 +5,10 @@ import os.path
 import random
 from collections import OrderedDict
 
-from PIL.Image import Image
-
 import torch
 import torch.nn.functional as F
+from PIL.Image import Image
+
 from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, MODELS,
@@ -274,7 +274,7 @@ class DiffusionInference():
                     module = self.load(module)
                     self.loaded_model[name] = module
                     return module
-                elif module['device'] == 'cpu':
+                elif module['device'] == 'cpu' or module['device'] == "offline":
                     module = self.load(module)
                     return module
                 else:
