@@ -274,6 +274,7 @@ SOLVER:
       PRIORITY: 200
       SAVE_LAST: True
       SAVE_NAME_PREFIX: 'step'
+      DISABLE_SNAPSHOT: True
   #
   EVAL_HOOKS:
     -

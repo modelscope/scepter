@@ -161,10 +161,12 @@ class DiffusionInferenceTest(unittest.TestCase):
         diff_infer = StyleboothInference(logger=self.logger)
         diff_infer.init_from_cfg(cfg)
 
-        output = diff_infer({'prompt': 'Let this image be in the style of sai-lowpoly'},
-                            style_edit_image=Image.open('asset/images/inpainting_text_ref/ex4_scene_im.jpg'),
-                            style_guide_scale_text=7.5,
-                            style_guide_scale_image=0.5)
+        output = diff_infer(
+            {'prompt': 'Let this image be in the style of sai-lowpoly'},
+            style_edit_image=Image.open(
+                'asset/images/inpainting_text_ref/ex4_scene_im.jpg'),
+            style_guide_scale_text=7.5,
+            style_guide_scale_image=0.5)
         save_path = os.path.join(self.tmp_dir,
                                  'stylebooth_test_lowpoly_cute_dog.png')
         save_image(output['images'], save_path)
