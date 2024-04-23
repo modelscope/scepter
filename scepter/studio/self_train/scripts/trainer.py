@@ -17,11 +17,17 @@ class TaskStatus():
     def __init__(self):
         self.pid = -1
         self.retcode = -999
-        self.error_msg = None
-        self.out_msg = None
+        self.error_log = None
 
     def __repr__(self):
         return f'Process {self.pid} retcode {self.retcode}, error msg: {self.error_msg}.'
+
+    @property
+    def error_msg(self):
+        if os.path.exists(self.error_log):
+            return "\n".join(open(self.error_log, "r").readlines()[-50:])
+        else:
+            return "No error msg."
 
 
 def kill_job(pid):
@@ -46,8 +52,11 @@ class Trainer():
 
     def __call__(self, task_name):
         torch.cuda.empty_cache()
+        error_folder = "./error_logs"
+        os.makedirs(error_folder, exist_ok=True)
+        self.status_message.error_log = f"{error_folder}/{int(time.time())}.log"
         cmd = f'PYTHONPATH=. python {self.run_script} ' \
-              f'--cfg={task_name}/train.yaml'
+              f'--cfg={task_name}/train.yaml 2> {self.status_message.error_log}'
         # cmd = [f"python {self.run_script}"]
         print(cmd)
         try:
@@ -57,11 +66,9 @@ class Trainer():
             self.status_message.retcode = self.proc.wait(
             )  # self.proc.wait(3600*24*14)
             # self.status_message.error_msg = self.proc.stderr.read()
-            self.status_message.error_msg = ''
         except Exception:
             self.status_message.retcode = -2
             # self.status_message.error_msg = self.proc.stderr.read()
-            self.status_message.error_msg = ''
 
     def terminate(self):
         print(f'Terminate {self.proc.pid} ...')
@@ -118,7 +125,7 @@ class TrainManager():
                                 err_msg = now_task['train_status'].error_msg
                                 message = f'''
                                             Training failed! \n
-                                            Error msg: {err_msg[-1000:]} \n
+                                            Error msg: {err_msg} \n
                                             Take time [ {duration:.4f}s ] \n
                                             {self.check_memory()}
                                         '''

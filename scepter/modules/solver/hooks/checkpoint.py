@@ -68,6 +68,7 @@ class CheckpointHook(Hook):
         self.save_best_by = cfg.get('SAVE_BEST_BY', '')
         self.push_to_hub = cfg.get('PUSH_TO_HUB', False)
         self.hub_model_id = cfg.get('HUB_MODEL_ID', None)
+        self.hub_private = cfg.get('HUB_PRIVATE', False)
         self.disable_save_snapshot = cfg.get('DISABLE_SNAPSHOT', False)
         self.last_ckpt = None
         if self.save_best and not self.save_best_by:
@@ -254,7 +255,7 @@ class CheckpointHook(Hook):
 
                 push_to_hub(repo_name=self.hub_model_id,
                             output_dir=self.last_ckpt,
-                            private=False)
+                            private=self.hub_private)
                 current_dir = os.path.dirname(__file__)
                 base_path = os.sep.join(current_dir.split(os.sep)[:-4])
                 base_path = os.path.join(base_path, 'config')

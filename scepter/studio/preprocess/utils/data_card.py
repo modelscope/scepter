@@ -521,6 +521,14 @@ class Text2ImageDataCard(BaseDataCard):
             except Exception:
                 pass
         file_list = self.load_train_file(new_train_list, data_folder)
+        # remove unused data
+        for one_dir in FS.walk_dir(local_dataset_folder):
+            if "images" in one_dir or one_dir.endswith("file.csv") or one_dir.endswith("train.csv"):
+                continue
+            try:
+                os.system(f"rm -rf {one_dir}")
+            except:
+                pass
         return file_list
 
     def load_train_file(self, file_path, data_folder):

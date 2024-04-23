@@ -187,7 +187,7 @@ class InfoUI(UIBase):
                 manager.inference.model_manage_ui.diffusion_model,
                 manager.inference.tuner_ui.custom_tuner_model
             ],
-            queue=False)
+            queue=True)
 
         def export_zip(tuner_name, base_model, tuner_type):
             sub_dir = f'{base_model}-{tuner_type}'

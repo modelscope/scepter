@@ -198,6 +198,17 @@ class GalleryUI(UIBase):
                 'seed': int(args.pop('image_seed')),
             })
 
+        def load_init(args):
+            cur_pipe_name = self.pipe_manager.model_level_info[
+                args['diffusion_model']]['pipeline'][0]
+            for sub_name, sub_pipe in self.pipe_manager.pipeline_level_modules.items(
+            ):
+                if sub_name == cur_pipe_name:
+                    continue
+                if len(sub_pipe.loaded_model) > 0:
+                    sub_pipe.dynamic_unload(name='all')
+                    print(f'Unloading {sub_name} modules')
+
         args = dict(zip(self.component_mapping.keys(), args))
         largen_history = args.pop('largen_history')
 
@@ -206,7 +217,7 @@ class GalleryUI(UIBase):
         tuner_init(args)
         input_init(args)
         appedix_init(args)
-
+        load_init(args)
         results = current_pipeline(**args)
 
         images = []

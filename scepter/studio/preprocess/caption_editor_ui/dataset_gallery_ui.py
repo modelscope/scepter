@@ -794,7 +794,9 @@ class DatasetGalleryUI(UIBase):
                     image = upload_image['image']
                 else:
                     image = upload_image
-                target_image = processor_ins(image.convert('RGB'))
+                target_image = processor_ins(image.convert('RGB'),
+                                             height_ratio=height_ratio,
+                                             width_ratio=width_ratio)
                 w, h = target_image.size
                 ret_image_gallery = gr.Gallery()
                 ret_upload_image = gr.Image(target_image)

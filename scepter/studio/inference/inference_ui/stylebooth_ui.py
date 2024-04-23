@@ -115,6 +115,8 @@ class StyleboothUI(UIBase):
             #             cache_examples=True)
         gallery_ui = kwargs.pop('gallery_ui', None)
         gallery_ui.register_components({
+            'stylebooth_state':
+            self.state,
             'style_edit_image':
             self.edit_image,
             'style_exemplar_image':

@@ -242,7 +242,7 @@ class InferenceUI():
                 self.check_box_for_setting, self.setting_tab, *gr_states,
                 *gr_tabs, self.model_manage_ui.diffusion_model
             ],
-            queue=False)
+            queue=True)
 
 
 if __name__ == '__main__':
