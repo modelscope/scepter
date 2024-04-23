@@ -451,7 +451,7 @@ class ModelUI(UIBase):
                 # manager.inference.tuner_ui.tuner_desc,
                 # manager.inference.tuner_ui.tuner_prompt_example
             ],
-            queue=False)
+            queue=True)
 
         def export_train_log(model_name):
             current_log_folder = os.path.join(self.work_dir, model_name)
