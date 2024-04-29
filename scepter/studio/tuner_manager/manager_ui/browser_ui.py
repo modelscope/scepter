@@ -6,6 +6,7 @@ from collections import OrderedDict
 import gradio as gr
 from swift import push_to_hub
 
+import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
 from scepter.studio.tuner_manager.manager_ui.component_names import \
@@ -36,6 +37,7 @@ class BrowserUI(UIBase):
         self.language = language
         self.export_folder = os.path.join(self.work_dir, cfg.EXPORT_DIR)
         self.readme_file = cfg.README_EN if self.language == 'en' else cfg.README_ZH
+        self.readme_file = os.path.join(os.path.dirname(scepter.dirname), self.readme_file)
 
     def saved_tuners_to_category(self):
         self.saved_tuners_category = OrderedDict()

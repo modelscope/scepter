@@ -1,1 +1,2 @@
 recursive-include scepter *.yaml
+recursive-include scepter *.md

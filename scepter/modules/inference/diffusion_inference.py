@@ -255,8 +255,11 @@ class DiffusionInference():
             module['device'] = 'offline'
             print('delete module')
         else:
-            module['model'] = module['model'].to('cpu')
-            module['device'] = 'cpu'
+            if module['model'] is not None:
+                module['model'] = module['model'].to('cpu')
+                module['device'] = 'cpu'
+            else:
+                module['device'] = 'offline'
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
         return module
