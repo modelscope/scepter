@@ -131,6 +131,7 @@ class FileSystem(object):
                              wait_finish=False,
                              timeout=3600,
                              multi_thread=False,
+                             sign_key=None,
                              worker_id=0):
         with self.get_fs_client(target_path) as client:
             local_path = client.get_dir_to_local_dir(target_path,
@@ -138,6 +139,7 @@ class FileSystem(object):
                                                      wait_finish=wait_finish,
                                                      timeout=timeout,
                                                      multi_thread=multi_thread,
+                                                     sign_key=sign_key,
                                                      worker_id=worker_id)
             if local_path is None:
                 raise ReadException(
@@ -247,10 +249,15 @@ class FileSystem(object):
                     f'Failed to fetch {target_path} to {local_path}')
             return IoString(local_path)
 
-    def get_url(self, target_path, set_public=False, lifecycle=3600 * 100):
+    def get_url(self,
+                target_path,
+                set_public=False,
+                skip_check=False,
+                lifecycle=3600 * 100):
         with self.get_fs_client(target_path) as client:
             output_url = client.get_url(target_path,
                                         set_public=set_public,
+                                        skip_check=skip_check,
                                         lifecycle=lifecycle)
             return output_url
 
@@ -258,7 +265,7 @@ class FileSystem(object):
         with self.get_fs_client(target_path) as client:
             local_data = client.get_object(target_path)
             if local_data is None:
-                return IoBytes(None)
+                return IoBytes(b'')
             return IoBytes(local_data)
 
     def put_object(self, local_data, target_path):

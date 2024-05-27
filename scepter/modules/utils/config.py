@@ -5,6 +5,7 @@ import copy
 import json
 import numbers
 import os
+import re
 import sys
 
 import yaml
@@ -205,6 +206,21 @@ def dict_to_yaml(module_name, name, json_config, set_name=False):
         yaml_str += new_yaml_str[1:]
 
     return yaml_str
+
+
+pattern = re.compile('.*?(\${\w+}).*?')  # noqa
+
+
+def env_var_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    for item in pattern.findall(value):
+        var_name = item.strip('${}')
+        value = value.replace(item, os.getenv(var_name, item))
+    return value
+
+
+yaml.SafeLoader.add_constructor('$', env_var_constructor)
+yaml.SafeLoader.add_implicit_resolver('$', pattern, None)
 
 
 def _parse_args(parser):

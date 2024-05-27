@@ -8,10 +8,10 @@ import random
 from collections import OrderedDict
 
 import gradio as gr
-import torch
 import yaml
 
 import scepter
+import torch
 from scepter.modules.utils.file_system import FS
 from scepter.studio.self_train.scripts.trainer import TrainManager
 from scepter.studio.self_train.self_train_ui.component_names import \
@@ -100,58 +100,98 @@ class TrainerUI(UIBase):
     def create_ui(self):
         with gr.Box():
             with gr.Row(variant='panel', equal_height=True):
-                with gr.Column(variant='panel'):
+                with gr.Column(scale=1, min_width=0, variant='panel'):
                     gr.Markdown(self.component_names.user_direction)
-                    self.data_type = gr.Dropdown(
-                        choices=self.component_names.data_type_choices,
-                        value=self.component_names.data_type_value,
-                        label=self.component_names.data_type_name,
-                        interactive=True)
-                    self.ori_data_name = gr.Textbox(
-                        label=self.component_names.ori_data_name,
-                        max_lines=1,
-                        placeholder=self.component_names.ori_data_name,
-                        interactive=True)
-                    self.ms_data_name = gr.Textbox(
-                        label=' or '.join(
-                            self.component_names.data_type_choices),
-                        max_lines=1,
-                        placeholder=self.component_names.
-                        ms_data_name_place_hold,
-                        interactive=True)
-                    with gr.Box(visible=False) as self.ms_data_box:
-                        with gr.Row():
-                            self.ms_data_space = gr.Textbox(
-                                label=self.component_names.ms_data_space,
-                                max_lines=1)
-                            self.ms_data_subname = gr.Textbox(
-                                label=self.component_names.ms_data_subname,
-                                value='default',
-                                max_lines=1)
-                with gr.Column(variant='panel'):
+                    with gr.Box():
+                        gr.Markdown(self.component_names.train_data)
+                        self.data_source = gr.Dropdown(
+                            choices=self.component_names.data_source_choices,
+                            value=self.component_names.data_source_value,
+                            label=self.component_names.data_source_name,
+                            placeholder=self.component_names.data_source_name,
+                            interactive=False)
+                        self.data_type = gr.Dropdown(
+                            choices=[
+                                self.component_names.data_type_map[key]
+                                for key in self.component_names.data_type_choices
+                            ],
+                            value=self.component_names.data_type_map[
+                                self.component_names.data_type_value],
+                            label=self.component_names.data_type_name,
+                            placeholder=self.component_names.data_type_name,
+                            interactive=False)
+                        self.ori_data_name = gr.Textbox(
+                            label=self.component_names.ori_data_name,
+                            max_lines=1,
+                            placeholder=self.component_names.ori_data_name,
+                            interactive=False)
+                        self.ms_data_name = gr.Textbox(
+                            label=' or '.join(
+                                self.component_names.data_source_choices),
+                            max_lines=1,
+                            placeholder=self.component_names.
+                            ms_data_name_place_hold,
+                            visible=False,
+                            interactive=False)
+                        with gr.Box(visible=False) as self.ms_data_box:
+                            with gr.Row():
+                                self.ms_data_space = gr.Textbox(
+                                    label=self.component_names.ms_data_space,
+                                    max_lines=1)
+                                self.ms_data_subname = gr.Textbox(
+                                    label=self.component_names.ms_data_subname,
+                                    value='default',
+                                    max_lines=1)
+                    with gr.Box():
+                        gr.Markdown(self.component_names.eval_data)
+                        self.eval_prompts = gr.Dropdown(
+                            value=None,
+                            choices=self.train_para_data.get(
+                                'EVAL_PROMPTS', []),
+                            label=self.component_names.eval_prompts,
+                            interactive=True,
+                            multiselect=True,
+                            allow_custom_value=True,
+                            max_choices=20)
+                        # self.task = gr.Radio(
+                        #     choices=self.component_names.task_choices,
+                        #     label=self.component_names.task,
+                        #     value=self.component_names.task_choices[0],
+                        #     interactive=False)
+                        self.eval_image = gr.Image(
+                            label=self.component_names.eval_image,
+                            type='pil',
+                            tool='editor',
+                            interactive=False,
+                            visible=False)
+                with gr.Column(scale=2, min_width=0, variant='panel'):
                     with gr.Box():
                         gr.Markdown(self.component_names.training_block)
                         with gr.Row():
-                            with gr.Column(scale=1, min_width=0):
-                                self.base_model = gr.Dropdown(
-                                    choices=self.para_data.get(
-                                        'model_choices', []),
-                                    value=self.para_data.get(
-                                        'model_default', ''),
-                                    label=self.component_names.base_model,
-                                    interactive=True)
-                            with gr.Column(scale=1, min_width=0):
-                                self.base_model_revision = gr.Dropdown(
-                                    choices=self.para_data.get(
-                                        'version_choices', []),
-                                    value=self.para_data.get(
-                                        'version_default', ''),
-                                    label=self.component_names.
-                                    base_model_revision,
-                                    interactive=True)
-
-                        with gr.Row():
-                            with gr.Column(scale=1, min_width=0):
+                            self.base_model = gr.Dropdown(
+                                choices=self.para_data.get(
+                                    'model_choices', []),
+                                value=self.para_data.get(
+                                    'model_default', ''),
+                                label=self.component_names.base_model,
+                                interactive=True)
+                            self.base_model_revision = gr.Dropdown(
+                                choices=self.para_data.get(
+                                    'version_choices', []),
+                                value=self.para_data.get(
+                                    'version_default', ''),
+                                label=self.component_names.
+                                base_model_revision,
+                                interactive=True)
+                        with gr.Box():
+                            gr.Markdown(self.component_names.tuner_param)
+                            # with gr.Column(scale=1, min_width=0):
+                            if 'TUNER' in self.para_data:
+                                lora_visible, text_lora_visible, sce_visible = judge_tuner_visible(
+                                    self.para_data['TUNER'])
+                            else:
+                                lora_visible, text_lora_visible, sce_visible = False, False, False
+                            with gr.Row():
                                 self.tuner_name = gr.Dropdown(
                                     choices=self.para_data.get(
                                         'tuner_choices', []),
@@ -159,18 +199,8 @@ class TrainerUI(UIBase):
                                         'tuner_default', ''),
                                     label=self.component_names.tuner_name,
                                     interactive=True)
-
-                        with gr.Row():
-                            with gr.Accordion(
-                                    label=self.component_names.tuner_param,
-                                    open=False):
-                                if 'TUNER' in self.para_data:
-                                    lora_visible, text_lora_visible, sce_visible = judge_tuner_visible(
-                                        self.para_data['TUNER'])
-                                else:
-                                    lora_visible, text_lora_visible, sce_visible = False, False, False
-                                with gr.Row(visible=lora_visible
-                                            ) as self.lora_param:
+                            with gr.Row():
+                                with gr.Row(visible=lora_visible) as self.lora_param:
                                     self.lora_alpha = gr.Number(
                                         label='LoRA Alpha',
                                         value=self.para_data.get(
@@ -181,8 +211,7 @@ class TrainerUI(UIBase):
                                         value=self.para_data.get(
                                             'lora_rank', 256),
                                         interactive=True)
-                                with gr.Row(visible=text_lora_visible
-                                            ) as self.text_lora_param:
+                                with gr.Row(visible=text_lora_visible) as self.text_lora_param:
                                     self.text_lora_alpha = gr.Number(
                                         label='Text LoRA Alpha',
                                         value=self.para_data.get(
@@ -193,19 +222,18 @@ class TrainerUI(UIBase):
                                         value=self.para_data.get(
                                             'text_lora_rank', 256),
                                         interactive=True)
-                                with gr.Row(
-                                        visible=sce_visible) as self.sce_param:
-                                    self.sce_ratio = gr.Slider(
-                                        label='SCE Ratio',
-                                        minimum=0.2,
-                                        maximum=2.0,
-                                        step=0.1,
-                                        value=self.para_data.get(
-                                            'sce_ratio', 1.0),
-                                        interactive=True)
-
-                        with gr.Row():
-                            with gr.Column(scale=2, min_width=0):
+                                self.sce_ratio = gr.Slider(
+                                    label='SCE Ratio',
+                                    minimum=0.2,
+                                    maximum=2.0,
+                                    step=0.1,
+                                    value=self.para_data.get(
+                                        'sce_ratio', 1.0),
+                                    interactive=True,
+                                    visible=sce_visible)
+                        with gr.Box():
+                            gr.Markdown(self.component_names.resolution_param)
+                            with gr.Row(equal_height=True):
                                 self.resolution_height = gr.Dropdown(
                                     choices=list(self.h_level_dict.keys()),
                                     value=self.para_data.get(
@@ -214,8 +242,6 @@ class TrainerUI(UIBase):
                                     resolution_height,
                                     allow_custom_value=True,
                                     interactive=True)
-
-                            with gr.Column(scale=2, min_width=0):
                                 self.resolution_width = gr.Dropdown(
                                     choices=self.h_level_dict[
                                         self.resolution_height.value],
@@ -225,102 +251,79 @@ class TrainerUI(UIBase):
                                     resolution_width,
                                     allow_custom_value=True,
                                     interactive=True)
-
-                        with gr.Row():
-                            with gr.Accordion(label=self.component_names.
-                                              resolution_param,
-                                              open=False):
-                                self.enable_resolution_bucket = gr.Checkbox(
-                                    value=False,
-                                    container=True,
-                                    interactive=True,
-                                    label=self.component_names.
-                                    enable_resolution_bucket)
-                                with gr.Column(
-                                        visible=self.enable_resolution_bucket.
+                                with gr.Box():
+                                    self.enable_resolution_bucket = gr.Checkbox(
+                                        value=False,
+                                        container=True,
+                                        interactive=True,
+                                        label=self.component_names.enable_resolution_bucket,
+                                        info=self.component_names.enable_resolution_bucket_ins)
+                            with gr.Column(visible=self.enable_resolution_bucket.
                                         value) as self.resolution_bucket_param:
-                                    with gr.Row():
-                                        self.min_bucket_resolution = gr.Number(
-                                            label=self.component_names.
-                                            min_bucket_resolution,
-                                            value=self.para_data.get(
-                                                'min_bucket_resolution', 256),
-                                            interactive=True)
-                                        self.max_bucket_resolution = gr.Number(
-                                            label=self.component_names.
-                                            max_bucket_resolution,
-                                            value=self.para_data.get(
-                                                'max_bucket_resolution', 1024),
-                                            interactive=True)
-                                    with gr.Row():
-                                        self.bucket_resolution_steps = gr.Number(
-                                            label=self.component_names.
-                                            bucket_resolution_steps,
-                                            value=self.para_data.get(
-                                                'bucket_resolution_steps', 64),
-                                            interactive=True)
+                                with gr.Row():
+                                    self.min_bucket_resolution = gr.Number(
+                                        label=self.component_names.
+                                        min_bucket_resolution,
+                                        value=self.para_data.get(
+                                            'min_bucket_resolution', 256),
+                                        interactive=True)
+                                    self.max_bucket_resolution = gr.Number(
+                                        label=self.component_names.
+                                        max_bucket_resolution,
+                                        value=self.para_data.get(
+                                            'max_bucket_resolution', 1024),
+                                        interactive=True)
+                                with gr.Row(equal_height=True):
+                                    self.bucket_resolution_steps = gr.Number(
+                                        label=self.component_names.
+                                        bucket_resolution_steps,
+                                        value=self.para_data.get(
+                                            'bucket_resolution_steps', 64),
+                                        interactive=True)
+                                    with gr.Box():
                                         self.bucket_no_upscale = gr.Checkbox(
                                             value=False,
                                             container=True,
                                             interactive=True,
-                                            label=self.component_names.
-                                            bucket_no_upscale)
+                                            label=self.component_names.bucket_no_upscale,
+                                            info=self.component_names.bucket_no_upscale_ins)
 
                         with gr.Row():
-                            with gr.Column(scale=1, min_width=0):
-                                self.train_epoch = gr.Number(
-                                    label=self.component_names.train_epoch,
-                                    value=self.para_data.get('EPOCHS', 10),
-                                    precision=0,
-                                    interactive=True)
-                            with gr.Column(scale=1, min_width=0):
-                                self.learning_rate = gr.Number(
-                                    label=self.component_names.learning_rate,
-                                    value=self.para_data.get(
-                                        'LEARNING_RATE', 0.0001),
-                                    interactive=True)
+                            self.train_epoch = gr.Number(
+                                label=self.component_names.train_epoch,
+                                value=self.para_data.get('EPOCHS', 10),
+                                precision=0,
+                                interactive=True)
+                            self.learning_rate = gr.Number(
+                                label=self.component_names.learning_rate,
+                                value=self.para_data.get(
+                                    'LEARNING_RATE', 0.0001),
+                                interactive=True)
 
                         with gr.Row():
-                            with gr.Column(scale=1, min_width=0):
-                                self.save_interval = gr.Number(
-                                    label=self.component_names.save_interval,
-                                    value=self.para_data.get(
-                                        'SAVE_INTERVAL', 10),
-                                    precision=0,
-                                    interactive=True)
-                            with gr.Column(scale=1, min_width=0):
-                                self.train_batch_size = gr.Number(
-                                    label=self.component_names.
-                                    train_batch_size,
-                                    value=self.para_data.get(
-                                        'TRAIN_BATCH_SIZE', 4),
-                                    precision=0,
-                                    interactive=True)
+                            self.save_interval = gr.Number(
+                                label=self.component_names.save_interval,
+                                value=self.para_data.get(
+                                    'SAVE_INTERVAL', 10),
+                                precision=0,
+                                interactive=True)
+                            self.train_batch_size = gr.Number(
+                                label=self.component_names.
+                                train_batch_size,
+                                value=self.para_data.get(
+                                    'TRAIN_BATCH_SIZE', 4),
+                                precision=0,
+                                interactive=True)
 
                         with gr.Row():
-                            with gr.Column(scale=1, min_width=0):
-                                self.prompt_prefix = gr.Text(
-                                    label=self.component_names.prompt_prefix,
-                                    value=self.para_data.get(
-                                        'TRAIN_PREFIX', ''))
-                            with gr.Column(scale=1, min_width=0):
-                                self.replace_keywords = gr.Text(
-                                    label=self.component_names.
-                                    replace_keywords,
-                                    value='')
-
-                        with gr.Row():
-                            with gr.Column(scale=1, min_width=0):
-                                self.eval_prompts = gr.Dropdown(
-                                    value=None,
-                                    choices=self.train_para_data.get(
-                                        'EVAL_PROMPTS', []),
-                                    label=self.component_names.eval_prompts,
-                                    interactive=True,
-                                    multiselect=True,
-                                    allow_custom_value=True,
-                                    max_choices=20)
-
+                            self.prompt_prefix = gr.Text(
+                                label=self.component_names.prompt_prefix,
+                                value=self.para_data.get(
+                                    'TRAIN_PREFIX', ''))
+                            self.replace_keywords = gr.Text(
+                                label=self.component_names.
+                                replace_keywords,
+                                value='')
             with gr.Row(variant='panel', equal_height=True):
                 with gr.Box():
                     with gr.Row(variant='panel', equal_height=True):
@@ -345,33 +348,64 @@ class TrainerUI(UIBase):
                 self.examples = gr.Examples(
                     examples=[
                         [
-                            self.component_names.data_type_choices[0],
+                            self.component_names.data_source_choices[0],
+                            self.component_names.data_type_map[
+                                self.component_names.data_type_value],
                             '',
                             'https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip',  # noqa
+                            '3D_example_csv',
                             ''
                         ],
                         [
-                            self.component_names.data_type_choices[1], 'damo',
-                            'style_custom_dataset', '3D'
+                            self.component_names.data_source_choices[1],
+                            self.component_names.data_type_map[
+                                self.component_names.data_type_value], 'damo',
+                            'style_custom_dataset', 'style_custom_dataset',
+                            '3D'
                         ]
                     ],
                     inputs=[
-                        self.data_type, self.ms_data_space, self.ms_data_name,
+                        self.data_source, self.data_type, self.ms_data_space,
+                        self.ms_data_name, self.ori_data_name,
                         self.ms_data_subname
                     ])
             with gr.Row(variant='panel', equal_height=True):
                 self.training_button = gr.Button()
 
+    def get_trans_dataset_type(self, dataset_type):
+        reverse_data_type = {
+            v: k
+            for k, v in self.component_names.data_type_map.items()
+        }
+        trans_dataset_type = reverse_data_type[dataset_type]
+        return trans_dataset_type
+
     def set_callbacks(self, inference_ui, manager):
-        def change_data_type(data_type):
-            if data_type == self.component_names.data_type_choices[0]:
+        def change_data_source(data_source):
+            if data_source in [
+                    self.component_names.data_source_choices[0],
+                    self.component_names.data_source_choices[2]
+            ]:
                 return gr.Box(visible=False)
-            elif data_type == self.component_names.data_type_choices[1]:
+            elif data_source == self.component_names.data_source_choices[1]:
                 return gr.Box(visible=True)
+
+        self.data_source.change(fn=change_data_source,
+                                inputs=[self.data_source],
+                                outputs=[self.ms_data_box],
+                                queue=False)
+
+        def change_data_type(data_type):
+            data_type_key = self.get_trans_dataset_type(data_type)
+            if data_type_key in self.component_names.data_task_map and self.component_names.data_task_map[
+                    data_type_key] is not None:
+                return self.component_names.data_task_map[data_type_key]
+            else:
+                return self.para_data.get('model_default', '')  # gr.Dropdown()
 
         self.data_type.change(fn=change_data_type,
                               inputs=[self.data_type],
-                              outputs=[self.ms_data_box],
+                              outputs=[self.base_model],
                               queue=False)
 
         self.work_name_button.click(fn=get_work_name,
@@ -382,6 +416,16 @@ class TrainerUI(UIBase):
                                     ],
                                     outputs=[self.work_name],
                                     queue=False)
+
+        # def change_eval_image_by_task(task):
+        #     # ret_data.get('EVAL_PROMPTS', eval_prompts)
+        #     visible = True if task == 'Image Editing' else False
+        #     return gr.Image(interactive=visible, visible=visible), \
+        #         gr.Dropdown(choices=, multiselect=False)
+        # self.task.change(fn=change_eval_image_by_task,
+        #                  inputs=[self.task],
+        #                  outputs=[self.eval_image],
+        #                  queue=False)
 
         def change_train_value_by_model(base_model):
             '''
@@ -397,6 +441,11 @@ class TrainerUI(UIBase):
                 Prefix for Saved Model:
             '''
             ret_data = get_values_by_model(self.BASE_CFG_VALUE, base_model)
+            task = ret_data.get('TASK', 'Text2Image')
+            is_edit = task == 'Image Editing'
+            eval_prompts = [] if is_edit else self.train_para_data.get(
+                'EVAL_PROMPTS', [])
+            eval_prompts = ret_data.get('EVAL_PROMPTS', eval_prompts)
             return ret_data.get('EPOCHS', 10), \
                 ret_data.get('LEARNING_RATE', 0.0001), \
                 ret_data.get('SAVE_INTERVAL', 10), \
@@ -411,19 +460,29 @@ class TrainerUI(UIBase):
                             interactive=True), \
                 gr.Dropdown(value=ret_data.get('RESOLUTION', 1024)[1],
                             choices=self.h_level_dict[ret_data.get('RESOLUTION', 1024)[0]],
-                            interactive=True)
+                            interactive=True), \
+                gr.Image(visible=is_edit, interactive=is_edit, value=None), \
+                gr.Dropdown(choices=eval_prompts, multiselect=not is_edit)
+            # gr.Dropdown(value=task)
 
-        self.base_model.change(fn=change_train_value_by_model,
-                               inputs=[self.base_model],
-                               outputs=[
-                                   self.train_epoch, self.learning_rate,
-                                   self.save_interval, self.train_batch_size,
-                                   self.prompt_prefix,
-                                   self.base_model_revision, self.tuner_name,
-                                   self.resolution_height,
-                                   self.resolution_width
-                               ],
-                               queue=False)
+        self.base_model.change(
+            fn=change_train_value_by_model,
+            inputs=[self.base_model],
+            outputs=[
+                self.train_epoch,
+                self.learning_rate,
+                self.save_interval,
+                self.train_batch_size,
+                self.prompt_prefix,
+                self.base_model_revision,
+                self.tuner_name,
+                self.resolution_height,
+                self.resolution_width,
+                self.eval_image,
+                self.eval_prompts,
+                # self.task
+            ],
+            queue=False)
 
         #
         def change_train_value_by_model_version(base_model,
@@ -516,7 +575,7 @@ class TrainerUI(UIBase):
                                    self.save_interval, self.train_batch_size,
                                    self.prompt_prefix, self.resolution_height,
                                    self.resolution_width, self.lora_param,
-                                   self.text_lora_param, self.sce_param
+                                   self.text_lora_param, self.sce_ratio
                                ],
                                queue=False)
 
@@ -552,16 +611,16 @@ class TrainerUI(UIBase):
                                              ],
                                              queue=False)
 
-        def run_train(work_name, data_type, ori_data_name, ms_data_space,
-                      ms_data_name, ms_data_subname, base_model,
+        def run_train(work_name, data_source, data_type, ori_data_name,
+                      ms_data_space, ms_data_name, ms_data_subname, base_model,
                       base_model_revision, tuner_name, resolution_height,
                       resolution_width, train_epoch, learning_rate,
                       save_interval, train_batch_size, prompt_prefix,
-                      replace_keywords, push_to_hub, eval_prompts, lora_alpha,
-                      lora_rank, text_lora_alpha, text_lora_rank, sce_ratio,
-                      enable_resolution_bucket, min_bucket_resolution,
-                      max_bucket_resolution, bucket_resolution_steps,
-                      bucket_no_upscale):
+                      replace_keywords, push_to_hub, eval_prompts, eval_image,
+                      lora_alpha, lora_rank, text_lora_alpha, text_lora_rank,
+                      sce_ratio, enable_resolution_bucket,
+                      min_bucket_resolution, max_bucket_resolution,
+                      bucket_resolution_steps, bucket_no_upscale):
             # Check Cuda
             if not torch.cuda.is_available() and not self.is_debug:
                 raise gr.Error(self.component_names.training_err1)
@@ -579,12 +638,14 @@ class TrainerUI(UIBase):
             with open(f'.flag/{work_name}.tmp', 'w') as f:
                 f.write('new line.')
             # save params
+            exclude_keys = ['exclude_keys', 'ms_data_name']
             with open(os.path.join(work_dir, 'params.json'), 'w') as f_out:
                 json.dump(
                     {
                         key: val
                         for key, val in locals().items()
                         if is_basic_or_container_type(val)
+                        and key not in exclude_keys
                     },
                     f_out,
                     ensure_ascii=False)
@@ -613,7 +674,7 @@ class TrainerUI(UIBase):
                             int(resolution_height),
                             int(resolution_width)
                         ]
-                if data_type in self.component_names.data_type_choices:
+                if data_source in self.component_names.data_source_choices:
                     if ms_data_name.startswith(
                             'http') or ms_data_name.endswith('zip'):
                         work_data_dir = os.path.join(work_dir, 'data')
@@ -724,7 +785,18 @@ class TrainerUI(UIBase):
                     int(resolution_height),
                     int(resolution_width)
                 ]
-                data_cfg['PROMPT_DATA'] = eval_prompts
+                if eval_image is not None:
+                    ep = eval_prompts
+                    ep = '' if ep is None else ep
+                    ep = ep[0] if isinstance(ep, list) else ep
+
+                    eval_image_path = os.path.join(work_dir, 'eval_image.jpg')
+                    with FS.put_to(eval_image_path) as local_file:
+                        eval_image.save(local_file)
+                    data_cfg['PROMPT_DATA'] = [ep + '#;#' + eval_image_path]
+                    data_cfg['FIELDS'] = ['prompt', 'src_path']
+                else:
+                    data_cfg['PROMPT_DATA'] = eval_prompts
                 return data_cfg
 
             def prepare_train_config():
@@ -837,15 +909,16 @@ class TrainerUI(UIBase):
         self.training_button.click(
             run_train,
             inputs=[
-                self.work_name, self.data_type, self.ori_data_name,
-                self.ms_data_space, self.ms_data_name, self.ms_data_subname,
-                self.base_model, self.base_model_revision, self.tuner_name,
+                self.work_name, self.data_source, self.data_type,
+                self.ori_data_name, self.ms_data_space, self.ms_data_name,
+                self.ms_data_subname, self.base_model,
+                self.base_model_revision, self.tuner_name,
                 self.resolution_height, self.resolution_width,
                 self.train_epoch, self.learning_rate, self.save_interval,
                 self.train_batch_size, self.prompt_prefix,
                 self.replace_keywords, self.push_to_hub, self.eval_prompts,
-                self.lora_alpha, self.lora_rank, self.text_lora_alpha,
-                self.text_lora_rank, self.sce_ratio,
+                self.eval_image, self.lora_alpha, self.lora_rank,
+                self.text_lora_alpha, self.text_lora_rank, self.sce_ratio,
                 self.enable_resolution_bucket, self.min_bucket_resolution,
                 self.max_bucket_resolution, self.bucket_resolution_steps,
                 self.bucket_no_upscale

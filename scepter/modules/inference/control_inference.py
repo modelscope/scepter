@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as TT
 from PIL.Image import Image
-
 from scepter.modules.model.registry import TUNERS
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.distribute import we

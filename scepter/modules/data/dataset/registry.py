@@ -7,13 +7,12 @@ import re
 from functools import partial
 
 import torch
-from torch.utils.data import DataLoader, DistributedSampler
-
 from scepter.modules.data.sampler import (SAMPLERS, MixtureOfSamplers,
                                           MultiFoldDistributedSampler,
                                           MultiLevelBatchSampler)
 from scepter.modules.utils.registry import (Registry, deep_copy,
                                             old_python_version)
+from torch.utils.data import DataLoader, DistributedSampler
 
 string_classes = (str, bytes)
 int_classes = (int, )

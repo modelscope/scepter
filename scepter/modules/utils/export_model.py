@@ -6,9 +6,8 @@ from io import BytesIO
 import onnx
 import onnxruntime
 import torch
-from torch.onnx import OperatorExportTypes
-
 from scepter.modules.utils.distribute import we
+from torch.onnx import OperatorExportTypes
 
 type_map = {
     'float32': torch.float32,

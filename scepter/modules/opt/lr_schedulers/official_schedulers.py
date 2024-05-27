@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import torch.optim.lr_scheduler as lr_sch
-
 from scepter.modules.opt.lr_schedulers.base_scheduler import BaseScheduler
 from scepter.modules.opt.lr_schedulers.registry import LR_SCHEDULERS
 from scepter.modules.utils.config import dict_to_yaml

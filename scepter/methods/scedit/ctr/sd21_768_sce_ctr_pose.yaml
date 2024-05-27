@@ -125,8 +125,8 @@ SOLVER:
         DOWN_RATIO: 1.0
     CONTROL_ANNO:
       NAME: OpenposeAnnotator
-      BODY_MODEL_PATH: ms://damo/scepter_scedit@annotator/ckpts/body_pose_model.pth
-      HAND_MODEL_PATH: ms://damo/scepter_scedit@annotator/ckpts/hand_pose_model.pth
+      BODY_MODEL_PATH: ms://iic/scepter_scedit@annotator/ckpts/body_pose_model.pth
+      HAND_MODEL_PATH: ms://iic/scepter_scedit@annotator/ckpts/hand_pose_model.pth
   #
   SAMPLE_ARGS:
     SAMPLER: ddim

@@ -4,8 +4,8 @@ TUNERS:
     SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/azure_dragon/
-    IMAGE_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/azure_dragon/xl_azure_dragon.png
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/azure_dragon/
+    IMAGE_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/azure_dragon/xl_azure_dragon.png
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: Azure Dragon, 8K, high quality,Ultra High Detail.One of the Four Divine Creatures in Charge of Water.
   - NAME: Gold-Dragon
@@ -13,8 +13,8 @@ TUNERS:
     SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/gold_dragon/
-    IMAGE_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/gold_dragon/xl_gold_dragon.png
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/gold_dragon/
+    IMAGE_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/gold_dragon/xl_gold_dragon.png
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: Chinese Gold Dragon in the clouds. Translucent Texture. Zbrush.  Fuzzy Art. Exquisite Craftsmanship. 3D. 8K. Ultra High Detail
   - NAME: SpringFestival-Dragon
@@ -22,8 +22,8 @@ TUNERS:
     SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/spring_festival_dragon/
-    IMAGE_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/spring_festival_dragon/xl_spring_festival_dragon.png
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/spring_festival_dragon/
+    IMAGE_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/spring_festival_dragon/xl_spring_festival_dragon.png
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: Chinese dragon. Spring Festival.Festive.Street.Lanterns.32K.High quality.expressive, dramatic, dreamlike and mysterious, Surrealism
   - NAME: Red-Dragon
@@ -31,8 +31,8 @@ TUNERS:
     SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/red_dragon/
-    IMAGE_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/red_dragon/xl_red_dragon.png
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/red_dragon/
+    IMAGE_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/red_dragon/xl_red_dragon.png
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: Traditional Red Dragon of China. Low Water Level. Studio Ghibli Style. Mural Illustration. White Background. High Detail
   - NAME: ChinesePunk-Dragon
@@ -40,8 +40,8 @@ TUNERS:
     SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/chinese_punk_dragon/
-    IMAGE_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/chinese_punk_dragon/xl_chinese_punk_dragon.png
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/chinese_punk_dragon/
+    IMAGE_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/chinese_punk_dragon/xl_chinese_punk_dragon.png
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: uhd Image,Dragon,Chinese Dragon, Dunhuang Mural Style, Traditional Maritime Art Style
   - NAME: Cute-Dragon
@@ -49,8 +49,8 @@ TUNERS:
     SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/cute_dragon/
-    IMAGE_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/cute_dragon/xl_kawaii_dragon.png
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/cute_dragon/
+    IMAGE_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/cute_dragon/xl_kawaii_dragon.png
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: China Kawaii Dragon. Contest Winner. Minimalist Illustration. White Background. Flat Style. Digital Painting Style. Red. 32k uhd. Fun Comics. Fuzzy Art. Bold. Comic-Inspired Characters
   - NAME: Dragon-Baby
@@ -58,8 +58,8 @@ TUNERS:
     SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/baby_dragon/
-    IMAGE_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/baby_dragon/xl_baby_dragon.png
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/baby_dragon/
+    IMAGE_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/baby_dragon/xl_baby_dragon.png
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: Warm Colors, Soft,Chinese Dragon Baby, Felt Style,Dragon Baby, Best Quality, 3D Doll, Macaron Tones, Glittering Big Eyes, Winter,Dragon
   - NAME: Sloppy-Dragon
@@ -67,8 +67,8 @@ TUNERS:
     SOURCE: scepter
     DESCRIPTION: None
     BASE_MODEL: SD_XL1.0
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sloppy_dragon/
-    IMAGE_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sloppy_dragon/xl_sloppy_dragon.png
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/sloppy_dragon/
+    IMAGE_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/sloppy_dragon/xl_sloppy_dragon.png
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: Messy Chinese Dragon,Cute, Wu Guanzhong, Rough
   -
@@ -77,8 +77,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/894f40ed44b37c3372e6a22b8ae577a4.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Caricature
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/894f40ed44b37c3372e6a22b8ae577a4.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/Caricature
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -87,8 +87,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/894f40ed44b37c3372e6a22b8ae577a4.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Caricature
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/894f40ed44b37c3372e6a22b8ae577a4.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/Caricature
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -97,8 +97,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/894f40ed44b37c3372e6a22b8ae577a4.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Caricature
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/894f40ed44b37c3372e6a22b8ae577a4.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/Caricature
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -107,8 +107,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/80e5b4075c572c04cbb4e48c37b8366b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/ColorFieldPainting
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/80e5b4075c572c04cbb4e48c37b8366b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/ColorFieldPainting
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -117,8 +117,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/80e5b4075c572c04cbb4e48c37b8366b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/ColorFieldPainting
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/80e5b4075c572c04cbb4e48c37b8366b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/ColorFieldPainting
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -127,8 +127,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/80e5b4075c572c04cbb4e48c37b8366b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/ColorFieldPainting
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/80e5b4075c572c04cbb4e48c37b8366b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/ColorFieldPainting
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -137,8 +137,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/9ae235d7f1a7c2a4edab52a5e9f9cbae.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/ColoredPencilArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9ae235d7f1a7c2a4edab52a5e9f9cbae.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/ColoredPencilArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -147,8 +147,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/9ae235d7f1a7c2a4edab52a5e9f9cbae.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/ColoredPencilArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/9ae235d7f1a7c2a4edab52a5e9f9cbae.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/ColoredPencilArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -157,8 +157,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/9ae235d7f1a7c2a4edab52a5e9f9cbae.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/ColoredPencilArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/9ae235d7f1a7c2a4edab52a5e9f9cbae.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/ColoredPencilArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -167,8 +167,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/3da915da2f5cedaf243e57e08163f35b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/DarkMoodyAtmosphere
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/3da915da2f5cedaf243e57e08163f35b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/DarkMoodyAtmosphere
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -177,8 +177,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/3da915da2f5cedaf243e57e08163f35b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/DarkMoodyAtmosphere
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/3da915da2f5cedaf243e57e08163f35b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/DarkMoodyAtmosphere
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -187,8 +187,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/3da915da2f5cedaf243e57e08163f35b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/DarkMoodyAtmosphere
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/3da915da2f5cedaf243e57e08163f35b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/DarkMoodyAtmosphere
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -197,8 +197,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/69fd81f5983107acc3d334af62915851.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/DrippingPaintSplatterArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/69fd81f5983107acc3d334af62915851.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/DrippingPaintSplatterArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -207,8 +207,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/69fd81f5983107acc3d334af62915851.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/DrippingPaintSplatterArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/69fd81f5983107acc3d334af62915851.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/DrippingPaintSplatterArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -217,8 +217,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/69fd81f5983107acc3d334af62915851.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/DrippingPaintSplatterArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/69fd81f5983107acc3d334af62915851.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/DrippingPaintSplatterArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -227,8 +227,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/f152edb4b3ca6248758b48115258ddfa.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/FadedPolaroidPhoto
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/f152edb4b3ca6248758b48115258ddfa.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/FadedPolaroidPhoto
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -237,8 +237,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/f152edb4b3ca6248758b48115258ddfa.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/FadedPolaroidPhoto
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/f152edb4b3ca6248758b48115258ddfa.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/FadedPolaroidPhoto
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -247,8 +247,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/f152edb4b3ca6248758b48115258ddfa.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/FadedPolaroidPhoto
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/f152edb4b3ca6248758b48115258ddfa.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/FadedPolaroidPhoto
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -257,8 +257,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/940cfd34155634cf051e1b2942cca426.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Flat2DArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/940cfd34155634cf051e1b2942cca426.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/Flat2DArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -267,8 +267,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/940cfd34155634cf051e1b2942cca426.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Flat2DArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/940cfd34155634cf051e1b2942cca426.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/Flat2DArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -277,8 +277,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/940cfd34155634cf051e1b2942cca426.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Flat2DArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/940cfd34155634cf051e1b2942cca426.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/Flat2DArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -287,8 +287,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/57b751b11564cb22cd49ef21f2004a5f.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/GraffitiArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/57b751b11564cb22cd49ef21f2004a5f.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/GraffitiArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -297,8 +297,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/57b751b11564cb22cd49ef21f2004a5f.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/GraffitiArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/57b751b11564cb22cd49ef21f2004a5f.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/GraffitiArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -307,8 +307,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/57b751b11564cb22cd49ef21f2004a5f.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/GraffitiArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/57b751b11564cb22cd49ef21f2004a5f.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/GraffitiArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -317,8 +317,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/0312b673dc6858a9864d7f45f0c5c1fc.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Impressionism
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0312b673dc6858a9864d7f45f0c5c1fc.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/Impressionism
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -327,8 +327,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/0312b673dc6858a9864d7f45f0c5c1fc.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Impressionism
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/0312b673dc6858a9864d7f45f0c5c1fc.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/Impressionism
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -337,8 +337,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/0312b673dc6858a9864d7f45f0c5c1fc.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Impressionism
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/0312b673dc6858a9864d7f45f0c5c1fc.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/Impressionism
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -347,8 +347,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/9aa040b0c60d289da9610c91ad9b7c7e.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/LogoDesign
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9aa040b0c60d289da9610c91ad9b7c7e.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/LogoDesign
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -357,8 +357,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/9aa040b0c60d289da9610c91ad9b7c7e.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/LogoDesign
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/9aa040b0c60d289da9610c91ad9b7c7e.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/LogoDesign
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -367,8 +367,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/9aa040b0c60d289da9610c91ad9b7c7e.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/LogoDesign
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/9aa040b0c60d289da9610c91ad9b7c7e.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/LogoDesign
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -377,8 +377,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/a9056e1eac85e5e4fe96a93917d4cce4.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/PencilSketchDrawing
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a9056e1eac85e5e4fe96a93917d4cce4.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/PencilSketchDrawing
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -387,8 +387,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/a9056e1eac85e5e4fe96a93917d4cce4.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/PencilSketchDrawing
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/a9056e1eac85e5e4fe96a93917d4cce4.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/PencilSketchDrawing
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -397,8 +397,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/a9056e1eac85e5e4fe96a93917d4cce4.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/PencilSketchDrawing
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/a9056e1eac85e5e4fe96a93917d4cce4.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/PencilSketchDrawing
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -407,8 +407,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/568777f447fc02510b618152726d5002.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/SilhouetteArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/568777f447fc02510b618152726d5002.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/SilhouetteArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -417,8 +417,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/568777f447fc02510b618152726d5002.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/SilhouetteArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/568777f447fc02510b618152726d5002.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/SilhouetteArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -427,8 +427,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/568777f447fc02510b618152726d5002.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/SilhouetteArt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/568777f447fc02510b618152726d5002.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/SilhouetteArt
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -437,8 +437,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/07d7b27cd73f2d43684003563511c15b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Steampunk2
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/07d7b27cd73f2d43684003563511c15b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/Steampunk2
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -447,8 +447,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/07d7b27cd73f2d43684003563511c15b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Steampunk2
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/07d7b27cd73f2d43684003563511c15b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/Steampunk2
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -457,8 +457,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/07d7b27cd73f2d43684003563511c15b.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Steampunk2
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/07d7b27cd73f2d43684003563511c15b.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/Steampunk2
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -467,8 +467,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/2d1e9867058db2c57f2fe47530de3243.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/StickerDesigns
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2d1e9867058db2c57f2fe47530de3243.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/StickerDesigns
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -477,8 +477,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/2d1e9867058db2c57f2fe47530de3243.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/StickerDesigns
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/2d1e9867058db2c57f2fe47530de3243.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/StickerDesigns
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -487,8 +487,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/2d1e9867058db2c57f2fe47530de3243.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/StickerDesigns
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/2d1e9867058db2c57f2fe47530de3243.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/StickerDesigns
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -497,8 +497,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/8859d532ae5901cc8457d6118fb9b7da.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/Watercolor2
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8859d532ae5901cc8457d6118fb9b7da.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/Watercolor2
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -507,8 +507,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/8859d532ae5901cc8457d6118fb9b7da.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/Watercolor2
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/8859d532ae5901cc8457d6118fb9b7da.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/Watercolor2
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -517,8 +517,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: diva
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/8859d532ae5901cc8457d6118fb9b7da.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/Watercolor2
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/8859d532ae5901cc8457d6118fb9b7da.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/Watercolor2
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -527,8 +527,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/5895d78cf58c1ca05178991f37cc48ff.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/mre-elemental-art
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/5895d78cf58c1ca05178991f37cc48ff.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/mre-elemental-art
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -537,8 +537,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/5895d78cf58c1ca05178991f37cc48ff.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/mre-elemental-art
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/5895d78cf58c1ca05178991f37cc48ff.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/mre-elemental-art
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -547,8 +547,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/5895d78cf58c1ca05178991f37cc48ff.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/mre-elemental-art
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/5895d78cf58c1ca05178991f37cc48ff.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/mre-elemental-art
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -557,8 +557,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/a08149bc8e50f6bc65c0010d4cd416f8.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/mre-anime
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a08149bc8e50f6bc65c0010d4cd416f8.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/mre-anime
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -567,8 +567,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/a08149bc8e50f6bc65c0010d4cd416f8.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/mre-anime
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/a08149bc8e50f6bc65c0010d4cd416f8.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/mre-anime
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -577,8 +577,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/a08149bc8e50f6bc65c0010d4cd416f8.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/mre-anime
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/a08149bc8e50f6bc65c0010d4cd416f8.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/mre-anime
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -587,8 +587,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/48c65cebf1fa4284d7b8feb619412e65.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/mre-comic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/48c65cebf1fa4284d7b8feb619412e65.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/mre-comic
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -597,8 +597,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/48c65cebf1fa4284d7b8feb619412e65.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/mre-comic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/48c65cebf1fa4284d7b8feb619412e65.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/mre-comic
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -607,8 +607,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: mre
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/48c65cebf1fa4284d7b8feb619412e65.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/mre-comic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/48c65cebf1fa4284d7b8feb619412e65.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/mre-comic
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -617,8 +617,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/8fc51113f725f27326c4398a7457cd6d.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-craftclay
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8fc51113f725f27326c4398a7457cd6d.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/sai-craftclay
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -627,8 +627,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/8fc51113f725f27326c4398a7457cd6d.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-craftclay
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/8fc51113f725f27326c4398a7457cd6d.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/sai-craftclay
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -637,8 +637,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/8fc51113f725f27326c4398a7457cd6d.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-craftclay
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/8fc51113f725f27326c4398a7457cd6d.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/sai-craftclay
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -647,8 +647,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/a6f8d92afcd5803dfb2ebecbc92091b6.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-fantasyart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a6f8d92afcd5803dfb2ebecbc92091b6.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/sai-fantasyart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -657,8 +657,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/a6f8d92afcd5803dfb2ebecbc92091b6.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-fantasyart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/a6f8d92afcd5803dfb2ebecbc92091b6.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/sai-fantasyart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -667,8 +667,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/a6f8d92afcd5803dfb2ebecbc92091b6.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-fantasyart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/a6f8d92afcd5803dfb2ebecbc92091b6.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/sai-fantasyart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -677,8 +677,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/034a51b0dd34b018be8859bf45b4f7ed.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-lineart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/034a51b0dd34b018be8859bf45b4f7ed.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/sai-lineart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -687,8 +687,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/034a51b0dd34b018be8859bf45b4f7ed.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-lineart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/034a51b0dd34b018be8859bf45b4f7ed.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/sai-lineart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -697,8 +697,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/034a51b0dd34b018be8859bf45b4f7ed.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-lineart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/034a51b0dd34b018be8859bf45b4f7ed.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/sai-lineart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -707,8 +707,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/7e9ed25bb34008beb5f417df63c4b2fe.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-neonpunk
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/7e9ed25bb34008beb5f417df63c4b2fe.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/sai-neonpunk
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -717,8 +717,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/7e9ed25bb34008beb5f417df63c4b2fe.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-neonpunk
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/7e9ed25bb34008beb5f417df63c4b2fe.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/sai-neonpunk
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -727,8 +727,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/7e9ed25bb34008beb5f417df63c4b2fe.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-neonpunk
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/7e9ed25bb34008beb5f417df63c4b2fe.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/sai-neonpunk
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -737,8 +737,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/924f46a8f276011a0953d7988e90ee25.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-origami
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/924f46a8f276011a0953d7988e90ee25.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/sai-origami
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -747,8 +747,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/924f46a8f276011a0953d7988e90ee25.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-origami
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/924f46a8f276011a0953d7988e90ee25.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/sai-origami
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -757,8 +757,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/924f46a8f276011a0953d7988e90ee25.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-origami
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/924f46a8f276011a0953d7988e90ee25.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/sai-origami
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -767,8 +767,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD_XL1.0
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD_XL1.0/a5ab89c0960be8c1216e65c98d92ae4a.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD_XL1.0/sai-pixelart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a5ab89c0960be8c1216e65c98d92ae4a.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD_XL1.0/sai-pixelart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -777,8 +777,8 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD2.1
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD2.1/a5ab89c0960be8c1216e65c98d92ae4a.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD2.1/sai-pixelart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD2.1/a5ab89c0960be8c1216e65c98d92ae4a.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD2.1/sai-pixelart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket
   -
@@ -787,7 +787,7 @@ TUNERS:
     DESCRIPTION:
     SOURCE: sai
     BASE_MODEL: SD1.5
-    IMAGE_PATH: ms://damo/scepter@mantra_images/SD1.5/a5ab89c0960be8c1216e65c98d92ae4a.png
-    MODEL_PATH: ms://damo/scepter_scedit@tuners_model/SD1.5/sai-pixelart
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD1.5/a5ab89c0960be8c1216e65c98d92ae4a.jpg
+    MODEL_PATH: ms://iic/scepter_scedit@tuners_model/SD1.5/sai-pixelart
     TUNER_TYPE: SwiftSCE
     PROMPT_EXAMPLE: a boy wearing green jacket

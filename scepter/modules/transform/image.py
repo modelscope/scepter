@@ -8,7 +8,6 @@ import opencv_transforms.transforms as cv2_transforms
 import torch
 import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
-
 from scepter.modules.transform.registry import TRANSFORMS
 from scepter.modules.transform.utils import (
     BACKEND_CV2, BACKEND_PILLOW, BACKEND_TORCHVISION, INPUT_CV2_TYPE_WARNING,

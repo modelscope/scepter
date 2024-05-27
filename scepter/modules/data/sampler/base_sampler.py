@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
-from torch.utils.data.sampler import Sampler
-
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
+from torch.utils.data.sampler import Sampler
 
 
 class BaseSampler(Sampler):

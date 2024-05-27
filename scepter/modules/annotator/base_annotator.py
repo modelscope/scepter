@@ -4,7 +4,6 @@ from abc import ABCMeta
 
 import torch
 import torch.nn as nn
-
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.model.base_model import BaseModel
 from scepter.modules.utils.config import dict_to_yaml

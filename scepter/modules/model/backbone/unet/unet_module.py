@@ -6,7 +6,6 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
-
 from scepter.modules.model.backbone.unet.unet_utils import (
     BasicTransformerBlock, Downsample, ResBlock, SpatialTransformer,
     SpatialTransformerV2, Timestep, TimestepEmbedSequential,

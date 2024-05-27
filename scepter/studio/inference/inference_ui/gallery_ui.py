@@ -6,7 +6,6 @@ from collections import OrderedDict
 import gradio as gr
 import numpy as np
 from PIL import Image
-
 from scepter.modules.utils.file_system import FS
 from scepter.studio.inference.inference_ui.component_names import GalleryUIName
 from scepter.studio.utils.uibase import UIBase

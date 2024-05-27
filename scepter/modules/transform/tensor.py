@@ -4,7 +4,6 @@
 import numpy as np
 import torch
 from PIL import Image
-
 from scepter.modules.transform.registry import TRANSFORMS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we

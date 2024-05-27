@@ -3,11 +3,10 @@
 import math
 
 import torch.optim.lr_scheduler as lr_scheduler
-from torch.optim.lr_scheduler import _LRScheduler
-
 from scepter.modules.opt.lr_schedulers import LR_SCHEDULERS
 from scepter.modules.opt.lr_schedulers.base_scheduler import BaseScheduler
 from scepter.modules.utils.config import dict_to_yaml
+from torch.optim.lr_scheduler import _LRScheduler
 
 
 @LR_SCHEDULERS.register_class()

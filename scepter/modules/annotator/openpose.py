@@ -15,13 +15,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 from PIL import Image
-from scipy.ndimage.filters import gaussian_filter
-from skimage.measure import label
-
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.file_system import FS
+from scipy.ndimage.filters import gaussian_filter
+from skimage.measure import label
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 

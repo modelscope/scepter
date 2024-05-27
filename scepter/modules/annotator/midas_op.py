@@ -9,7 +9,6 @@ import numpy as np
 import torch
 from einops import rearrange
 from PIL import Image
-
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.midas.api import MiDaSInference
 from scepter.modules.annotator.registry import ANNOTATORS

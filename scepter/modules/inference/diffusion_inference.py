@@ -8,7 +8,6 @@ from collections import OrderedDict
 import torch
 import torch.nn.functional as F
 from PIL.Image import Image
-
 from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, MODELS,
@@ -277,7 +276,7 @@ class DiffusionInference():
                     module = self.load(module)
                     self.loaded_model[name] = module
                     return module
-                elif module['device'] == 'cpu' or module['device'] == "offline":
+                elif module['device'] == 'cpu' or module['device'] == 'offline':
                     module = self.load(module)
                     return module
                 else:
@@ -629,7 +628,7 @@ class DiffusionInference():
                         }, {
                             'cond': refine_null_context
                         }],
-                        steps=value_input.get('sample_steps', 50),
+                        steps=value_input.get('refine_sample_steps', 50),
                         guide_scale=value_input.get('refine_guide_scale', 7.5),
                         guide_rescale=value_input.get('refine_guide_rescale',
                                                       0.5),

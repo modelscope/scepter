@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 
 import gradio as gr
-
 from scepter.studio.preprocess.caption_editor_ui.component_names import \
     ExportDatasetUIName
 from scepter.studio.utils.uibase import UIBase
@@ -56,20 +55,25 @@ class ExportDatasetUI(UIBase):
             queue=False)
 
         def go_to_train(dataset_type, dataset_name):
-            dataset_type = create_dataset.get_trans_dataset_type(dataset_type)
-            dataset_ins = create_dataset.dataset_dict[dataset_type][
+            dataset_type_ori = create_dataset.get_trans_dataset_type(
+                dataset_type)
+            dataset_ins = create_dataset.dataset_dict[dataset_type_ori][
                 dataset_name]
             dataset_ins.update_dataset()
             return (gr.Tabs(selected='self_train'),
+                    gr.Dropdown(value=self.component_names.dataset_source),
+                    gr.Dropdown(value=dataset_type),
                     gr.Textbox(
                         value=os.path.abspath(dataset_ins.local_work_dir)),
-                    dataset_name)
+                    gr.Textbox(value=dataset_name))
 
         self.go_to_train.click(
             go_to_train,
             inputs=[create_dataset.dataset_type, create_dataset.dataset_name],
             outputs=[
-                manager.tabs, manager.self_train.trainer_ui.ms_data_name,
+                manager.tabs, manager.self_train.trainer_ui.data_source,
+                manager.self_train.trainer_ui.data_type,
+                manager.self_train.trainer_ui.ms_data_name,
                 manager.self_train.trainer_ui.ori_data_name
             ],
             queue=False)

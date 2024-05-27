@@ -12,13 +12,17 @@ q(x_t | x_0) = N(x_t | alpha_t x_0, sigma_t^2 I),
 
 where 0 <= sigma_t <= 1 and alpha_t^2 = 1 - sigma_t^2.
 """
-import torch
 from tqdm.auto import trange
+
+import torch
 
 __all__ = [
     'sample_euler', 'sample_euler_ancestral', 'sample_heun', 'sample_dpm_2',
     'sample_dpm_2_ancestral', 'sample_dpmpp_2s_ancestral', 'sample_dpmpp_sde',
-    'sample_dpmpp_2m', 'sample_dpmpp_2m_sde', 'sample_ddim'
+    'sample_dpmpp_2m', 'sample_dpmpp_2m_sde', 'sample_ddim',
+    'sample_dpmpp_2m_sde_lcm', 'sample_onestep',
+    'stochastic_iterative_sampler', 'stochastic_iterative_sampler2',
+    'stochastic_iterative_sampler3'
 ]
 
 # -------------------- variation exploding (VE) solver --------------------#
@@ -630,3 +634,183 @@ def sample_img2img_euler_ancestral(noise,
             if sigmas[i + 1] > 0:
                 x = x + torch.randn_like(x) * s_noise * sigma_up
     return x
+
+
+# --------- LCM ------------
+
+
+@torch.no_grad()
+def sample_dpmpp_2m_sde_lcm(noise,
+                            model,
+                            sigmas,
+                            eta=1.,
+                            s_noise=1.,
+                            solver_type='midpoint',
+                            show_progress=True,
+                            total_sample_steps=50,
+                            sample_steps=5,
+                            **kwargs):
+    """
+    DPM-Solver++ (2M) SDE.
+    """
+    assert solver_type in {'heun', 'midpoint'}
+
+    dm_steps = sample_steps
+    x = noise * (sigmas[-dm_steps - 1]**2 + 1)**0.5
+    sigma_min, sigma_max = sigmas[sigmas > 0].min(), sigmas[
+        sigmas < float('inf')].max()
+    noise_sampler = BrownianTreeNoiseSampler(x, sigma_min, sigma_max)
+    old_denoised = None
+    h_last = None
+
+    for i in trange(len(sigmas) - dm_steps - 1,
+                    len(sigmas) - 1,
+                    disable=not show_progress):
+        if sigmas[i] == float('inf'):
+            # Euler method
+            denoised = model(noise, sigmas[i])
+            x = denoised + sigmas[i + 1] * noise
+        else:
+            _, c_in = get_scalings(sigmas[i])
+            denoised = model(x * c_in, sigmas[i])
+            if sigmas[i + 1] == 0:
+                # Denoising step
+                x = denoised
+            else:
+                # DPM-Solver++(2M) SDE
+                t, s = -sigmas[i].log(), -sigmas[i + 1].log()
+                h = s - t
+                eta_h = eta * h
+
+                x = sigmas[i + 1] / sigmas[i] * (-eta_h).exp() * x + \
+                    (-h - eta_h).expm1().neg() * denoised
+
+                if old_denoised is not None:
+                    r = h_last / h
+                    if solver_type == 'heun':
+                        x = x + ((-h - eta_h).expm1().neg() / (-h - eta_h) + 1) * \
+                            (1 / r) * (denoised - old_denoised)
+                    elif solver_type == 'midpoint':
+                        x = x + 0.5 * (-h - eta_h).expm1().neg() * \
+                            (1 / r) * (denoised - old_denoised)
+
+                x = x + noise_sampler(sigmas[i], sigmas[i + 1]) * sigmas[
+                    i + 1] * (-2 * eta_h).expm1().neg().sqrt() * s_noise
+
+                old_denoised = denoised
+                h_last = h
+    return x
+
+
+@torch.no_grad()
+def sample_onestep(noise, model, sigmas, show_progress=True, **kwargs):
+    """
+    CM one step solver.
+    """
+    x = noise
+    denoised = model(x, sigmas[0])
+    return denoised
+
+
+@torch.no_grad()
+def stochastic_iterative_sampler(noise,
+                                 model,
+                                 sigmas,
+                                 show_progress=True,
+                                 **kwargs):
+    """
+    CM multiple steps solver.
+    """
+    x = noise
+    sigmas_vp = (sigmas**2 / (1 + sigmas**2))**0.5
+    sigmas_vp[sigmas == float('inf')] = 1.
+    for i in trange(len(sigmas) - 1, disable=not show_progress):
+        denoised = model(x, sigmas[i])
+
+        sigma = sigmas_vp[i + 1]
+        alpha = torch.sqrt(1 - sigma**2)
+        noises = torch.randn_like(x)
+        x = alpha * denoised + sigma * noises
+    return x
+
+
+@torch.no_grad()
+def stochastic_iterative_sampler2(noise,
+                                  model,
+                                  sigmas,
+                                  show_progress=True,
+                                  repeat=1,
+                                  ema=0.05,
+                                  **kwargs):
+    """
+    CM multiple steps solver.
+    """
+    # denoised_s = []
+    # for _ in range(repeat):
+    #     noise = torch.randn_like(noise)
+    #     denoised_s.append(model(noise, sigmas[0]))
+
+    # denoised_s = torch.cat(denoised_s, dim = 0)
+    # denoised = torch.mean(denoised_s, dim=0, keepdim=True)
+    denoised = model(noise, sigmas[0])
+    denoised_ema = denoised
+
+    sigmas_vp = (sigmas**2 / (1 + sigmas**2))**0.5
+    sigmas_vp[sigmas == float('inf')] = 1.
+    for i in trange(1, len(sigmas) - 1, disable=not show_progress):
+        sigma = sigmas_vp[i]
+        alpha = torch.sqrt(1 - sigma**2)
+        noise = torch.randn_like(noise)
+        x = alpha * denoised + sigma * noise
+        denoised = model(x, sigmas[i])
+        denoised_ema = ema * denoised_ema + (1.0 - ema) * denoised
+    return denoised_ema
+
+
+@torch.no_grad()
+def stochastic_iterative_sampler3(noise,
+                                  model,
+                                  sigmas,
+                                  show_progress=True,
+                                  repeat=1,
+                                  solver_eta=0.2,
+                                  solver_ema=0.05,
+                                  **kwargs):
+    """
+    CM multiple steps solver.
+    """
+    eta = solver_eta
+    ema = solver_ema
+    # denoised_s = []
+    # for _ in range(repeat):
+    #     noise = torch.randn_like(noise)
+    #     denoised_s.append(model(noise, sigmas[0]))
+
+    # denoised_s = torch.cat(denoised_s, dim = 0)
+    # denoised = torch.mean(denoised_s, dim=0, keepdim=True)
+    denoised = model(noise, sigmas[0])
+    denoised_ema = denoised
+    eta = float(eta)
+
+    sigmas_vp = (sigmas**2 / (1 + sigmas**2))**0.5
+    sigmas_vp[sigmas == float('inf')] = 1.
+    noises = [
+        noise.clone(),
+    ]
+    for i in trange(1, len(sigmas) - 1, disable=not show_progress):
+        sigma = sigmas_vp[i]
+        alpha = torch.sqrt(1 - sigma**2)
+        # x = alpha * denoised + sigma * torch.randn_like(noise)
+        # x = alpha * denoised + sigma * (eta * noise + (1 - eta ** 2) ** 0.5 * torch.randn_like(noise))
+        # eta = 0.2*sigma / (sigma + 1.0)
+        # noise = eta * noise + (1 - eta ** 2) ** 0.5 * torch.randn_like(noise)
+        noise2 = 0
+        for n in noises:
+            noise2 += eta * n
+        noise2 += (1 - (eta * len(noises))**2)**0.5 * torch.randn_like(noise)
+        noises.append(noise2.clone())
+        # noise = torch.randn_like(noise)
+        x = alpha * denoised + sigma * noise2
+        denoised = model(x, sigmas[i])
+        denoised_ema = ema * denoised_ema + (1.0 - ema) * denoised
+    return denoised_ema

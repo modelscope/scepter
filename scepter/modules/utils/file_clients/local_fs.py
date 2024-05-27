@@ -87,6 +87,7 @@ class LocalFs(BaseFs):
                              wait_finish=False,
                              multi_thread=False,
                              timeout=3600,
+                             sign_key=None,
                              worker_id=0) -> Optional[str]:
         if not self.isdir(target_path):
             self.logger.info(
@@ -255,7 +256,11 @@ class LocalFs(BaseFs):
                 return False
         return True
 
-    def get_url(self, target_path, set_public=False, lifecycle=3600 * 100):
+    def get_url(self,
+                target_path,
+                set_public=False,
+                skip_check=False,
+                lifecycle=3600 * 100):
         return target_path
 
     def make_dir(self, target_dir) -> bool:

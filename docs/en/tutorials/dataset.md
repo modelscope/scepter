@@ -16,7 +16,11 @@ print(next(iter(ms_train_dataset)))
 
 ## CSV Format
 
-For the data format used by SCEPTER Studio, please refer to [3D_example_csv.zip](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip).
+For the data format used by SCEPTER Studio, please refer to [3D_example_csv.zip](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip) and [hed_pair.zip](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fhed_pair.zip).
+```shell
+mkdir -p cache/datasets/ && wget 'https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip' -O cache/datasets/3D_example_csv.zip && unzip cache/datasets/3D_example_csv.zip -d cache/datasets/ && rm cache/datasets/3D_example_csv.zip
+mkdir -p cache/datasets/ && wget 'https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/hed_pair.zip' -O cache/datasets/hed_pair.zip && unzip cache/datasets/hed_pair.zip -d cache/datasets/ && rm cache/datasets/hed_pair.zip
+```
 
 ## TXT Format
 
@@ -24,3 +28,4 @@ To facilitate starting training in command-line mode, you can use a dataset in t
 
 ```shell
 mkdir -p cache/datasets/ && wget 'https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_txt.zip' -O cache/datasets/3D_example_txt.zip && unzip cache/datasets/3D_example_txt.zip -d cache/datasets/ && rm cache/datasets/3D_example_txt.zip
+```

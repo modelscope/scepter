@@ -7,7 +7,6 @@ import os
 import warnings
 
 import torch
-
 from scepter.modules.utils.file_system import FS
 
 try:

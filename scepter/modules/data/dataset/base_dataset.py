@@ -3,14 +3,13 @@
 
 from abc import ABCMeta, abstractmethod
 
-from torch.utils.data import Dataset
-
 from scepter.modules.transform.registry import TRANSFORMS, build_pipeline
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger
 from scepter.modules.utils.registry import old_python_version
+from torch.utils.data import Dataset
 
 
 class BaseDataset(Dataset, metaclass=ABCMeta):

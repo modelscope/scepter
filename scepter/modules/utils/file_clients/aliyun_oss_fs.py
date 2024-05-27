@@ -14,11 +14,11 @@ import time
 import warnings
 from typing import Optional
 
+from tqdm import tqdm
+
 import oss2
 from oss2 import determine_part_size
 from oss2.models import PartInfo
-from tqdm import tqdm
-
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.directory import get_md5
 from scepter.modules.utils.file_clients.base_fs import BaseFs
@@ -451,8 +451,14 @@ class AliyunOssFs(BaseFs):
         else:
             return False
 
-    def check_folder(self, check_file):
+    def check_folder(self, check_file, sign_key=None):
         meta_dict = json.load(open(check_file, 'r'))
+        if sign_key in meta_dict:
+            etag, size = self.get_meta(sign_key)
+            if not etag == meta_dict[sign_key]:
+                return False
+            else:
+                return True
         for key, v in meta_dict.items():
             etag, size = self.get_meta(key)
             if not etag == v:
@@ -567,6 +573,7 @@ class AliyunOssFs(BaseFs):
                              wait_finish=False,
                              timeout=3600,
                              multi_thread=False,
+                             sign_key=None,
                              worker_id=-1) -> Optional[str]:
         if not self.isdir(target_path):
             self.logger.info(
@@ -586,7 +593,8 @@ class AliyunOssFs(BaseFs):
             from scepter.modules.utils.distribute import we
             wait_times = timeout
             while wait_times > 0 and not (osp.exists(check_file)
-                                          and self.check_folder(check_file)):
+                                          and self.check_folder(
+                                              check_file, sign_key=sign_key)):
                 if we.share_storage and we.rank == 0:
                     break
                 if not we.share_storage and (we.device_id == 0
@@ -599,7 +607,8 @@ class AliyunOssFs(BaseFs):
                     )
                 time.sleep(5)
                 wait_times -= 1
-        if osp.exists(check_file) and self.check_folder(check_file):
+        if osp.exists(check_file) and self.check_folder(check_file,
+                                                        sign_key=sign_key):
             return local_path
 
         if osp.exists(check_file):
@@ -941,10 +950,11 @@ class AliyunOssFs(BaseFs):
                 target_path,
                 set_public=False,
                 lifecycle=3600 * 100,
+                skip_check=False,
                 slash_safe=True):
         key = osp.relpath(target_path, self._prefix)
         _bucket = self._init_bucket()
-        if not _bucket.object_exists(key):
+        if not skip_check and not _bucket.object_exists(key):
             self.logger.info(f'{target_path} is not exists!')
             return None
         retry = 0

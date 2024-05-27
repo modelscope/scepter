@@ -3,14 +3,35 @@
 import copy
 import os
 
-import gradio as gr
 import yaml
 
+import gradio as gr
+import torch
+from safetensors.torch import save_file
 from scepter.modules.utils.config import Config
-from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.directory import get_md5
+from scepter.modules.utils.file_system import FS, IoString
+from scepter.modules.utils.module_transform import (
+    convert_ldm_clip_checkpoint_v1, convert_ldm_unet_tuner_checkpoint,
+    convert_lora_checkpoint, create_unet_diffusers_config)
 from scepter.studio.tuner_manager.manager_ui.component_names import \
     TunerManagerNames
 from scepter.studio.utils.uibase import UIBase
+
+
+def check_data(data):
+    if isinstance(data, dict):
+        for k, v in data.items():
+            data[k] = check_data(v)
+        return data
+    elif isinstance(data, list):
+        for idx, v in enumerate(data):
+            data[idx] = check_data(v)
+        return data
+    else:
+        if isinstance(data, IoString):
+            return str(data)
+        return data
 
 
 class InfoUI(UIBase):
@@ -49,11 +70,22 @@ class InfoUI(UIBase):
                                         label=self.component_names.
                                         base_model_name,
                                         interactive=False)
+                            with gr.Row(equal_height=True):
                                 with gr.Column(scale=1):
                                     self.tuner_desc = gr.Text(
                                         value='',
                                         label=self.component_names.tuner_desc,
                                         lines=4)
+                            with gr.Row(equal_height=True):
+                                with gr.Column(scale=1):
+                                    self.save_bt2 = gr.Button(
+                                        value=self.component_names.save_symbol,
+                                        label='Save',
+                                        elem_classes='type_row',
+                                        elem_id='save_button',
+                                        visible=True,
+                                        # lines=4
+                                    )
                     with gr.Column(variant='panel', scale=1, min_width=0):
                         with gr.Group(visible=True):
                             with gr.Row(equal_height=True):
@@ -72,7 +104,12 @@ class InfoUI(UIBase):
                                 self.ms_url = gr.Text(
                                     value='',
                                     label=self.component_names.ms_url,
-                                    lines=2)
+                                    lines=1)
+                            with gr.Row(equal_height=True):
+                                self.hf_url = gr.Text(
+                                    value='',
+                                    label=self.component_names.hf_url,
+                                    lines=1)
                             with gr.Row(equal_height=True):
                                 with gr.Column(scale=1, min_width=0):
                                     self.go_to_inferece_btn = gr.Button(
@@ -84,28 +121,44 @@ class InfoUI(UIBase):
                                         download_to_local,
                                         # elem_classes='type_row',
                                         elem_id='save_button')
-                                    self.export_url = gr.File(
-                                        label=self.component_names.export_file,
-                                        visible=False,
-                                        value=None,
-                                        interactive=False,
-                                        show_label=True)
+                            with gr.Row(
+                                    equal_height=True,
+                                    visible=False,
+                                    variant='panel') as self.download_choices:
+                                with gr.Column(scale=4, min_width=0):
+                                    self.download_select = gr.Dropdown(
+                                        choices=['.zip', '.safetensors'],
+                                        value='.zip',
+                                        interactive=True,
+                                        label='Select Download Format',
+                                        show_label=False)
+                                with gr.Column(scale=1, min_width=0):
+                                    self.download_confirm = gr.Button(
+                                        label='Confirm Download Format',
+                                        value=self.component_names.submit,
+                                        elem_classes='type_row',
+                                        elem_id='save_button')
+                            with gr.Row(equal_height=True):
+                                self.export_url = gr.File(
+                                    label=self.component_names.export_file,
+                                    visible=False,
+                                    value=None,
+                                    interactive=False,
+                                    show_label=True)
 
-    def set_callbacks(self, manager):
+    def set_callbacks(self, manager, browser_ui):
+        # def set_callbacks(self, manager):
         def go_to_inferece(new_name, tuner_desc, tuner_prompt_example,
                            tuner_type, base_model):
+            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category
             sub_dir = f'{base_model}-{tuner_type}'
-            tar_path = os.path.join(self.work_dir, sub_dir)
-            model_dir = os.path.join(tar_path, new_name)
+            current_model = all_tuners.get(sub_dir, {}).get(new_name, None)
+            if current_model is None:
+                raise gr.Error(self.component_names.model_err4)
+            model_dir, _ = FS.map_to_local(current_model['MODEL_PATH'])
             if not os.path.exists(model_dir):
-                tuner_list = Config(
-                    cfg_file=os.path.join(self.work_dir, 'tuner_list.yaml'))
-                for tuner_item in tuner_list.get('TUNERS', []):
-                    if tuner_item.NAME == new_name:
-                        model_dir = tuner_item.MODEL_PATH
-            tuner_example = os.path.join(model_dir, 'image.jpg')
-            if not os.path.exists(tuner_example):
-                tuner_example = None
+                FS.get_dir_to_local_dir(current_model['MODEL_PATH'])
+
             tuner_dict = {
                 'NAME': new_name,
                 'NAME_ZH': new_name,
@@ -113,19 +166,24 @@ class InfoUI(UIBase):
                 'DESCRIPTION': tuner_desc,
                 'BASE_MODEL': base_model,
                 'MODEL_PATH': model_dir,
-                'IMAGE_PATH': tuner_example,
                 'TUNER_TYPE': tuner_type,
                 'PROMPT_EXAMPLE': tuner_prompt_example
             }
+            if 'IMAGE_PATH' in current_model:
+                tuner_example_abspath = os.path.join(
+                    model_dir, current_model['IMAGE_PATH'])
+                if FS.exists(tuner_example_abspath):
+                    tuner_dict.update({'IMAGE_PATH': tuner_example_abspath})
+
             tuner_cfg = Config(cfg_dict=tuner_dict, load=False)
             cfg_file = os.path.join(model_dir, 'meta.yaml')
             if not os.path.exists(model_dir):
-                gr.Error(self.component_names.model_err4)
+                raise gr.Error(self.component_names.model_err4)
 
             pipeline_level_modules = manager.inference.model_manage_ui.pipe_manager.pipeline_level_modules
             if tuner_cfg.BASE_MODEL not in pipeline_level_modules:
-                gr.Error(self.component_names.model_err3 +
-                         tuner_cfg.BASE_MODEL)
+                raise gr.Error(self.component_names.model_err3 +
+                               tuner_cfg.BASE_MODEL)
             pipeline_ins = pipeline_level_modules[tuner_cfg.BASE_MODEL]
             diffusion_model = f"{tuner_cfg.BASE_MODEL}_{pipeline_ins.diffusion_model['name']}"
 
@@ -139,11 +197,11 @@ class InfoUI(UIBase):
                 tunner_default = tuner_cfg.NAME if self.language == 'en' else tuner_cfg.NAME_ZH
                 if tunner_default not in tunner_choices:
                     if self.language == 'zh':
-                        gr.Error(self.component_names.model_err5 +
-                                 tuner_cfg.NAME_ZH)
+                        raise gr.Error(self.component_names.model_err5 +
+                                       tuner_cfg.NAME_ZH)
                     else:
-                        gr.Error(self.component_names.model_err5 +
-                                 tuner_cfg.NAME)
+                        raise gr.Error(self.component_names.model_err5 +
+                                       tuner_cfg.NAME)
                 if not isinstance(tunner_default, list):
                     tunner_default = [tunner_default]
             else:
@@ -151,7 +209,7 @@ class InfoUI(UIBase):
                 tunner_default = []
 
             with open(cfg_file, 'w') as f_out:
-                yaml.dump(copy.deepcopy(tuner_cfg.cfg_dict),
+                yaml.dump(copy.deepcopy(check_data(tuner_cfg.cfg_dict)),
                           f_out,
                           encoding='utf-8',
                           allow_unicode=True,
@@ -166,13 +224,21 @@ class InfoUI(UIBase):
                 manager.inference.tuner_ui.name_level_tuners[base_model][
                     tuner_cfg.NAME] = tuner_cfg
 
-            return (
-                gr.Tabs(selected='inference'), cfg_file,
-                gr.Tabs(selected='tuner_ui'),
-                gr.CheckboxGroup(
-                    value='使用微调' if self.language == 'zh' else 'Use Tuners'),
-                gr.Dropdown(value=diffusion_model),
-                gr.Dropdown(choices=tunner_choices, value=tunner_default))
+            if tuner_cfg.BASE_MODEL == 'EDIT':
+                selected_tab = 'stylebooth_ui' if tuner_cfg.BASE_MODEL == 'EDIT' else 'tuner_ui'
+                checkboxes = [
+                    '使用微调', 'StyleBooth'
+                ] if self.language == 'zh' else ['Use Tuners', 'StyleBooth']
+            else:
+                selected_tab = 'tuner_ui'
+                checkboxes = ['使用微调'
+                              ] if self.language == 'zh' else ['Use Tuners']
+
+            return (gr.Tabs(selected='inference'), cfg_file,
+                    gr.Tabs(selected=selected_tab),
+                    gr.CheckboxGroup(value=checkboxes),
+                    gr.Dropdown(value=diffusion_model),
+                    gr.Dropdown(choices=tunner_choices, value=tunner_default))
 
         self.go_to_inferece_btn.click(
             go_to_inferece,
@@ -190,33 +256,118 @@ class InfoUI(UIBase):
             queue=True)
 
         def export_zip(tuner_name, base_model, tuner_type):
+            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category
             sub_dir = f'{base_model}-{tuner_type}'
-            if os.path.exists(os.path.join(self.work_dir, sub_dir,
-                                           tuner_name)):
-                model_dir = os.path.join(self.work_dir, sub_dir, tuner_name)
-            else:
-                model_dir = ''
-                tuner_list = Config(
-                    cfg_file=os.path.join(self.work_dir, 'tuner_list.yaml'))
-                for tuner_item in tuner_list.get('TUNERS', []):
-                    if tuner_item.NAME == tuner_name:
-                        model_dir = tuner_item.MODEL_PATH
-                        break
-                if not os.path.exists(model_dir) or model_dir == '':
-                    raise gr.Error(self.component_names.model_err4)
-            zip_path = os.path.join(self.export_folder, f'{tuner_name}.zip')
+            current_model = all_tuners.get(sub_dir, {}).get(tuner_name, None)
+            if current_model is None:
+                raise gr.Error(self.component_names.model_err4)
+            enable_share = current_model.get('ENABLE_SHARE', True)
+            if not enable_share:
+                gr.Info('Error: The model is not allowed to Export!')
+                return gr.File()
+            model_dir = FS.get_dir_to_local_dir(current_model['MODEL_PATH'])
+            zip_path = get_md5(os.path.join(self.export_folder,
+                                            tuner_name)) + '.zip'
             with FS.put_to(zip_path) as local_zip:
                 res = os.popen(
-                    f"cd '{model_dir}' "
+                    f"cd '{os.path.abspath(model_dir)}' "
                     f"&& zip -r '{os.path.abspath(local_zip)}' ./* ")
                 print(res.readlines())
             if not FS.exists(zip_path):
                 raise gr.Error(self.component_names.export_zip_err1)
             local_zip = FS.get_from(zip_path)
+            gr.Info(self.component_names.save_end)
             return gr.File(value=local_zip, visible=True)
 
-        self.local_download_bt.click(
-            export_zip,
-            inputs=[self.tuner_name, self.base_model, self.tuner_type],
-            outputs=[self.export_url],
-            queue=False)
+        def export_safetensors(tuner_name, base_model, tuner_type):
+            # only support sd1.5
+            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category
+            sub_dir = f'{base_model}-{tuner_type}'
+            current_model = all_tuners.get(sub_dir, {}).get(tuner_name, None)
+            if current_model is None:
+                raise gr.Error(self.component_names.model_err4)
+            enable_share = current_model.get('ENABLE_SHARE', True)
+            if not enable_share:
+                gr.Info('Error: The model is not allowed to Export!')
+                return gr.File()
+
+            model_dir = FS.get_dir_to_local_dir(current_model['MODEL_PATH'])
+
+            swift_checkpoint = {}
+            swift_dirs = os.listdir(model_dir)
+            for swift_dir in swift_dirs:
+                if not os.path.isdir(os.path.join(model_dir, swift_dir)):
+                    continue
+                swift_files = os.listdir(os.path.join(model_dir, swift_dir))
+                for swift_file in swift_files:
+                    if '.bin' in swift_file:
+                        checkpoint_path = os.path.join(model_dir, swift_dir,
+                                                       swift_file)
+                        checkpoint = torch.load(checkpoint_path,
+                                                map_location='cpu')
+                        swift_checkpoint.update(checkpoint)
+
+            unet_config = create_unet_diffusers_config(v2=False)
+            ckpt_unet = convert_ldm_unet_tuner_checkpoint(
+                v2=False,
+                checkpoint=swift_checkpoint,
+                config=unet_config,
+                unet_key='model.')
+            lora_state_dict = convert_lora_checkpoint(ckpt_unet=ckpt_unet)
+            ckpt_te = convert_ldm_clip_checkpoint_v1(swift_checkpoint)
+            lora_te_state_dict = convert_lora_checkpoint(ckpt_text=ckpt_te)
+            lora_state_dict.update(lora_te_state_dict)
+
+            save_path = get_md5(os.path.join(self.export_folder,
+                                             tuner_name)) + '.safetensors'
+            with FS.put_to(save_path) as local_file:
+                save_file(lora_state_dict, local_file)
+            if not FS.exists(save_path):
+                raise gr.Error(self.component_names.export_zip_err1)
+            local_zip = FS.get_from(save_path)
+            gr.Info(self.component_names.save_end)
+            return gr.File(value=local_zip, visible=True)
+
+        def export_file(tuner_name, base_model, tuner_type, download_type):
+            gr.Info(self.component_names.save_start)
+            if download_type == '.zip':
+                return export_zip(tuner_name, base_model, tuner_type)
+            elif download_type == '.safetensors':
+                return export_safetensors(tuner_name, base_model, tuner_type)
+
+        def change_visible():
+            return gr.update(visible=True)
+
+        self.local_download_bt.click(change_visible,
+                                     inputs=[],
+                                     outputs=[self.download_choices],
+                                     queue=False)
+
+        self.download_confirm.click(export_file,
+                                    inputs=[
+                                        self.tuner_name, self.base_model,
+                                        self.tuner_type, self.download_select
+                                    ],
+                                    outputs=[self.export_url],
+                                    queue=True)
+
+        def save_tuner_func(tuner_name, new_name, tuner_desc, tuner_example,
+                            tuner_prompt_example, base_model, tuner_type):
+            return browser_ui.save_tuner(manager, tuner_name, new_name,
+                                         tuner_desc, tuner_example,
+                                         tuner_prompt_example, base_model,
+                                         tuner_type)
+
+        self.save_bt2.click(save_tuner_func,
+                            inputs=[
+                                self.tuner_name, self.new_name,
+                                self.tuner_desc, self.tuner_example,
+                                self.tuner_prompt_example, self.base_model,
+                                self.tuner_type
+                            ],
+                            outputs=[
+                                browser_ui.diffusion_models,
+                                browser_ui.tuner_models, self.tuner_name,
+                                manager.inference.tuner_ui.custom_tuner_model
+                            ],
+                            queue=True)

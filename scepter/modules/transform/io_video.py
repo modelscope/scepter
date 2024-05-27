@@ -8,7 +8,6 @@ import threading
 
 import numpy as np
 import torch
-
 from scepter.modules.transform import LoadImageFromFile
 from scepter.modules.transform.registry import TRANSFORMS
 from scepter.modules.utils.config import dict_to_yaml

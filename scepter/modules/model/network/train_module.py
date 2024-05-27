@@ -4,7 +4,6 @@
 from abc import ABCMeta, abstractmethod
 
 import torch
-
 from scepter.modules.model.base_model import BaseModel
 from scepter.modules.utils.config import dict_to_yaml
 

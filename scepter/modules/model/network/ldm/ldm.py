@@ -5,7 +5,6 @@ import random
 from collections import OrderedDict
 
 import torch
-
 from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.network.train_module import TrainModule

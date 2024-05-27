@@ -3,7 +3,6 @@
 import os.path
 
 import gradio as gr
-
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
 from scepter.studio.preprocess.caption_editor_ui.create_dataset_ui import \

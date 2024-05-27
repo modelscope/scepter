@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import torch
-from torch.distributed.fsdp import (FullStateDictConfig,
-                                    FullyShardedDataParallel, StateDictType)
-
 from scepter.modules.solver.hooks.hook import Hook
 from scepter.modules.solver.hooks.registry import HOOKS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
+from torch.distributed.fsdp import (FullStateDictConfig,
+                                    FullyShardedDataParallel, StateDictType)
 
 
 @HOOKS.register_class()

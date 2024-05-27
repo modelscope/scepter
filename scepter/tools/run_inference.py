@@ -10,7 +10,6 @@ import torch
 import torch.cuda.amp as amp
 import torchvision.transforms as TT
 from PIL import Image
-
 from scepter.modules.solver.registry import SOLVERS
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.data import transfer_data_to_cuda

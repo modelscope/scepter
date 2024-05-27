@@ -6,7 +6,6 @@ import unittest
 
 import numpy as np
 from PIL import Image
-
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.distribute import we
@@ -79,7 +78,7 @@ class AnnotatorTest(unittest.TestCase):
             'NAME':
             'HedAnnotator',
             'PRETRAINED_MODEL':
-            'ms://damo/scepter_scedit@annotator/ckpts/ControlNetHED.pth'
+            'ms://iic/scepter_scedit@annotator/ckpts/ControlNetHED.pth'
         }
         hed_anno = Config(cfg_dict=hed_dict, load=False)
         hed_ins = ANNOTATORS.build(hed_anno).to(we.device_id)
@@ -95,9 +94,9 @@ class AnnotatorTest(unittest.TestCase):
             'NAME':
             'OpenposeAnnotator',
             'BODY_MODEL_PATH':
-            'ms://damo/scepter_scedit@annotator/ckpts/body_pose_model.pth',
+            'ms://iic/scepter_scedit@annotator/ckpts/body_pose_model.pth',
             'HAND_MODEL_PATH':
-            'ms://damo/scepter_scedit@annotator/ckpts/hand_pose_model.pth'
+            'ms://iic/scepter_scedit@annotator/ckpts/hand_pose_model.pth'
         }
         openpose_anno = Config(cfg_dict=openpose_dict, load=False)
         openpose_ins = ANNOTATORS.build(openpose_anno).to(we.device_id)
@@ -112,7 +111,7 @@ class AnnotatorTest(unittest.TestCase):
         midas_dict = {
             'NAME': 'MidasDetector',
             'PRETRAINED_MODEL':
-            'ms://damo/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt',
+            'ms://iic/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt',
             'A': 6.2,
             'BG_TH': 0.1
         }
@@ -129,7 +128,7 @@ class AnnotatorTest(unittest.TestCase):
         mlsd_dict = {
             'NAME': 'MLSDdetector',
             'PRETRAINED_MODEL':
-            'ms://damo/scepter_scedit@annotator/ckpts/mlsd_large_512_fp32.pth',
+            'ms://iic/scepter_scedit@annotator/ckpts/mlsd_large_512_fp32.pth',
             'THR_V': 0.1,
             'THR_D': 0.1
         }
@@ -184,30 +183,30 @@ class AnnotatorTest(unittest.TestCase):
         hed_dict = {
             'NAME': 'HedAnnotator',
             'PRETRAINED_MODEL':
-            'ms://damo/scepter_scedit@annotator/ckpts/ControlNetHED.pth',
+            'ms://iic/scepter_scedit@annotator/ckpts/ControlNetHED.pth',
             'INPUT_KEYS': ['img'],
             'OUTPUT_KEYS': ['hed_img']
         }
         openpose_dict = {
             'NAME': 'OpenposeAnnotator',
             'BODY_MODEL_PATH':
-            'ms://damo/scepter_scedit@annotator/ckpts/body_pose_model.pth',
+            'ms://iic/scepter_scedit@annotator/ckpts/body_pose_model.pth',
             'HAND_MODEL_PATH':
-            'ms://damo/scepter_scedit@annotator/ckpts/hand_pose_model.pth',
+            'ms://iic/scepter_scedit@annotator/ckpts/hand_pose_model.pth',
             'INPUT_KEYS': ['img'],
             'OUTPUT_KEYS': ['openpose_img']
         }
         midas_dict = {
             'NAME': 'MidasDetector',
             'PRETRAINED_MODEL':
-            'ms://damo/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt',
+            'ms://iic/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt',
             'INPUT_KEYS': ['img'],
             'OUTPUT_KEYS': ['midas_img']
         }
         mlsd_dict = {
             'NAME': 'MLSDdetector',
             'PRETRAINED_MODEL':
-            'ms://damo/scepter_scedit@annotator/ckpts/mlsd_large_512_fp32.pth',
+            'ms://iic/scepter_scedit@annotator/ckpts/mlsd_large_512_fp32.pth',
             'INPUT_KEYS': ['img'],
             'OUTPUT_KEYS': ['mlsd_img']
         }

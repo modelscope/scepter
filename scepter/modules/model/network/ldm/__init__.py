@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 from scepter.modules.model.network.ldm.ldm import LatentDiffusion
+from scepter.modules.model.network.ldm.ldm_edit import LatentDiffusionEdit
 from scepter.modules.model.network.ldm.ldm_sce import (
     LatentDiffusionSCEControl, LatentDiffusionSCETuning,
     LatentDiffusionXLSCEControl, LatentDiffusionXLSCETuning)

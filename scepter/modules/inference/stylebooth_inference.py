@@ -120,7 +120,7 @@ class StyleboothInference(DiffusionInference):
                  cat_uc=True,
                  tuner_model=None,
                  control_model=None,
-                 stylebooth_state=False,
+                 stylebooth_state=True,
                  style_edit_image=None,
                  style_exemplar_image=None,
                  style_guide_scale_text=None,

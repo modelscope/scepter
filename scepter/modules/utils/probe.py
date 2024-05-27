@@ -7,7 +7,6 @@ from numbers import Number
 import numpy as np
 import torch
 from PIL import Image
-
 from scepter.modules.utils.file_system import FS
 
 
@@ -200,18 +199,18 @@ class ProbeData():
                     build_label, dict)
         self.build_label = build_label
 
-    def save_image(self, file_prefix, images):
+    def save_image(self, file_prefix, images, image_postfix):
         np_shape = images.shape
         # 4D
         shape_str = '_'.join([str(v) for v in np_shape])
         if len(np_shape) == 4:
             # channel is 1 or 3
-            if np_shape[-1] == 1 or np_shape[-1] == 3:
+            if np_shape[-1] == 1 or np_shape[-1] == 3 or np_shape[-1] == 4:
                 if np_shape[-1] == 1:
                     images = images.reshape(images.shape[:-1])
                 file_list = []
                 for idx in range(np_shape[0]):
-                    file_path = file_prefix + f'_probe_{idx}_[{shape_str}].jpg'
+                    file_path = file_prefix + f'_probe_{idx}_[{shape_str}].{image_postfix}'
                     with FS.put_to(file_path) as local_path:
                         Image.fromarray(images[idx, ...]).save(local_path)
                     file_list.append(file_path)
@@ -219,18 +218,18 @@ class ProbeData():
             else:
                 raise f"Ensure your data's dim is BWHC, and channel is 1 or 3 for {file_prefix}"
         elif len(np_shape) == 3:
-            if np_shape[-1] == 1 or np_shape[-1] == 3:
+            if np_shape[-1] == 1 or np_shape[-1] == 3 or np_shape[-1] == 4:
                 if np_shape[-1] == 1:
                     images = images.reshape(images.shape[:-1])
-                file_path = file_prefix + f'_probe_[{shape_str}].jpg'
+                file_path = file_prefix + f'_probe_[{shape_str}].{image_postfix}'
                 with FS.put_to(file_path) as local_path:
                     Image.fromarray(images).save(local_path)
                 return file_path
             else:
                 images = images.reshape(list(images.shape) + [1])
-                return self.save_image(file_prefix, images)
+                return self.save_image(file_prefix, images, image_postfix)
         elif len(np_shape) == 2:
-            file_path = file_prefix + f'_probe_[{shape_str}].jpg'
+            file_path = file_prefix + f'_probe_[{shape_str}].{image_postfix}'
             with FS.put_to(file_path) as local_path:
                 Image.fromarray(images).save(local_path)
             return file_path
@@ -278,13 +277,13 @@ class ProbeData():
     def distribute(self):
         return self._distribute_dict
 
-    def to_log(self, prefix=None):
+    def to_log(self, prefix=None, image_postfix='jpg'):
         if isinstance(self.data, np.ndarray):
             if prefix is None:
                 raise 'You should provide the save prefix for array sample.'
             # save jpg
             if self.is_image:
-                ret_data = self.save_image(prefix, self.data)
+                ret_data = self.save_image(prefix, self.data, image_postfix)
                 if isinstance(ret_data, list):
                     ret_data = [ret_data]
                     if self.build_html:
@@ -314,7 +313,8 @@ class ProbeData():
                 for idx, v in enumerate(self.data):
                     prefix_path = os.path.join(prefix, f'{idx}')
                     if self.is_image:
-                        ret_images = self.save_image(prefix_path, v)
+                        ret_images = self.save_image(prefix_path, v,
+                                                     image_postfix)
                         ret_data.append(ret_images if isinstance(
                             ret_images, list) else [ret_images])
                         if self.build_html:
@@ -354,7 +354,8 @@ class ProbeData():
                 for k, v in self.data:
                     prefix_path = os.path.join(prefix, f'{k}_')
                     if self.is_image:
-                        ret_images = self.save_image(prefix_path, v)
+                        ret_images = self.save_image(prefix_path, v,
+                                                     image_postfix)
                         if isinstance(ret_images, list):
                             ret_data.append(ret_images)
                         else:

@@ -30,9 +30,19 @@ class CreateDatasetUIName():
             self.zip_file = 'Upload Dataset(Zip/Txt)'
             self.zip_file_url = 'Dataset Url'
             self.default_dataset_repo = 'https://www.modelscope.cn/api/v1/models/iic/scepter/'
-            self.default_dataset_zip = \
-                self.default_dataset_repo + 'repo?Revision=master&FilePath=datasets/3D_example_csv.zip'
-            self.default_dataset_name = '3D_example'
+            self.default_dataset_zip = {
+                'scepter_txt2img':
+                f' {self.default_dataset_repo}repo?Revision=master&FilePath=datasets/3D_example_csv.zip ',
+                'scepter_img2img':
+                f' {self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip '
+            }
+            self.default_dataset_zip = ' and '.join([f"[{k}]({v})" for k, v in self.default_dataset_zip.items()])
+
+            self.default_dataset_name = {
+                'scepter_txt2img': '3D_example',
+                'scepter_img2img': 'hed_example'
+            }
+
             self.btn_create_datasets_from_file = 'Create Dataset From File'
             self.user_direction = (
                 '### User Guide: \n' +
@@ -45,8 +55,8 @@ class CreateDatasetUIName():
                 "train.csv' (which will use the image paths in this file); "
                 'The first line is Target:FILE, Prompt, followed by the format of each line: image path, description.'
                 'we also surpport the zip of '
-                'one level subfolder of images whose format are in jpg, jpeg, png, webp.'
-                f'The ZIP example is: {self.default_dataset_zip}. \n'  # noqa
+                'one level subfolder of images whose format are in jpg, jpeg, png, webp. '
+                f'See the ZIP examples: {self.default_dataset_zip}. \n'  # noqa
                 f'* If you have refreshed the page, please click the {self.refresh_list_button} '
                 'button to ensure all previously created datasets are visible in the dropdown menu.\n'
                 '* For processing and training with large-scale data(for example more than 10K samples), '
@@ -93,9 +103,18 @@ class CreateDatasetUIName():
             self.zip_file = '上传数据集'
             self.zip_file_url = '数据集链接'
             self.default_dataset_repo = 'https://www.modelscope.cn/api/v1/models/iic/scepter/'
-            self.default_dataset_zip = \
-                self.default_dataset_repo + 'repo?Revision=master&FilePath=datasets/3D_example_csv.zip'
-            self.default_dataset_name = '3D_example'
+            self.default_dataset_zip = {
+                'scepter_txt2img':
+                f' {self.default_dataset_repo}repo?Revision=master&FilePath=datasets/3D_example_csv.zip ',
+                'scepter_img2img':
+                f' {self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip '
+            }
+            self.default_dataset_zip = ' 和 '.join([f"[{k}]({v})" for k, v in self.default_dataset_zip.items()])
+
+            self.default_dataset_name = {
+                'scepter_txt2img': '3D_example',
+                'scepter_img2img': 'hed_example'
+            }
             self.btn_create_datasets_from_file = '从文件新建'
             self.user_direction = (
                 '### 使用说明 \n' +
@@ -129,23 +148,30 @@ class CreateDatasetUIName():
 class DatasetGalleryUIName():
     def __init__(self, language='en'):
         if language == 'en':
-            self.system_log = '<span style="color: blue;">System Log: {}</span> '
-            self.upload_image = 'Upload Image'
+            self.system_log = '<span style="color: blue;">Operation Log: {}</span> '
+            self.illegal_blank_dataset = 'Illgal or blank dataset is not allowed editing.'
+            self.delete_blank_dataset = 'Blank dataset is not allowed deleting.'
+            self.upload_image = 'Upload Target Image'
+            self.upload_src_image = 'Upload Source Image'
             self.upload_image_btn = '\U00002714'  # ✔️
             self.cancel_upload_btn = '\U00002716'  # ✖️
             self.image_caption = 'Image Caption'
 
-            self.ori_caption = 'Original Caption'
             self.btn_modify = '\U0001F4DD'  # 📝
             self.btn_delete = '\U0001f5d1'  # 🗑️
             self.btn_add = '\U00002795'  # ➕
+            self.ori_caption = 'Original Caption'
             self.dataset_images = f'Original Images，click{self.btn_modify} into editable mode.'
+            self.dataset_src_images = f'Source Images to be edited，click{self.btn_modify} into editable mode.'
+
             self.edit_caption = f'Editable Caption，click{self.btn_modify} into editable mode.'
-            self.dataset_images = f'Original Images，click{self.btn_modify} into editable mode.'
+            self.edit_dataset_images = f'Editable Images，click{self.btn_modify} into editable mode.'
+            self.edit_dataset_src_images = 'Editable Source Images to be edited.'
 
             self.ori_dataset = 'Original Data Height({}) * Width({}) and Image Format({})'
             self.edit_dataset = 'Editable Data Height({}) * Width({}) and Image Format({})'
-            self.upload_image_info = 'Image Information: Height({}) * Width({}) and Image Format({})'
+            self.upload_image_info = 'Image Information: Height({}) * Width({})'
+            self.upload_src_image_info = 'Source Image Information: Height({}) * Width({})'
 
             self.range_mode_name = [
                 'Current sample', 'All samples', 'Samples in range'
@@ -190,18 +216,21 @@ class DatasetGalleryUIName():
             # Error or Warning
 
         elif language == 'zh':
-            self.system_log = '<span style="color: blue;">系统日志: {}</span> '
-            self.upload_image = '上传图片'
+            self.system_log = '<span style="color: blue;">操作日志: {}</span> '
+            self.illegal_blank_dataset = '不合法或空白数据集不允许编辑。'
+            self.delete_blank_dataset = '空白数据集不允许删除。'
+            self.upload_image = '上传目标图片'
+            self.upload_src_image = '上传待编辑图片'
             self.upload_image_btn = '\U00002714'  # ✔️
             self.cancel_upload_btn = '\U00002716'  # ✖️
             self.image_caption = '图片描述'
 
-            # self.image_height = '高度'
-            # self.image_width = '宽度'
-            # self.image_format = '格式'
-
             self.btn_modify = '\U0001F4DD'  # 📝
             self.dataset_images = f'图片数据，点击{self.btn_modify}进入编辑模式'
+            self.dataset_src_images = f'待编辑图片数据，点击{self.btn_modify}进入编辑模式'
+
+            self.edit_dataset_images = '可编辑图片数据'
+            self.edit_dataset_src_images = '可编辑待编辑图片数据'
 
             self.btn_delete = '\U0001f5d1'  # 🗑️
             self.btn_add = '\U00002795'  # ➕
@@ -213,6 +242,7 @@ class DatasetGalleryUIName():
             self.ori_dataset = '原始数据 高({}) * 宽({}) 图像格式({})'
             self.edit_dataset = '可编辑数据 高({}) * 宽({}) 图像格式({})'
             self.upload_image_info = '图像信息 高({}) * 宽({})'
+            self.upload_src_image_info = '源图像信息 高({}) * 宽({})'
 
             self.range_mode_name = ['当前样本', '全部样本', '指定范围']
             self.samples_range = '处理样本范围'
@@ -262,6 +292,7 @@ class ExportDatasetUIName():
 
             self.upload_err1 = 'Failed to compress the file!'
             self.go_to_train = 'Go to train...'
+            self.dataset_source = 'Dataset Management'
         elif language == 'zh':
             self.btn_export_zip = '导出数据'
             self.btn_export_list = '导出列表'
@@ -270,6 +301,7 @@ class ExportDatasetUIName():
 
             self.upload_err1 = '压缩文件失败!'
             self.go_to_train = '去训练...'
+            self.dataset_source = '数据管理器'
 
 
 class Text2ImageDataCardName():

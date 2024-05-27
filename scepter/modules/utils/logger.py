@@ -9,7 +9,6 @@ from collections import OrderedDict
 
 import numpy as np
 import torch
-
 from scepter.modules.utils.distribute import get_dist_info
 
 

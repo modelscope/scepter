@@ -6,9 +6,9 @@ import os
 import queue
 import time
 
-import gradio as gr
 import yaml
 
+import gradio as gr
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
 from scepter.studio.self_train.self_train_ui.component_names import ModelUIName
@@ -422,11 +422,20 @@ class ModelUI(UIBase):
                 manager.inference.tuner_ui.name_level_tuners[base_model][
                     output_model] = tuner_cfg
 
+            if tuner_cfg.BASE_MODEL == 'EDIT':
+                selected_tab = 'stylebooth_ui'
+                checkboxes = [
+                    '使用微调', 'StyleBooth'
+                ] if self.language == 'zh' else ['Use Tuners', 'StyleBooth']
+            else:
+                selected_tab = 'tuner_ui'
+                checkboxes = ['使用微调'
+                              ] if self.language == 'zh' else ['Use Tuners']
+
             return (
                 gr.Tabs(selected='inference'), cfg_file,
-                gr.Tabs(selected='tuner_ui'),
-                gr.CheckboxGroup(
-                    value='使用微调' if self.language == 'zh' else 'Use Tuners'),
+                gr.Tabs(selected=selected_tab),
+                gr.CheckboxGroup(value=checkboxes),
                 gr.Dropdown(value=diffusion_model),
                 gr.Dropdown(choices=tunner_choices, value=tunner_default)
                 # gr.Text(value=tuner_cfg.get('TUNER_TYPE', '')),

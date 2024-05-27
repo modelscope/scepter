@@ -127,7 +127,7 @@ SOLVER:
         DOWN_RATIO: 1.0
     CONTROL_ANNO:
       NAME: HedAnnotator
-      PRETRAINED_MODEL: ms://damo/scepter_scedit@annotator/ckpts/ControlNetHED.pth
+      PRETRAINED_MODEL: ms://iic/scepter_scedit@annotator/ckpts/ControlNetHED.pth
   #
   SAMPLE_ARGS:
     SAMPLER: ddim

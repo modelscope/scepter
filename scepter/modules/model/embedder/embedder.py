@@ -11,8 +11,6 @@ import torch
 import torch.nn as nn
 import torch.utils.dlpack
 from einops import rearrange
-from torch.utils.checkpoint import checkpoint
-
 # to check
 from scepter.modules.model.backbone.unet.unet_utils import Timestep
 from scepter.modules.model.registry import EMBEDDERS
@@ -20,6 +18,7 @@ from scepter.modules.model.utils.basic_utils import expand_dims_like
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
+from torch.utils.checkpoint import checkpoint
 
 from .base_embedder import BaseEmbedder
 from .resampler import Resampler

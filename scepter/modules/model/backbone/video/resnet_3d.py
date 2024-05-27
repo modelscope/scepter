@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import torch.nn as nn
-
 from scepter.modules.model.backbone.video.bricks.non_local import NonLocal
 from scepter.modules.model.backbone.video.init_helper import \
     _init_convnet_weights

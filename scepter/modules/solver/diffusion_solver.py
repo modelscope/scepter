@@ -4,16 +4,11 @@ import copy
 import os
 from collections import OrderedDict, defaultdict
 
+from tqdm import tqdm
+
 import numpy as np
 import torch
 import torch.cuda.amp as amp
-from torch.distributed.fsdp import (BackwardPrefetch, CPUOffload,
-                                    FullStateDictConfig,
-                                    FullyShardedDataParallel, MixedPrecision,
-                                    ShardingStrategy, StateDictType)
-from torch.nn.parallel import DistributedDataParallel
-from tqdm import tqdm
-
 from scepter.modules.data.dataset import DATASETS
 from scepter.modules.opt.lr_schedulers import LR_SCHEDULERS
 from scepter.modules.opt.optimizers import OPTIMIZERS
@@ -23,6 +18,11 @@ from scepter.modules.utils.config import Config, dict_to_yaml
 from scepter.modules.utils.data import transfer_data_to_cuda
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.probe import ProbeData
+from torch.distributed.fsdp import (BackwardPrefetch, CPUOffload,
+                                    FullStateDictConfig,
+                                    FullyShardedDataParallel, MixedPrecision,
+                                    ShardingStrategy, StateDictType)
+from torch.nn.parallel import DistributedDataParallel
 
 sharding_strategy_map = {
     'full_shard': ShardingStrategy.FULL_SHARD,
@@ -127,13 +127,7 @@ class LatentDiffusionSolver(BaseSolver):
         self.construct_model()
         self.construct_metrics()
         self.model_to_device()
-        if 'train' in self.datas and self.cfg.have('OPTIMIZER'):
-            if we.world_size > 1:
-                all_batch_size = self.datas['train'].batch_size * we.world_size
-            else:
-                all_batch_size = self.datas['train'].batch_size
-            self.cfg.OPTIMIZER.LEARNING_RATE *= all_batch_size
-            self.cfg.OPTIMIZER.LEARNING_RATE /= 640
+        self.init_lr()
         self.init_opti()
 
     def construct_hook(self):
@@ -183,6 +177,16 @@ class LatentDiffusionSolver(BaseSolver):
 
     def model_to_device(self):
         self.model = self.model.to(we.device_id)
+
+    def init_lr(self):
+        rescale_lr = self.cfg.get('RESCALE_LR', True)
+        if rescale_lr and 'train' in self.datas and self.cfg.have('OPTIMIZER'):
+            if we.world_size > 1:
+                all_batch_size = self.datas['train'].batch_size * we.world_size
+            else:
+                all_batch_size = self.datas['train'].batch_size
+            self.cfg.OPTIMIZER.LEARNING_RATE *= all_batch_size
+            self.cfg.OPTIMIZER.LEARNING_RATE /= 640
 
     def init_opti(self):
         if hasattr(self.model, 'ignored_parameters'):
@@ -367,6 +371,7 @@ class LatentDiffusionSolver(BaseSolver):
             if 'eval' in self._mode_set and (self.eval_interval > 0
                                              and step == self.max_steps - 1):
                 self.run_eval()
+                self.train_mode()
         self.after_all_iter(self.hooks_dict[self._mode])
 
     @torch.no_grad()

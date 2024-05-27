@@ -5,7 +5,6 @@ from collections import OrderedDict
 
 import numpy as np
 import torch
-
 from scepter.modules.model.metric.base_metric import BaseMetric
 from scepter.modules.model.metric.registry import METRICS
 from scepter.modules.utils.config import dict_to_yaml

@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import gradio as gr
-
 from scepter.studio.inference.inference_ui.component_names import \
     ModelManageUIName
 from scepter.studio.utils.uibase import UIBase

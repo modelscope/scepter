@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 # based on https://github.com/isl-org/MiDaS
 
 import cv2

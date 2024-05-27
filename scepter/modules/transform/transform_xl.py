@@ -7,7 +7,6 @@ import opencv_transforms.functional as cv2_TF
 import torch
 import torchvision.transforms.functional as TF
 from PIL.Image import Image
-
 from scepter.modules.transform import TRANSFORMS, ImageTransform
 from scepter.modules.transform.image import BACKENDS
 from scepter.modules.transform.utils import BACKEND_PILLOW, BACKEND_TORCHVISION

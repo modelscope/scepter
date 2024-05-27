@@ -5,7 +5,6 @@ from collections import OrderedDict
 from glob import glob
 
 import gradio as gr
-
 import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
@@ -156,54 +155,70 @@ class InferenceUI():
 
         def change_setting_tab(check_box, default_diffusion_model, *args):
             selected_tab = 'diffusion_ui'
-            ui_tabs_state = [False] * len(args)
-            largen_index = self.check_box_controlled_tabs.index('largen')
-            largen_key = self.component_names.check_box_for_setting[
-                largen_index]
-            largen_status = args[largen_index]
-            stylebooth_index = self.check_box_controlled_tabs.index(
-                'stylebooth')
-            stylebooth_key = self.component_names.check_box_for_setting[
-                stylebooth_index]
-            stylebooth_status = args[stylebooth_index]
-            for key in check_box:
-                i = self.component_names.check_box_for_setting.index(key)
-                ui_tabs_state[i] = True
-                if ui_tabs_state[i] != args[i]:
-                    selected_tab = self.check_box_controlled_tabs[i] + '_ui'
+            name2key_map = dict(
+                zip(self.component_names.check_box_for_setting,
+                    self.check_box_controlled_tabs))
+            key2name_map = dict(
+                zip(self.check_box_controlled_tabs,
+                    self.component_names.check_box_for_setting))
+            ui_tabs_state = dict.fromkeys(self.check_box_controlled_tabs,
+                                          False)
+            gr_state = dict(zip(self.check_box_controlled_tabs, args))
+            for name in check_box:
+                key = name2key_map[name]
+                ui_tabs_state[key] = True
+                if ui_tabs_state[key] != gr_state[key]:
+                    selected_tab = key + '_ui'
+            if len(check_box) >= 1 and selected_tab == 'diffusion_ui':
+                selected_tab = name2key_map[check_box[0]] + '_ui'
+
             new_check_box_value = check_box
-            for key in check_box:
-                i = self.component_names.check_box_for_setting.index(key)
-                if ui_tabs_state[i] != args[i]:
-                    if i in [largen_index, stylebooth_index]:
-                        new_check_box_value = [key]
-                        for j in range(len(ui_tabs_state)):
-                            ui_tabs_state[j] = j == i
-                    else:
-                        new_check_box_value = [
-                            k for k in check_box
-                            if k not in [largen_key, stylebooth_key]
+            for name in check_box:
+                key = name2key_map[name]
+                if ui_tabs_state[key] != gr_state[key]:
+                    if key == 'largen':
+                        allowed_keys = [key]
+                    elif key == 'stylebooth':
+                        allowed_keys = [key, 'tuner']
+                    elif key == 'tuner':
+                        allowed_keys = [
+                            key for key in self.check_box_controlled_tabs
+                            if key not in ('largen')
                         ]
-                        ui_tabs_state[largen_index] = False
-                        ui_tabs_state[stylebooth_index] = False
+                    else:
+                        allowed_keys = [
+                            key for key in self.check_box_controlled_tabs
+                            if key not in ('largen', 'stylebooth')
+                        ]
+                    allowed_names = [key2name_map[key] for key in allowed_keys]
+                    new_check_box_value = [
+                        n for n in check_box if n in allowed_names
+                    ]
+                    ui_tabs_state = {
+                        key: (value and key in allowed_keys)
+                        for key, value in ui_tabs_state.items()
+                    }
 
-            ui_tabs_updates = [gr.update(visible=v) for v in ui_tabs_state]
+            ui_tabs_updates = [
+                gr.update(visible=ui_tabs_state[key])
+                for key in self.check_box_controlled_tabs
+            ]
 
-            if ui_tabs_state[largen_index]:
+            if ui_tabs_state['largen']:
                 diffusion_model = gr.Dropdown(
                     label=self.model_manage_ui.component_names.diffusion_model,
                     choices=self.model_manage_ui.
                     default_choices['diffusion_model']['choices'],
                     value='LARGEN_LargenUNetXL',
                     interactive=False)
-            elif ui_tabs_state[stylebooth_index]:
+            elif ui_tabs_state['stylebooth']:
                 diffusion_model = gr.Dropdown(
                     label=self.model_manage_ui.component_names.diffusion_model,
                     choices=self.model_manage_ui.
                     default_choices['diffusion_model']['choices'],
                     value='EDIT_DiffusionUNet',
                     interactive=False)
-            elif largen_status or stylebooth_status:
+            elif gr_state['largen'] or gr_state['stylebooth']:
                 diffusion_model = gr.Dropdown(
                     label=self.model_manage_ui.component_names.diffusion_model,
                     choices=self.model_manage_ui.
@@ -219,12 +234,18 @@ class InferenceUI():
                     value=default_diffusion_model,
                     interactive=True)
 
-            return gr.CheckboxGroup(
+            app_choices = self.stylebooth_ui.component_names.apps[
+                -1 if ui_tabs_state['stylebooth'] and ui_tabs_state['tuner']
+                else 0]
+            ui_tabs_state = [
+                ui_tabs_state[key] for key in self.check_box_controlled_tabs
+            ]
+            return (gr.CheckboxGroup(
                 choices=self.component_names.check_box_for_setting,
                 value=new_check_box_value,
-                show_label=False), gr.update(
-                    selected=selected_tab
-                ), *ui_tabs_state, *ui_tabs_updates, diffusion_model
+                show_label=False), gr.update(selected=selected_tab),
+                    *ui_tabs_state, *ui_tabs_updates, diffusion_model,
+                    gr.update(value=app_choices))
 
         gr_states = [
             self.tab_ui[name].state for name in self.check_box_controlled_tabs
@@ -240,7 +261,8 @@ class InferenceUI():
             ],
             outputs=[
                 self.check_box_for_setting, self.setting_tab, *gr_states,
-                *gr_tabs, self.model_manage_ui.diffusion_model
+                *gr_tabs, self.model_manage_ui.diffusion_model,
+                self.stylebooth_ui.selected_app
             ],
             queue=True)
 

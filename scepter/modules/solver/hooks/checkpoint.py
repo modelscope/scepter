@@ -3,19 +3,17 @@
 import json
 import os
 import os.path as osp
-import shutil
 import sys
 import warnings
 
 import torch
 import torch.distributed as du
-from swift import push_to_hub
-
 from scepter.modules.solver.hooks.hook import Hook
 from scepter.modules.solver.hooks.registry import HOOKS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
+from swift import push_to_hub
 
 _DEFAULT_CHECKPOINT_PRIORITY = 300
 
@@ -51,10 +49,8 @@ class CheckpointHook(Hook):
             'If save the best model, which order should be sorted, +/-!'
         },
         'DISABLE_SNAPSHOT': {
-            'value':
-            False,
-            'description':
-            'Skip to save snapshot checkpoint.'
+            'value': False,
+            'description': 'Skip to save snapshot checkpoint.'
         }
     }]
 
@@ -223,47 +219,13 @@ class CheckpointHook(Hook):
                         torch.save(checkpoint['pre_state_dict'], f)
                     client.put_object_from_local_file(local_file, save_path)
 
-    def create_or_update_model_card(self, model, output_dir: str):
-        """
-        Updates or create the model card.
-        """
-        if not os.path.exists(os.path.join(output_dir, 'README.md')):
-            lines = []
-        else:
-            with open(os.path.join(output_dir, 'README.md'), 'r') as f:
-                lines = f.readlines()
-
-        # write the lines back to README.md
-        with open(os.path.join(output_dir, 'README.md'), 'w') as f:
-            f.writelines(lines)
-
     def after_all_iter(self, solver):
         if we.rank == 0:
             if self.push_to_hub and self.last_ckpt:
-                if os.path.isfile(self.last_ckpt):
-                    base_dir = os.path.dirname(self.last_ckpt)
-                    base_file = os.path.basename(self.last_ckpt)
-                    save_path = os.path.join(base_dir, 'after_all_iter')
-                    os.makedirs(save_path)
-                    self.create_or_update_model_card(solver.model, save_path)
-                    try:
-                        os.link(self.last_ckpt,
-                                os.path.join(save_path, base_file))
-                    except OSError:
-                        shutil.copyfile(self.last_ckpt,
-                                        os.path.join(save_path, base_file))
-
-                push_to_hub(repo_name=self.hub_model_id,
-                            output_dir=self.last_ckpt,
-                            private=self.hub_private)
-                current_dir = os.path.dirname(__file__)
-                base_path = os.sep.join(current_dir.split(os.sep)[:-4])
-                base_path = os.path.join(base_path, 'config')
-                file_name = self.hub_model_id.replace(os.sep, '_')
-                content = {'name': self.hub_model_id}
-                import json
-                with open(os.path.join(base_path, file_name), 'w') as f:
-                    json.dump(content, f)
+                with FS.get_dir_to_local_dir(self.last_ckpt) as local_dir:
+                    push_to_hub(repo_name=self.hub_model_id,
+                                output_dir=local_dir,
+                                private=self.hub_private)
 
     @staticmethod
     def get_config_template():

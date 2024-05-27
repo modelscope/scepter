@@ -94,6 +94,7 @@ class ModelscopeFs(BaseFs):
                              wait_finish=False,
                              multi_thread=False,
                              timeout=3600,
+                             sign_key=None,
                              worker_id=-1) -> Optional[str]:
         from modelscope.hub.snapshot_download import snapshot_download
         assert target_path.startswith(self.get_prefix())
@@ -199,7 +200,11 @@ class ModelscopeFs(BaseFs):
             delimiter=None) -> (Union[bytes, str, None], Optional[int]):
         raise NotImplementedError
 
-    def get_url(self, target_path, set_public=False, lifecycle=3600 * 100):
+    def get_url(self,
+                target_path,
+                set_public=False,
+                skip_check=False,
+                lifecycle=3600 * 100):
         return target_path
 
     def exists(self, target_path) -> bool:

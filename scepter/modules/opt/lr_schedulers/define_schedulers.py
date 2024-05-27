@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
-from torch.optim.lr_scheduler import _LRScheduler
-
 from scepter.modules.opt.lr_schedulers.base_scheduler import BaseScheduler
 from scepter.modules.opt.lr_schedulers.registry import LR_SCHEDULERS
 from scepter.modules.utils.config import dict_to_yaml
+from torch.optim.lr_scheduler import _LRScheduler
 
 
 class PolyLR(_LRScheduler):

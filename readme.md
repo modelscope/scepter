@@ -18,6 +18,7 @@ SCEPTER offers 3 core components:
 
 
 ## 🎉 News
+- [2024.05]: Introducing SCEPTER v1, supporting customized image edit tasks! Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `de-text`, `segmentation`, etc.
 - [2024.04]: New [StyleBooth](https://ali-vilab.github.io/stylebooth-page/) demo on SCEPTER Studio for`Text-Based Style Editing`.
 - [2024.03]: We optimize the training UI and checkpoint management. New [LAR-Gen](https://arxiv.org/abs/2403.19534) model has been added on SCEPTER Studio, supporting `zoom-out`, `virtual try on`, `inpainting`.
 - [2024.02]: We release new SCEdit controllable image synthesis models for SD v2.1 and SD XL. Multiple strategies applied to accelerate inference time for SCEPTER Studio.
@@ -29,38 +30,18 @@ SCEPTER offers 3 core components:
 
 ## 🖼 Gallery for Recent Works
 
-### StyleBooth
-<table>
-  <tr>
-    <td><strong>Origin Image</strong><br>Gold Dragon Tuner</td>
-    <td><strong>Graffiti Art</strong></td>
-    <td><strong>Adorable Kawaii</strong></td>
-    <td><strong>game-retro game</strong></td>
-    <td><strong>Vincent van Gogh</strong></td>
-  </tr>
-  <tr>
-    <td><img src="asset/images/scedit/tuner_gold_dragon.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/graffiti.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/kawaii.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/retrogame.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/vangogh.jpeg" width="240"></td>
-  </tr>
-</table>
+### Edit Tuners
 
+Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `de-text`, `segmentation`, etc.
+Try our official few-shot datasets: [De-Text](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdetext.zip), [Image2Hed](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fhed_pair.zip), [image2depth](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fimage2depth.zip), [depth2image](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdepth2image.zip)
 <table>
   <tr>
-    <td><strong>Origin Image</strong></td>
-    <td><strong>Lowpoly</strong></td>
-    <td><strong>Colored Pencil Art</strong></td>
-    <td><strong>Watercolor</strong></td>
-    <td><strong>misc-disco</strong></td>
+    <td align="center"><strong>De-Text</strong><br><img src="asset/images/edit_tuner/text.jpg" width="300"><img src="asset/images/edit_tuner/detext.jpeg" width="300"><br>Prompt: <strong>"Remove the texts"</strong> (Left: input Right: output)</td>
+    <td align="center"><strong>Image2Hed</strong><br><img src="asset/images/edit_tuner/cat_512.jpg" width="300"><img src="asset/images/edit_tuner/hed.jpeg" width="300"><br>Prompt: <strong>"Convert to an edge map"</strong> (Left: input Right: output)</td>
   </tr>
   <tr>
-    <td><img src="asset/images/stylebooth/mountain.jpg" width="240"></td>
-    <td><img src="asset/images/stylebooth/lowpoly.jpg" width="240"></td>
-    <td><img src="asset/images/stylebooth/colorpencil.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/watercolor.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/disco.jpeg" width="240"></td>
+    <td align="center"><strong>Image2Depth</strong><br><img src="asset/images/edit_tuner/house.jpg" width="300"><img src="asset/images/edit_tuner/image2depth.jpeg" width="300"><br>Prompt: <strong>"Calculate the depth map"</strong> (Left: input Right: output)</td>
+    <td align="center"><strong>Depth2Image</strong><br><img src="asset/images/edit_tuner/depth.jpg" width="300"><img src="asset/images/edit_tuner/depth2image.jpeg" width="300"><br>Prompt: <strong>"Convert depth map into color image"</strong> (Left: input Right: output)</td>
   </tr>
 </table>
 
@@ -132,8 +113,6 @@ The startup of **SCEPTER Studio** eliminates the need for manual downloading and
 Depending on the network and hardware situation, the initial startup usually requires 15-60 minutes, primarily involving the download and processing of SDv1.5, SDv2.1, and SDXL models.
 Therefore, subsequent startups will become much faster (about one minute) as downloading is no longer required.
 
-To support the sharing and downloading of models,
-please make sure that you have installed **zip** and Git Large File Storage (**git lfs**).
 ### Usage Demo
 
 |              [Image Editing](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Fimage_editing_20240419.webm)              |                [Training](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Ftraining_20240419.webm)                 |              [Model Sharing](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Fmodel_sharing_20240419.webm)               |             [Model Inference](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Fmodel_inference_20240419.webm)              |             [Data Management](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Fdata_management_20240419.webm)              |

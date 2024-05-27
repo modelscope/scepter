@@ -4,7 +4,6 @@ import json
 import os
 
 import torch
-
 from scepter.modules.solver.hooks.hook import Hook
 from scepter.modules.solver.hooks.registry import HOOKS
 from scepter.modules.utils.config import dict_to_yaml
@@ -34,6 +33,7 @@ class ProbeDataHook(Hook):
         self.save_name_prefix = cfg.get('SAVE_NAME_PREFIX', 'step')
         self.save_probe_prefix = cfg.get('SAVE_PROBE_PREFIX', None)
         self.save_last = cfg.get('SAVE_LAST', False)
+        self.save_image_postfix = cfg.get('SAVE_IMAGE_POSTFIX', 'jpg')
 
     def before_all_iter(self, solver):
         pass
@@ -58,7 +58,7 @@ class ProbeDataHook(Hook):
                         ret_prefix = os.path.join(
                             save_folder,
                             k.replace('/', '_') + f'_step_{solver.total_iter}')
-                    ret_one = v.to_log(ret_prefix)
+                    ret_one = v.to_log(ret_prefix, self.save_image_postfix)
                     if (isinstance(ret_one, list)
                             or isinstance(ret_one, dict)) and len(ret_one) < 1:
                         continue
@@ -90,7 +90,7 @@ class ProbeDataHook(Hook):
                         ret_prefix = os.path.join(
                             save_folder,
                             k.replace('/', '_') + f'_step_{step}')
-                    ret_one = v.to_log(ret_prefix)
+                    ret_one = v.to_log(ret_prefix, self.save_image_postfix)
                     if (isinstance(ret_one, list)
                             or isinstance(ret_one, dict)) and len(ret_one) < 1:
                         continue

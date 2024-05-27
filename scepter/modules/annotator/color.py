@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
-
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.utils.config import dict_to_yaml

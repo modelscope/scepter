@@ -8,7 +8,6 @@ from collections.abc import Iterable
 
 import numpy as np
 import torchvision
-
 from scepter.modules.data.dataset.base_dataset import BaseDataset
 from scepter.modules.data.dataset.registry import DATASETS
 from scepter.modules.utils.config import dict_to_yaml
@@ -272,6 +271,11 @@ class Text2ImageDataset(BaseDataset):
                     item['prompt'] = prompt_prefix + value
                 elif key in ['oss_key', 'path', 'img_path', 'target_img_path']:
                     item['meta']['img_path'] = os.path.join(path_prefix, value)
+                elif key in [
+                        'src_oss_key', 'src_path', 'src_img_path',
+                        'src_target_img_path'
+                ]:
+                    item['meta']['src_path'] = os.path.join(path_prefix, value)
                 elif key in ['width', 'height']:
                     item['meta'][key] = int(value)
                 else:
