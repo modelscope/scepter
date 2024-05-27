@@ -1,4 +1,13 @@
 TUNERS:
+  - NAME: Clay-Style-Editing
+    NAME_ZH: 黏土风
+    SOURCE: scepter
+    DESCRIPTION: None
+    BASE_MODEL: EDIT
+    MODEL_PATH: ms://iic/stylebooth@tuners/clay_style_edit/
+    IMAGE_PATH: ms://iic/stylebooth@tuners/clay_style_edit/image.jpg
+    TUNER_TYPE: LORA
+    PROMPT_EXAMPLE: Convert this image into clay style
   - NAME: Azure-Dragon
     NAME_ZH: 青龙
     SOURCE: scepter

@@ -18,7 +18,7 @@ SCEPTER offers 3 core components:
 
 
 ## 🎉 News
-- [2024.05]: Introducing SCEPTER v1, supporting customized image edit tasks! Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `de-text`, `segmentation`, etc.
+- [2024.05]: Introducing SCEPTER v1, supporting customized image edit tasks! Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `Clay Style`, `De-Text`, `Segmentation`, etc.
 - [2024.04]: New [StyleBooth](https://ali-vilab.github.io/stylebooth-page/) demo on SCEPTER Studio for`Text-Based Style Editing`.
 - [2024.03]: We optimize the training UI and checkpoint management. New [LAR-Gen](https://arxiv.org/abs/2403.19534) model has been added on SCEPTER Studio, supporting `zoom-out`, `virtual try on`, `inpainting`.
 - [2024.02]: We release new SCEdit controllable image synthesis models for SD v2.1 and SD XL. Multiple strategies applied to accelerate inference time for SCEPTER Studio.
@@ -32,11 +32,20 @@ SCEPTER offers 3 core components:
 
 ### Edit Tuners
 
-Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `de-text`, `segmentation`, etc.
-Try our official few-shot datasets: [De-Text](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdetext.zip), [Image2Hed](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fhed_pair.zip), [image2depth](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fimage2depth.zip), [depth2image](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdepth2image.zip).
+Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `Clay Style`, `De-Text`, `Segmentation`, etc.
+Try our official few-shot datasets: [De-Text](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdetext.zip), [Image2Hed](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fhed_pair.zip), [Image2Depth](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fimage2depth.zip), [Depth2Image](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdepth2image.zip).
 
 
 <table><tbody>
+  <tr>
+    <th align="center" colspan="4">Clay Style<br>Prompt: "Convert this image into clay style"</th>
+  </tr>
+  <tr>
+    <td><img src="asset/images/edit_tuner/vermeer.jpeg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/clay_vermeer.jpeg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/cat_512.jpg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/clay_cat.jpeg" width="300"></td>
+  </tr>
   <tr>
     <th align="center" colspan="2">De-Text<br>Prompt: "Remove the texts"</th>
     <th align="center" colspan="2">Image2Hed<br>Prompt: "Convert to an edge map"</th>
