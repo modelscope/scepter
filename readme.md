@@ -72,21 +72,18 @@ Note: Left image is input and right image is output.
 
 ## 🛠️ Installation
 
-- Create new environment
+- Create new environment with `conda` command:
 
 ```shell
 conda env create -f environment.yaml
 conda activate scepter
 ```
-- We recommend installing the specific version of PyTorch and accelerate toolbox [xFormers](https://pypi.org/project/xformers/). You can install these recommended version by pip:
 
+- Install with `pip` command:
+
+We recommend installing the specific version of PyTorch and accelerate toolbox [xFormers](https://pypi.org/project/xformers/). You can install these recommended version by pip:
 ```shell
 pip install -r requirements/recommended.txt
-```
-
-- Install SCEPTER by the `pip` command:
-
-```shell
 pip install scepter
 ```
 

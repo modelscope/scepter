@@ -6,4 +6,5 @@ dependencies:
   - pip>=20.3
   - numpy>=1.23.1
   - pip:
+      - -r requirements/recommended.txt
       - -r requirements.txt
