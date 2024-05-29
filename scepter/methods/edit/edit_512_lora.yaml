@@ -37,7 +37,7 @@ SOLVER:
     TIMESTEPS: 1000
     MIN_SNR_GAMMA:
     ZERO_TERMINAL_SNR: False
-    PRETRAINED_MODEL: ms://damo/stylebooth@models/stylebooth-tb-5000-0.bin
+    PRETRAINED_MODEL: ms://iic/stylebooth@models/stylebooth-tb-5000-0.bin
     IGNORE_KEYS: [ ]
     CONCAT_NO_SCALE_FACTOR: True
     SCALE_FACTOR: 0.18215

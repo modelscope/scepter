@@ -32,11 +32,12 @@ class CreateDatasetUIName():
             self.default_dataset_repo = 'https://www.modelscope.cn/api/v1/models/iic/scepter/'
             self.default_dataset_zip = {
                 'scepter_txt2img':
-                f' {self.default_dataset_repo}repo?Revision=master&FilePath=datasets/3D_example_csv.zip ',
+                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/3D_example_csv.zip',
                 'scepter_img2img':
-                f' {self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip '
+                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip'
             }
-            self.default_dataset_zip = ' and '.join([f"[{k}]({v})" for k, v in self.default_dataset_zip.items()])
+            self.default_dataset_zip_str = ' and '.join(
+                [f'[{k}]({v})' for k, v in self.default_dataset_zip.items()])
 
             self.default_dataset_name = {
                 'scepter_txt2img': '3D_example',
@@ -56,7 +57,7 @@ class CreateDatasetUIName():
                 'The first line is Target:FILE, Prompt, followed by the format of each line: image path, description.'
                 'we also surpport the zip of '
                 'one level subfolder of images whose format are in jpg, jpeg, png, webp. '
-                f'See the ZIP examples: {self.default_dataset_zip}. \n'  # noqa
+                f'See the ZIP examples: {self.default_dataset_zip_str}. \n'  # noqa
                 f'* If you have refreshed the page, please click the {self.refresh_list_button} '
                 'button to ensure all previously created datasets are visible in the dropdown menu.\n'
                 '* For processing and training with large-scale data(for example more than 10K samples), '
@@ -105,11 +106,12 @@ class CreateDatasetUIName():
             self.default_dataset_repo = 'https://www.modelscope.cn/api/v1/models/iic/scepter/'
             self.default_dataset_zip = {
                 'scepter_txt2img':
-                f' {self.default_dataset_repo}repo?Revision=master&FilePath=datasets/3D_example_csv.zip ',
+                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/3D_example_csv.zip',
                 'scepter_img2img':
-                f' {self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip '
+                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip'
             }
-            self.default_dataset_zip = ' 和 '.join([f"[{k}]({v})" for k, v in self.default_dataset_zip.items()])
+            self.default_dataset_zip_str = ' 和 '.join(
+                [f'[{k}]({v})' for k, v in self.default_dataset_zip.items()])
 
             self.default_dataset_name = {
                 'scepter_txt2img': '3D_example',
@@ -123,7 +125,7 @@ class CreateDatasetUIName():
                 f'* {self.btn_create_datasets_from_file} 按钮支持从文件中来新建数据集，目前支持zip文件，'
                 '需要保证在文件夹外进行打包，并包含images/文件夹和train.csv(会使用该文件中的图片路径)，首行为Target:FILE,Prompt，'
                 '其次每行格式为：图片路径,描述；'
-                f'同时我们也支持图像文件的zip包，格式在jpg、jpeg、png或webp。数据ZIP样例路径：{self.default_dataset_zip}. \n'
+                f'同时我们也支持图像文件的zip包，格式在jpg、jpeg、png或webp。数据ZIP样例路径：{self.default_dataset_zip_str}. \n'
                 +
                 f'* 如果刷新了页面，请点击{self.refresh_list_button} 按钮以确保所有以往创建的数据集在下拉框中可见。\n'
                 '* 对于大规模数据的处理和训练（数据规模大于1万），建议使用命令行形式\n'

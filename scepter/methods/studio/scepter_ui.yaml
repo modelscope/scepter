@@ -48,11 +48,11 @@ BANNER: |
       </div>
       <div class="qr-codes">
           <div class="qr-code-container">
-              <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/ms_scepter_studio_qr.png" alt="ms_scepter_studio_qr">
+              <img src="https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/scepter_studio/ms_scepter_studio_qr.png" alt="ms_scepter_studio_qr">
               <div class="caption"><a href="https://www.modelscope.cn/studios/iic/scepter_studio">Modelscope Studio</a></div>
           </div>
           <div class="qr-code-container">
-              <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_github_qr.png" alt="scepter_github_qr">
+              <img src="https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_github_qr.png" alt="scepter_github_qr">
               <div class="caption"><a href="https://github.com/modelscope/scepter">Github</a></div>
           </div>
       </div>

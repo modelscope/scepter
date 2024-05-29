@@ -863,12 +863,16 @@ class BrowserUI(UIBase):
             local_work_dir, _ = FS.map_to_local(src_path)
             FS.get_dir_to_local_dir(src_path, local_work_dir)
 
+            meta_file = f'{local_work_dir}/{username}/{modelid}/params.yaml'
+            if not os.path.exists(meta_file):
+                raise gr.Error(
+                    'The tuner model failed to be downloaded from ModelScope!')
+
             gr.Info(
                 'The tuner model has been downloaded from ModelScope Successfully!'
             )
 
             #
-            meta_file = f'{local_work_dir}/{username}/{modelid}/params.yaml'
             meta = Config(cfg_file=meta_file)
             base_model = meta['PARAMS']['base_model_revision']
             tuner_type = meta['PARAMS']['tuner_name']

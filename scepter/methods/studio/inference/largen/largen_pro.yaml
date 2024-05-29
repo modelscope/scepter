@@ -68,7 +68,7 @@ DEFAULT_PARAS:
           INPUT: ["ORIGINAL_SIZE_AS_TUPLE", "AESTHETIC_SCORE", "NEGATIVE_AESTHETIC_SCORE", "CROP_COORDS_TOP_LEFT", "PROMPT", "NEGATIVE_PROMPT"]
 
 MODEL:
-  PRETRAINED_MODEL: ms://damo/LARGEN@models/largen_ckpt_s22k.pth
+  PRETRAINED_MODEL: ms://iic/LARGEN@models/largen_ckpt_s22k.pth
   # SCHEDULE_ARGS DESCRIPTION:  TYPE:  default: ''
   SCHEDULE:
     PARAMETERIZATION: "eps"
@@ -245,8 +245,8 @@ MODEL:
         LEGACY_UCG_VALUE:
       -
         NAME: IPAdapterPlusEmbedder
-        CLIP_DIR: ms://damo/LARGEN@models/clip_encoder/
-        PRETRAINED_MODEL: ms://damo/LARGEN@models/ip-adapter-plus_sdxl_vit-h.bin
+        CLIP_DIR: ms://iic/LARGEN@models/clip_encoder/
+        PRETRAINED_MODEL: ms://iic/LARGEN@models/ip-adapter-plus_sdxl_vit-h.bin
         INPUT_KEYS: [ "ref_ip", "ref_detail" ]
         IN_DIM: 1280
         HEADS: 20

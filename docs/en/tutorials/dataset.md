@@ -5,7 +5,7 @@ Below are examples for each format, illustrating their details and basic usage.
 
 ## Modelscope Format
 
-We use a [custom-stylized dataset](https://modelscope.cn/datasets/damo/style_custom_dataset/summary), which included classes 3D, anime, flat illustration, oil painting, sketch, and watercolor, each with 30 image-text pairs.
+We use a [custom-stylized dataset](https://modelscope.cn/datasets/iic/style_custom_dataset/summary), which included classes 3D, anime, flat illustration, oil painting, sketch, and watercolor, each with 30 image-text pairs.
 
 ```python
 # pip install modelscope

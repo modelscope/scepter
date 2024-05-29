@@ -6,9 +6,9 @@ import datetime
 import os.path
 from collections import OrderedDict
 
+import gradio as gr
 from tqdm import tqdm
 
-import gradio as gr
 from scepter.modules.utils.file_system import FS
 from scepter.studio.preprocess.caption_editor_ui.component_names import \
     CreateDatasetUIName
@@ -25,7 +25,7 @@ def wget_file(file_url, save_file):
     if 'oss' in file_url:
         file_url = file_url.split('?')[0]
     local_path, _ = FS.map_to_local(save_file)
-    res = os.popen(f"wget -c '{file_url}' -O '{local_path}'")
+    res = os.popen(f"wget -c '{file_url.strip()}' -O '{local_path.strip()}'")
     res.readlines()
     FS.put_object_from_local_file(local_path, save_file)
     return save_file, res
@@ -239,7 +239,7 @@ class CreateDatasetUI(UIBase):
                                 label=self.components_name.zip_file_url,
                                 value='',
                                 placeholder=self.components_name.
-                                default_dataset_zip,
+                                default_dataset_zip_str,
                                 visible=False)
                 with gr.Column(scale=1, visible=False,
                                min_width=0) as btn_panel:
