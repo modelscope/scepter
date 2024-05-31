@@ -101,14 +101,13 @@ class ImageTextPairMSDataset(BaseDataset):
             if isinstance(self.output_size, numbers.Number):
                 self.output_size = [self.output_size, self.output_size]
         # Use modelscope dataset
-
         if not ms_dataset_name:
             raise (
                 'Your must set MS_DATASET_NAME as modelscope dataset or your local dataset orignized '
                 'as modelscope dataset.')
         if FS.exists(ms_dataset_name):
             ms_dataset_name = FS.get_dir_to_local_dir(ms_dataset_name)
-            ms_remap_path = ms_dataset_name
+            # ms_remap_path = ms_dataset_name
         try:
             self.data = MsDataset.load(str(ms_dataset_name),
                                        namespace=ms_dataset_namespace,
@@ -151,8 +150,9 @@ class ImageTextPairMSDataset(BaseDataset):
     def _get(self, index: int):
         current_data = self.data[index % len(self.data)]
         # print(current_data.keys())
-        image_path = current_data['Target:FILE']
-        prompt = current_data['Prompt']
+        image_path = current_data[
+            'Target:FILE'] if 'Target:FILE' in current_data else ''
+        prompt = current_data.get('Prompt', current_data.get('prompt', ''))
         style = current_data['Style'] if 'Style' in current_data else ''
         src_image_path = current_data[
             'Source:FILE'] if 'Source:FILE' in current_data else ''
@@ -178,6 +178,9 @@ class ImageTextPairMSDataset(BaseDataset):
         }
         if self.output_size is not None:
             ret_item['meta']['image_size'] = self.output_size
+        for key in current_data:
+            if key not in ret_item['meta']:
+                ret_item['meta'][key] = current_data[key]
         return ret_item
 
     @staticmethod
@@ -269,8 +272,9 @@ class ImageTextPairFolderDataset(BaseDataset):
     def _get(self, index: int):
         current_data = self.data[index % len(self.data)]
         # print(current_data.keys())
-        image_path = current_data['Target:FILE']
-        prompt = current_data['Prompt']
+        image_path = current_data[
+            'Target:FILE'] if 'Target:FILE' in current_data else ''
+        prompt = current_data.get('Prompt', current_data.get('prompt', ''))
         style = current_data['Style'] if 'Style' in current_data else ''
         src_image_path = current_data[
             'Source:FILE'] if 'Source:FILE' in current_data else ''
@@ -296,6 +300,9 @@ class ImageTextPairFolderDataset(BaseDataset):
         }
         if self.output_size is not None:
             ret_item['meta']['image_size'] = self.output_size
+        for key in current_data:
+            if key not in ret_item['meta']:
+                ret_item['meta'][key] = current_data[key]
         return ret_item
 
     @staticmethod
