@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import torchvision.transforms as TT
-
 from scepter.studio.preprocess.processors.base_processor import \
     BaseImageProcessor
 

@@ -166,7 +166,7 @@ class InferenceTest(unittest.TestCase):
             "--prompt 'a single flower is shown in front of a tree' --save_folder 'test_flower_canny' "
             "--image_size 768 --task control --image 'asset/images/flower.jpg' --control_mode canny "
             '--pretrained_model '
-            'ms://damo/scepter_scedit@controllable_model/SD2.1/canny_control/0_SwiftSCETuning/pytorch_model.bin'
+            'ms://iic/scepter_scedit@controllable_model/SD2.1/canny_control/0_SwiftSCETuning/pytorch_model.bin'
         )
 
         os.system(
@@ -175,7 +175,7 @@ class InferenceTest(unittest.TestCase):
             "--prompt 'super mario' --save_folder 'test_mario_pose' "
             "--image_size 768 --task control --image 'asset/images/pose_source.png' --control_mode source "
             '--pretrained_model '
-            'ms://damo/scepter_scedit@controllable_model/SD2.1/pose_control/0_SwiftSCETuning/pytorch_model.bin'
+            'ms://iic/scepter_scedit@controllable_model/SD2.1/pose_control/0_SwiftSCETuning/pytorch_model.bin'
         )
 
 

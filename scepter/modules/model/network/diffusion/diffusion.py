@@ -10,10 +10,12 @@ import random
 import torch
 
 from .schedules import karras_schedule
-from .solvers import (sample_ddim, sample_dpm_2, sample_dpm_2_ancestral,
-                      sample_dpmpp_2m, sample_dpmpp_2m_sde,
-                      sample_dpmpp_2s_ancestral, sample_dpmpp_sde,
-                      sample_euler, sample_euler_ancestral, sample_heun)
+from .solvers import (
+    sample_ddim, sample_dpm_2, sample_dpm_2_ancestral, sample_dpmpp_2m,
+    sample_dpmpp_2m_sde, sample_dpmpp_2m_sde_lcm, sample_dpmpp_2s_ancestral,
+    sample_dpmpp_sde, sample_euler, sample_euler_ancestral, sample_heun,
+    sample_onestep, stochastic_iterative_sampler,
+    stochastic_iterative_sampler2, stochastic_iterative_sampler3)
 
 __all__ = ['GaussianDiffusion']
 
@@ -427,7 +429,12 @@ class GaussianDiffusion(object):
             'dpmpp_2s_ancestral_karras': sample_dpmpp_2s_ancestral,
             'dpmpp_2m_karras': sample_dpmpp_2m,
             'dpmpp_sde_karras': sample_dpmpp_sde,
-            'dpmpp_2m_sde_karras': sample_dpmpp_2m_sde
+            'dpmpp_2m_sde_karras': sample_dpmpp_2m_sde,
+            'onestep': sample_onestep,
+            'multistep': stochastic_iterative_sampler,
+            'multistep2': stochastic_iterative_sampler2,
+            'multistep3': stochastic_iterative_sampler3,
+            'dpmpp_2m_sde_lcm': sample_dpmpp_2m_sde_lcm,
         }[solver]
 
         # options
@@ -620,6 +627,44 @@ class GaussianDiffusion(object):
                   | torch.isinf(log_sigma)] = float('inf')
         return log_sigma.exp()
 
+    @torch.no_grad()
+    def stochastic_encode(self, x0, t, steps):
+        # fast, but does not allow for exact reconstruction
+        # t serves as an index to gather the correct alphas
+
+        t_max = None
+        t_min = None
+
+        # discretization method
+        discretization = 'trailing' if self.prediction_type == 'v' else 'leading'
+
+        # timesteps
+        if isinstance(steps, int):
+            t_max = self.num_timesteps - 1 if t_max is None else t_max
+            t_min = 0 if t_min is None else t_min
+            steps = discretize_timesteps(t_max, t_min, steps, discretization)
+        steps = torch.as_tensor(steps).round().long().flip(0).to(x0.device)
+        # steps = torch.as_tensor(steps).round().long().to(x0.device)
+
+        # self.alphas_bar = torch.cumprod(1 - self.sigmas ** 2, dim=0)
+        # print('sigma: ', self.sigmas, len(self.sigmas))
+        # print('alpha_bar: ', self.alphas_bar, len(self.alphas_bar))
+        # print('steps: ', steps, len(steps))
+        # sqrt_alphas_cumprod = torch.sqrt(self.alphas_bar).to(x0.device)[steps]
+        # sqrt_one_minus_alphas_cumprod = torch.sqrt(1 - self.alphas_bar).to(x0.device)[steps]
+
+        sqrt_alphas_cumprod = self.alphas.to(x0.device)[steps]
+        sqrt_one_minus_alphas_cumprod = self.sigmas.to(x0.device)[steps]
+        # print('sigma: ', self.sigmas, len(self.sigmas))
+        # print('alpha: ', self.alphas, len(self.alphas))
+        # print('steps: ', steps, len(steps))
+
+        noise = torch.randn_like(x0)
+        return (
+            extract_into_tensor(sqrt_alphas_cumprod, t, x0.shape) * x0 +
+            extract_into_tensor(sqrt_one_minus_alphas_cumprod, t, x0.shape) *
+            noise)
+
 
 def extract_into_tensor(a, t, x_shape):
     b, *_ = t.shape
@@ -642,3 +687,19 @@ def discretize_timesteps(t_max, t_min, steps, discretization):
         raise NotImplementedError(
             f'{discretization} discretization not implemented')
     return steps.clamp_(t_min, t_max)
+
+
+def get_scalings_for_boundary_condition(sigma):
+    sigma_data = 0.5
+    c_skip = (1 -
+              sigma**2)**0.5 * sigma_data**2 / (sigma**2 +
+                                                (1 - sigma**2) * sigma_data**2)
+    c_out = (sigma * sigma_data / (sigma**2 +
+                                   (1 - sigma**2) * sigma_data**2)**0.5)
+    return c_skip, c_out
+
+
+def v_to_x0(v, t, x_t, diffusion):
+    sigmas = _i(diffusion.sigmas, t, v)
+    alphas = _i(diffusion.alphas, t, v)
+    return alphas * x_t - sigmas * v

@@ -18,6 +18,7 @@ SCEPTER offers 3 core components:
 
 
 ## 🎉 News
+- [2024.05]: Introducing SCEPTER v1, supporting customized image edit tasks! Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `Clay Style`, `De-Text`, `Segmentation`, etc.
 - [2024.04]: New [StyleBooth](https://ali-vilab.github.io/stylebooth-page/) demo on SCEPTER Studio for`Text-Based Style Editing`.
 - [2024.03]: We optimize the training UI and checkpoint management. New [LAR-Gen](https://arxiv.org/abs/2403.19534) model has been added on SCEPTER Studio, supporting `zoom-out`, `virtual try on`, `inpainting`.
 - [2024.02]: We release new SCEdit controllable image synthesis models for SD v2.1 and SD XL. Multiple strategies applied to accelerate inference time for SCEPTER Studio.
@@ -29,59 +30,60 @@ SCEPTER offers 3 core components:
 
 ## 🖼 Gallery for Recent Works
 
-### StyleBooth
-<table>
-  <tr>
-    <td><strong>Origin Image</strong><br>Gold Dragon Tuner</td>
-    <td><strong>Graffiti Art</strong></td>
-    <td><strong>Adorable Kawaii</strong></td>
-    <td><strong>game-retro game</strong></td>
-    <td><strong>Vincent van Gogh</strong></td>
-  </tr>
-  <tr>
-    <td><img src="asset/images/scedit/tuner_gold_dragon.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/graffiti.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/kawaii.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/retrogame.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/vangogh.jpeg" width="240"></td>
-  </tr>
-</table>
+### Edit Tuners
 
-<table>
-  <tr>
-    <td><strong>Origin Image</strong></td>
-    <td><strong>Lowpoly</strong></td>
-    <td><strong>Colored Pencil Art</strong></td>
-    <td><strong>Watercolor</strong></td>
-    <td><strong>misc-disco</strong></td>
-  </tr>
-  <tr>
-    <td><img src="asset/images/stylebooth/mountain.jpg" width="240"></td>
-    <td><img src="asset/images/stylebooth/lowpoly.jpg" width="240"></td>
-    <td><img src="asset/images/stylebooth/colorpencil.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/watercolor.jpeg" width="240"></td>
-    <td><img src="asset/images/stylebooth/disco.jpeg" width="240"></td>
-  </tr>
-</table>
+Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `Clay Style`, `De-Text`, `Segmentation`, etc.
+Try our official few-shot datasets: [De-Text](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdetext.zip), [Image2Hed](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fhed_pair.zip), [Image2Depth](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fimage2depth.zip), [Depth2Image](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdepth2image.zip).
 
+
+<table><tbody>
+  <tr>
+    <th align="center" colspan="4">Clay Style<br>Prompt: "Convert this image into clay style"</th>
+  </tr>
+  <tr>
+    <td><img src="asset/images/edit_tuner/vermeer.jpeg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/clay_vermeer.jpeg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/cat_512.jpg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/clay_cat.jpeg" width="300"></td>
+  </tr>
+  <tr>
+    <th align="center" colspan="2">De-Text<br>Prompt: "Remove the texts"</th>
+    <th align="center" colspan="2">Image2Hed<br>Prompt: "Convert to an edge map"</th>
+  </tr>
+  <tr>
+    <td><img src="asset/images/edit_tuner/text.jpg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/detext.jpeg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/cat_512.jpg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/hed.jpeg" width="300"></td>
+  </tr>
+    <tr>
+    <th align="center" colspan="2">Image2Depth<br>Prompt: "Calculate the depth map"</th>
+    <th align="center" colspan="2">Depth2Image<br>Prompt: "Convert depth map into color image"</th>
+  </tr>
+  <tr>
+    <td><img src="asset/images/edit_tuner/house.jpg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/image2depth.jpeg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/depth.jpg" width="300"></td>
+    <td><img src="asset/images/edit_tuner/depth2image.jpeg" width="300"></td>
+  </tr>
+</tbody>
+</table>
+Note: Left image is input and right image is output.
 
 ## 🛠️ Installation
 
-- Create new environment
+- Create new environment with `conda` command:
 
 ```shell
 conda env create -f environment.yaml
 conda activate scepter
 ```
-- We recommend installing the specific version of PyTorch and accelerate toolbox [xFormers](https://pypi.org/project/xformers/). You can install these recommended version by pip:
 
+- Install with `pip` command:
+
+We recommend installing the specific version of PyTorch and accelerate toolbox [xFormers](https://pypi.org/project/xformers/). You can install these recommended version by pip:
 ```shell
 pip install -r requirements/recommended.txt
-```
-
-- Install SCEPTER by the `pip` command:
-
-```shell
 pip install scepter
 ```
 
@@ -132,8 +134,6 @@ The startup of **SCEPTER Studio** eliminates the need for manual downloading and
 Depending on the network and hardware situation, the initial startup usually requires 15-60 minutes, primarily involving the download and processing of SDv1.5, SDv2.1, and SDXL models.
 Therefore, subsequent startups will become much faster (about one minute) as downloading is no longer required.
 
-To support the sharing and downloading of models,
-please make sure that you have installed **zip** and Git Large File Storage (**git lfs**).
 ### Usage Demo
 
 |              [Image Editing](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Fimage_editing_20240419.webm)              |                [Training](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Ftraining_20240419.webm)                 |              [Model Sharing](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Fmodel_sharing_20240419.webm)               |             [Model Inference](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Fmodel_inference_20240419.webm)              |             [Data Management](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets%2Fscepter_studio%2Fdata_management_20240419.webm)              |
@@ -142,7 +142,7 @@ please make sure that you have installed **zip** and Git Large File Storage (**g
 
 ### Modelscope Studio & Huggingface Space
 
-We deploy a work studio on Modelscope that includes only the inference tab, please refer to [ms_scepter_studio](https://www.modelscope.cn/studios/damo/scepter_studio/summary) and [hf_scepter_studio](https://huggingface.co/spaces/modelscope/scepter_studio)
+We deploy a work studio on Modelscope that includes only the inference tab, please refer to [ms_scepter_studio](https://www.modelscope.cn/studios/iic/scepter_studio/summary) and [hf_scepter_studio](https://huggingface.co/spaces/modelscope/scepter_studio)
 
 
 ## 🔍 Learn More

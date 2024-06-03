@@ -3,7 +3,6 @@
 import math
 
 import torch.nn as nn
-
 from scepter.modules.model.tuner.tuner_utils import (choose_weight_type,
                                                      get_weight_value)
 

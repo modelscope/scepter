@@ -11,7 +11,6 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
-
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.mlsd.mbv2_mlsd_large import MobileV2_MLSD_Large
 from scepter.modules.annotator.mlsd.utils import pred_lines

@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import torch
 import torch.nn as nn
-
 from scepter.modules.model.backbone.image.utils.vit import (
     MULTI_HEAD_VIT_MODEL, VIT, VIT_MODEL, MULTI_HEAD_VIT_MODEL_Split)
 from scepter.modules.model.base_model import BaseModel

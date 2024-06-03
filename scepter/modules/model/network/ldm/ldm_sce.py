@@ -5,7 +5,6 @@ import copy
 import torch
 import torch.nn as nn
 import torchvision.transforms as TT
-
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.model.registry import MODELS, TUNERS
 from scepter.modules.utils.config import Config, dict_to_yaml

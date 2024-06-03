@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import numpy as np
 import torchvision
-
 from scepter.modules.data.dataset.base_dataset import BaseDataset
 from scepter.modules.data.dataset.registry import DATASETS
 from scepter.modules.utils.config import dict_to_yaml

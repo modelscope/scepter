@@ -4,7 +4,6 @@
 import os
 
 import torch.nn as nn
-
 from scepter.modules.utils.config import dict_to_yaml
 
 

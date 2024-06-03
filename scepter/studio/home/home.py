@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import gradio as gr
-
 from scepter.modules.utils.config import Config
 from scepter.studio.home.home_ui.desc_ui import DescUI
 from scepter.studio.home.home_ui.guide_ui import GuideUI

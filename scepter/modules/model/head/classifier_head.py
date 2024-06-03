@@ -7,11 +7,10 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.parameter import Parameter
-
 from scepter.modules.model.base_model import BaseModel
 from scepter.modules.model.registry import HEADS
 from scepter.modules.utils.config import dict_to_yaml
+from torch.nn.parameter import Parameter
 
 
 @HEADS.register_class()

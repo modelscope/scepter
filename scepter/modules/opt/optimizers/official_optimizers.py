@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import torch.optim as optim
-
 from scepter.modules.opt.optimizers.base_optimizer import BaseOptimize
 from scepter.modules.opt.optimizers.registry import OPTIMIZERS
 from scepter.modules.utils.config import dict_to_yaml

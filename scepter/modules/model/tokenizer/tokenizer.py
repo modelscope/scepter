@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import open_clip
-from transformers import CLIPTokenizer as transformer_clip_tokenizer
-
 from scepter.modules.model.registry import TOKENIZERS
 from scepter.modules.model.tokenizer import BaseTokenizer
 from scepter.modules.model.tokenizer.tokenizer_component import (
     basic_clean, whitespace_clean)
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.file_system import FS
+from transformers import CLIPTokenizer as transformer_clip_tokenizer
 
 
 @TOKENIZERS.register_class()

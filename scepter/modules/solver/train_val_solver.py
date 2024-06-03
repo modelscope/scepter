@@ -4,7 +4,6 @@ import os.path as osp
 from collections import OrderedDict, defaultdict
 
 import torch
-
 from scepter.modules.solver.base_solver import BaseSolver
 from scepter.modules.solver.registry import SOLVERS
 from scepter.modules.utils.config import dict_to_yaml

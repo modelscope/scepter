@@ -241,7 +241,7 @@ SOLVER:
         DOWN_RATIO: 1.0
     CONTROL_ANNO:
       NAME: MidasDetector
-      PRETRAINED_MODEL: ms://damo/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt
+      PRETRAINED_MODEL: ms://iic/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt
   #
   SAMPLE_ARGS:
     SAMPLER: ddim

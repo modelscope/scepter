@@ -10,7 +10,7 @@ DESC_INFO:
     <table align="center">
       <tr>
       <td>
-        <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_studio_banner.jpg">
+        <img src="https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_studio_banner.jpg">
         <h3><center>SCEPTER Studio是基于开源基模型和自研微调编辑算法构建的生成定制和编辑工具箱，提供围绕生成、微调、编辑、数据处理等一系列的工具和插件。</center><h3>
       </td>
       </tr>
@@ -22,7 +22,7 @@ DESC_INFO:
     <table align="center">
       <tr>
       <td>
-        <img src="https://modelscope.cn/api/v1/models/damo/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_studio_banner.jpg">
+        <img src="https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=assets/scepter_studio/scepter_studio_banner.jpg">
         <h3><center>SCEPTER Studio is a customized generation and editing toolkit built on the open-source base models and proprietary fine-tuning editing algorithms, offering a range of tools and plugins centered around generation, fine-tuning, editing, and data processing.</center><h3>
       </td>
       </tr>

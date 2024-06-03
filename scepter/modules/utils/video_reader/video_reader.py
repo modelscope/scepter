@@ -9,7 +9,6 @@ import cv2
 import numpy as np
 import torch
 import torch.utils.dlpack as dlpack
-
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.video_reader.frame_sampler import do_frame_sample
 

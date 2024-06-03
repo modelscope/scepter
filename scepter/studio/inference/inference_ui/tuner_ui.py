@@ -2,9 +2,9 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 
-import gradio as gr
 from tqdm import tqdm
 
+import gradio as gr
 from scepter.modules.utils.file_system import FS
 from scepter.studio.inference.inference_ui.component_names import TunerUIName
 from scepter.studio.utils.uibase import UIBase
@@ -145,10 +145,22 @@ class TunerUI(UIBase):
             if tuner_model is not None and len(tuner_model) > 0:
                 tuner_info = self.name_level_tuners.get(now_pipeline, {}).get(
                     tuner_model[-1], {})
-            if tuner_info.get(
-                    'IMAGE_PATH',
-                    None) and not os.path.exists(tuner_info.IMAGE_PATH):
-                tuner_info.IMAGE_PATH = FS.get_from(tuner_info.IMAGE_PATH)
+            if tuner_info.get('IMAGE_PATH', None):
+                if not FS.exists(tuner_info.IMAGE_PATH):
+                    if FS.exists(
+                            os.path.join(tuner_info.MODEL_PATH,
+                                         tuner_info.IMAGE_PATH)):
+                        local_image_path = FS.get_from(
+                            os.path.join(tuner_info.MODEL_PATH,
+                                         tuner_info.IMAGE_PATH))
+                    else:
+                        local_image_path = FS.get_from(tuner_info.IMAGE_PATH)
+                else:
+                    local_image_path = FS.get_from(tuner_info.IMAGE_PATH)
+
+                if FS.exists(local_image_path):
+                    tuner_info.IMAGE_PATH = str(local_image_path)
+
             return (gr.Text(value=tuner_info.get('TUNER_TYPE', '')),
                     gr.Text(value=tuner_info.get('BASE_MODEL', '')),
                     gr.Text(value=tuner_info.get('DESCRIPTION', '')),
@@ -181,10 +193,23 @@ class TunerUI(UIBase):
             if tuner_model is not None and len(tuner_model) > 0:
                 tuner_info = self.name_level_tuners.get(now_pipeline, {}).get(
                     tuner_model[-1], {})
-            if tuner_info.get(
-                    'IMAGE_PATH',
-                    None) and not os.path.exists(tuner_info.IMAGE_PATH):
-                tuner_info.IMAGE_PATH = FS.get_from(tuner_info.IMAGE_PATH)
+
+            if tuner_info.get('IMAGE_PATH', None):
+                if not FS.exists(tuner_info.IMAGE_PATH):
+                    if FS.exists(
+                            os.path.join(tuner_info.MODEL_PATH,
+                                         tuner_info.IMAGE_PATH)):
+                        local_image_path = FS.get_from(
+                            os.path.join(tuner_info.MODEL_PATH,
+                                         tuner_info.IMAGE_PATH))
+                    else:
+                        local_image_path = FS.get_from(tuner_info.IMAGE_PATH)
+                else:
+                    local_image_path = FS.get_from(tuner_info.IMAGE_PATH)
+
+                if FS.exists(local_image_path):
+                    tuner_info.IMAGE_PATH = str(local_image_path)
+
             return (gr.Tabs(selected='tuner_manager'),
                     gr.Text(value=tuner_info.NAME), gr.Text(value=''),
                     gr.Text(value=tuner_info.get('TUNER_TYPE', '')),

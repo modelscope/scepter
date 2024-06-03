@@ -13,11 +13,19 @@ class TrainTest(unittest.TestCase):
             os.makedirs(self.tmp_dir)
         self.data_dir = './cache/datasets'
         if not os.path.exists(self.data_dir):
-            data_cmd = """mkdir -p cache/datasets/ && wget 'https://www.modelscope.cn/api/v1/models
-                          /iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_txt.zip'
-                          -O cache/datasets/3D_example_txt.zip &&
-                          unzip cache/datasets/3D_example_txt.zip
-                          -d cache/datasets/ && rm cache/datasets/3D_example_txt.zip"""
+            data_cmd = (
+                'mkdir -p cache/datasets/ '
+                "&& wget 'https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath="
+                "datasets/3D_example_txt.zip' -O cache/datasets/3D_example_txt.zip "
+                '&& unzip cache/datasets/3D_example_txt.zip -d cache/datasets/ '
+                '&& rm cache/datasets/3D_example_txt.zip')
+            os.system(data_cmd)
+            data_cmd = (
+                'mkdir -p cache/datasets/ '
+                "&& wget 'https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath="
+                "datasets/hed_pair.zip' -O cache/datasets/hed_pair.zip "
+                '&& unzip cache/datasets/hed_pair.zip -d cache/datasets/ '
+                '&& rm cache/datasets/hed_pair.zip')
             os.system(data_cmd)
 
     def tearDown(self):
@@ -208,6 +216,14 @@ class TrainTest(unittest.TestCase):
             os.path.exists(
                 os.path.join(self.tmp_dir,
                              'sdxl_1024_sce_ctr_color_datatxt/checkpoints')))
+
+    def test_edit_example(self):
+        os.system('python scepter/tools/run_train.py '
+                  '--cfg scepter/methods/edit/edit_512_lora.yaml '
+                  '--max_steps 100')
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(self.tmp_dir, 'edit_512_lora/checkpoints')))
 
 
 if __name__ == '__main__':

@@ -15,6 +15,6 @@ dev
 scepter.egg-info
 .readthedocs.yml
 1.9
-MANIFEST.in
+#MANIFEST.in
 *resources
 *.ipynb_checkpoints*

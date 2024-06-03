@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import torch
-
 from scepter.studio.utils.env import get_available_memory
 
 

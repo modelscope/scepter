@@ -10,7 +10,6 @@ from collections import OrderedDict
 import numpy as np
 import torch
 import torch.distributed as dist
-
 from scepter.modules.utils.model import StdMsg
 
 __all__ = [
@@ -447,8 +446,8 @@ class Workenv(object):
         environ_str += f'Current pod have {self.device_count} devices!\n'
         environ_str += f'Current task executes on device {self.device_id}!\n'
         environ_str += f"Current task's global rank is {self.rank} \n"
-        environ_str += f"Current task's data online is set {self.data_online}"
-        environ_str += f"Current task's share storage is set {self.share_storage}"
+        environ_str += f"Current task's data online is set {self.data_online} \n"
+        environ_str += f"Current task's share storage is set {self.share_storage} \n"
         environ_str += f"Current task's global seed is set {self.seed}"
         return environ_str
 

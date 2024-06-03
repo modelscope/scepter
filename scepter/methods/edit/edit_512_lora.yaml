@@ -1,0 +1,250 @@
+ENV:
+  BACKEND: nccl
+SOLVER:
+  NAME: LatentDiffusionSolver
+  RESUME_FROM:
+  LOAD_MODEL_ONLY: True
+  USE_FSDP: False
+  SHARDING_STRATEGY:
+  USE_AMP: True
+  DTYPE: float16
+  CHANNELS_LAST: True
+  MAX_STEPS: 2000
+  MAX_EPOCHS: -1
+  NUM_FOLDS: 1
+  ACCU_STEP: 1
+  EVAL_INTERVAL: 100
+  #
+  WORK_DIR: ./cache/save_data/edit_512_lora
+  LOG_FILE: std_log.txt
+  #
+  FILE_SYSTEM:
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "./cache/data"
+  #
+  TUNER:
+    -
+      NAME: SwiftLoRA
+      R: 64
+      LORA_ALPHA: 64
+      LORA_DROPOUT: 0.0
+      BIAS: "none"
+      TARGET_MODULES: model.*(to_q|to_k|to_v|to_out.0|net.0.proj|net.2)$
+  #
+  MODEL:
+    NAME: LatentDiffusionEdit
+    PARAMETERIZATION: eps
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL: ms://iic/stylebooth@models/stylebooth-tb-5000-0.bin
+    IGNORE_KEYS: [ ]
+    CONCAT_NO_SCALE_FACTOR: True
+    SCALE_FACTOR: 0.18215
+    SIZE_FACTOR: 8
+    # DEFAULT_N_PROMPT: 'lowres, error, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature'
+    DEFAULT_N_PROMPT:
+    SCHEDULE_ARGS:
+      "NAME": "scaled_linear"
+      "BETA_MIN": 0.00085
+      "BETA_MAX": 0.012
+    USE_EMA: False
+    #
+    DIFFUSION_MODEL:
+      NAME: DiffusionUNet
+      IN_CHANNELS: 8
+      OUT_CHANNELS: 4
+      MODEL_CHANNELS: 320
+      NUM_HEADS: 8
+      NUM_RES_BLOCKS: 2
+      ATTENTION_RESOLUTIONS: [ 4, 2, 1 ]
+      CHANNEL_MULT: [ 1, 2, 4, 4 ]
+      CONV_RESAMPLE: True
+      DIMS: 2
+      USE_CHECKPOINT: False
+      USE_SCALE_SHIFT_NORM: False
+      RESBLOCK_UPDOWN: False
+      USE_SPATIAL_TRANSFORMER: True
+      TRANSFORMER_DEPTH: 1
+      CONTEXT_DIM: 768
+      DISABLE_MIDDLE_SELF_ATTN: False
+      USE_LINEAR_IN_TRANSFORMER: False
+      PRETRAINED_MODEL:
+      IGNORE_KEYS: []
+    #
+    FIRST_STAGE_MODEL:
+      NAME: AutoencoderKL
+      EMBED_DIM: 4
+      PRETRAINED_MODEL:
+      IGNORE_KEYS: []
+      BATCH_SIZE: 4
+      #
+      ENCODER:
+        NAME: Encoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DOUBLE_Z: True
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+      #
+      DECODER:
+        NAME: Decoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+        GIVE_PRE_END: False
+        TANH_OUT: False
+    #
+    TOKENIZER:
+      NAME: ClipTokenizer
+      PRETRAINED_PATH: ms://AI-ModelScope/clip-vit-large-patch14
+      LENGTH: 77
+      CLEAN: True
+    #
+    COND_STAGE_MODEL:
+      NAME: FrozenCLIPEmbedder
+      FREEZE: True
+      LAYER: last
+      PRETRAINED_MODEL: ms://AI-ModelScope/clip-vit-large-patch14
+    #
+    LOSS:
+      NAME: ReconstructLoss
+      LOSS_TYPE: l2
+  #
+  SAMPLE_ARGS:
+    SAMPLER: ddim
+    SAMPLE_STEPS: 50
+    SEED: 2023
+    GUIDE_SCALE: #7.5
+      image: 1.5
+      text: 7.5
+    GUIDE_RESCALE: 0.5
+    DISCRETIZATION: trailing
+    IMAGE_SIZE: [512, 512]
+    RUN_TRAIN_N: False
+  #
+  OPTIMIZER:
+    NAME: AdamW
+    LEARNING_RATE: 0.064
+    BETAS: [ 0.9, 0.999 ]
+    EPS: 1e-8
+    WEIGHT_DECAY: 1e-2
+    AMSGRAD: False
+  #
+  TRAIN_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: train
+    MS_DATASET_NAME: cache/datasets/hed_pair
+    MS_DATASET_NAMESPACE: ""
+    MS_DATASET_SPLIT: "train"
+    MS_DATASET_SUBNAME: ""
+    PROMPT_PREFIX: ""
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    SAMPLER:
+      NAME: LoopSampler
+    TRANSFORMS:
+      - NAME: LoadImageFromFileList
+        FILE_KEYS: ['img_path', 'src_path']
+        RGB_ORDER: RGB
+        BACKEND: pillow
+      - NAME: FlexibleResize
+        INTERPOLATION: bilinear
+        SIZE: [ 512, 512 ]
+        INPUT_KEY: [ 'img', 'src' ]
+        OUTPUT_KEY: [ 'img', 'src' ]
+        BACKEND: pillow
+      - NAME: FlexibleCenterCrop
+        SIZE: [ 512, 512 ]
+        INPUT_KEY: [ 'img', 'src' ]
+        OUTPUT_KEY: [ 'img', 'src' ]
+        BACKEND: pillow
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img', 'src' ]
+        OUTPUT_KEY: [ 'img', 'src' ]
+        BACKEND: pillow
+      - NAME: Normalize
+        MEAN: [ 0.5,  0.5,  0.5 ]
+        STD: [ 0.5,  0.5,  0.5 ]
+        INPUT_KEY: [ 'img', 'src' ]
+        OUTPUT_KEY: [ 'image', 'condition_cat' ]
+        BACKEND: torchvision
+      - NAME: Select
+        KEYS: [ 'image', 'condition_cat', 'prompt' ]
+        META_KEYS: [ 'data_key' ]
+  #
+  TRAIN_HOOKS:
+    -
+      NAME: BackwardHook
+      PRIORITY: 0
+    -
+      NAME: LogHook
+      LOG_INTERVAL: 50
+    -
+      NAME: CheckpointHook
+      INTERVAL: 1000
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+
+  EVAL_DATA:
+    NAME: Text2ImageDataset
+    MODE: eval
+    PROMPT_FILE:
+    PROMPT_DATA: [ "Convert to an edge map#;#cache/datasets/hed_pair/images/src_001.jpeg" ]
+    IMAGE_SIZE: [ 512, 512 ]
+    FIELDS: [ "prompt", "src_path" ]
+    DELIMITER: '#;#'
+    PROMPT_PREFIX: ''
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    TRANSFORMS:
+      - NAME: LoadImageFromFileList
+        FILE_KEYS: [ 'src_path' ]
+        RGB_ORDER: RGB
+        BACKEND: pillow
+      - NAME: FlexibleResize
+        INTERPOLATION: bilinear
+        SIZE: [ 512, 512 ]
+        INPUT_KEY: [ 'src' ]
+        OUTPUT_KEY: [ 'src' ]
+        BACKEND: pillow
+      - NAME: FlexibleCenterCrop
+        SIZE: [ 512, 512 ]
+        INPUT_KEY: [ 'src' ]
+        OUTPUT_KEY: [ 'src' ]
+        BACKEND: pillow
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'src' ]
+        OUTPUT_KEY: [ 'src' ]
+        BACKEND: pillow
+      - NAME: Normalize
+        MEAN: [ 0.5,  0.5,  0.5 ]
+        STD: [ 0.5,  0.5,  0.5 ]
+        INPUT_KEY: [ 'src' ]
+        OUTPUT_KEY: [ 'condition_cat' ]
+        BACKEND: torchvision
+      - NAME: Select
+        KEYS: [ 'condition_cat', 'prompt' ]
+        META_KEYS: [ 'image_size' ]
+  EVAL_HOOKS:
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      SAVE_PROBE_PREFIX: 'image'

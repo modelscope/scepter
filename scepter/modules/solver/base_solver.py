@@ -8,8 +8,6 @@ from abc import ABCMeta
 from collections import OrderedDict, defaultdict
 
 import torch
-from torch.nn.parallel import DistributedDataParallel
-
 from scepter.modules.data.dataset import DATASETS
 from scepter.modules.model.base_model import BaseModel
 from scepter.modules.model.metric.registry import METRICS
@@ -25,6 +23,7 @@ from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger, init_logger
 from scepter.modules.utils.probe import (ProbeData, merge_gathered_probe,
                                          register_data)
+from torch.nn.parallel import DistributedDataParallel
 
 try:
     import pytorch_lightning as pl

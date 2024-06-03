@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-# Copyright 2021 Alibaba Group Holding Limited. All Rights Reserved.
+# Copyright (c) Alibaba, Inc. and its affiliates.
 
 from collections import OrderedDict
 from functools import partial
 
 import torch.nn as nn
-from torch.nn.functional import sigmoid, softmax
-
 from scepter.modules.model.metric.registry import METRICS
 from scepter.modules.model.network.train_module import TrainModule
 from scepter.modules.model.registry import (BACKBONES, HEADS, LOSSES, MODELS,
                                             NECKS)
 from scepter.modules.utils.config import Config, dict_to_yaml
+from torch.nn.functional import sigmoid, softmax
 
 _ACTIVATE_MAPPER = {'softmax': partial(softmax, dim=1), 'sigmoid': sigmoid}
 

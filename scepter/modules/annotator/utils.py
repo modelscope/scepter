@@ -37,30 +37,30 @@ class AnnotatorProcessor():
     hed_cfg = {
         'NAME': 'HedAnnotator',
         'PRETRAINED_MODEL':
-        'ms://damo/scepter_scedit@annotator/ckpts/ControlNetHED.pth',
+        'ms://iic/scepter_scedit@annotator/ckpts/ControlNetHED.pth',
         'INPUT_KEYS': ['img'],
         'OUTPUT_KEYS': ['hed']
     }
     openpose_cfg = {
         'NAME': 'OpenposeAnnotator',
         'BODY_MODEL_PATH':
-        'ms://damo/scepter_scedit@annotator/ckpts/body_pose_model.pth',
+        'ms://iic/scepter_scedit@annotator/ckpts/body_pose_model.pth',
         'HAND_MODEL_PATH':
-        'ms://damo/scepter_scedit@annotator/ckpts/hand_pose_model.pth',
+        'ms://iic/scepter_scedit@annotator/ckpts/hand_pose_model.pth',
         'INPUT_KEYS': ['img'],
         'OUTPUT_KEYS': ['openpose']
     }
     midas_cfg = {
         'NAME': 'MidasDetector',
         'PRETRAINED_MODEL':
-        'ms://damo/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt',
+        'ms://iic/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt',
         'INPUT_KEYS': ['img'],
         'OUTPUT_KEYS': ['depth']
     }
     mlsd_cfg = {
         'NAME': 'MLSDdetector',
         'PRETRAINED_MODEL':
-        'ms://damo/scepter_scedit@annotator/ckpts/mlsd_large_512_fp32.pth',
+        'ms://iic/scepter_scedit@annotator/ckpts/mlsd_large_512_fp32.pth',
         'INPUT_KEYS': ['img'],
         'OUTPUT_KEYS': ['mlsd']
     }

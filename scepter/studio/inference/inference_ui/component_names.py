@@ -505,8 +505,10 @@ class StyleboothUIName():
     def __init__(self, language='en'):
         if language == 'en':
             self.dropdown_name = 'Application'
-            self.apps = ['Text-based Style Editing']
-            # self.apps = ["Text-based Style Editing", "Exemplar-based Style Editing"]
+            self.apps = [
+                'Text-based Style Editing', 'Editing Image with Tuners'
+            ]
+            # self.apps = ["Text-based Style Editing", "Exemplar-based Style Editing", 'Editing Image with Tuners']
             self.source_image = 'Source Image'
             self.exemplar_image = 'Exemplar Image'
             self.ins_format = 'Instruction Format (select or rewrite, en only)'
@@ -518,8 +520,8 @@ class StyleboothUIName():
             self.compose_button = 'Assemble Style Editing Instruction to Prompt'
         elif language == 'zh':
             self.dropdown_name = '应用'
-            self.apps = ['根据文本编辑风格']
-            # self.apps = ["根据文本编辑风格", "根据风格样例编辑风格"]
+            self.apps = ['根据文本编辑风格', '使用微调编辑图像']
+            # self.apps = ["根据文本编辑风格", "根据风格样例编辑风格", '使用微调编辑图像']
             self.source_image = '源图片'
             self.exemplar_image = '样例图片'
             self.ins_format = '指令模版 (选择或者新写，仅英文)'

@@ -53,7 +53,6 @@ import math
 import random
 
 import torch
-
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.registry import Registry
 

@@ -29,8 +29,21 @@ Given an original image, image editing aims to generate an image that align with
     <td><img src="../../../asset/images/stylebooth/retrogame.jpeg" width="240"></td>
     <td><img src="../../../asset/images/stylebooth/vangogh.jpeg" width="240"></td>
   </tr>
+  <tr>
+    <td><strong>Origin Image</strong></td>
+    <td><strong>Lowpoly</strong></td>
+    <td><strong>Colored Pencil Art</strong></td>
+    <td><strong>Watercolor</strong></td>
+    <td><strong>misc-disco</strong></td>
+  </tr>
+  <tr>
+    <td><img src="../../../asset/images/stylebooth/mountain.jpg" width="240"></td>
+    <td><img src="../../../asset/images/stylebooth/lowpoly.jpg" width="240"></td>
+    <td><img src="../../../asset/images/stylebooth/colorpencil.jpeg" width="240"></td>
+    <td><img src="../../../asset/images/stylebooth/watercolor.jpeg" width="240"></td>
+    <td><img src="../../../asset/images/stylebooth/disco.jpeg" width="240"></td>
+  </tr>
 </table>
-
 ## Features
 
 | **Text-Based** | **Exemplar-Based** |
@@ -92,7 +105,7 @@ class DiffusionInferenceTest(unittest.TestCase):
         output = diff_infer({'prompt': 'Let this image be in the style of sai-lowpoly'},
                             style_edit_image=Image.open('asset/images/inpainting_text_ref/ex4_scene_im.jpg'),
                             style_guide_scale_text=7.5,
-                            style_guide_scale_image=0.5)
+                            style_guide_scale_image=1.5)
         save_path = os.path.join(self.tmp_dir,
                                  'stylebooth_test_lowpoly_cute_dog.png')
         save_image(output['images'], save_path)

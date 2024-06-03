@@ -12,7 +12,6 @@ from typing import List, Optional
 import numpy as np
 import torch
 import torch.distributed as dist
-
 from scepter.modules.data.sampler.base_sampler import BaseSampler
 from scepter.modules.data.sampler.registry import SAMPLERS
 from scepter.modules.data.utils.data_bucket import (BucketBatchIndex,

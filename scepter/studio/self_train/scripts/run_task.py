@@ -6,7 +6,6 @@ import os
 import cv2
 import numpy as np
 import torch
-
 from scepter.modules.solver.hooks.checkpoint import CheckpointHook
 from scepter.modules.solver.hooks.data_probe import ProbeDataHook
 from scepter.modules.solver.registry import SOLVERS

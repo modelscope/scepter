@@ -7,11 +7,15 @@ import os.path
 from collections import OrderedDict
 
 import gradio as gr
+from tqdm import tqdm
 
 from scepter.modules.utils.file_system import FS
 from scepter.studio.preprocess.caption_editor_ui.component_names import \
     CreateDatasetUIName
-from scepter.studio.preprocess.utils.data_card import Text2ImageDataCard
+from scepter.studio.preprocess.utils.img2img_data_card import \
+    Image2ImageDataCard
+from scepter.studio.preprocess.utils.txt2img_data_card import \
+    Text2ImageDataCard
 from scepter.studio.utils.uibase import UIBase
 
 refresh_symbol = '\U0001f504'  # 🔄
@@ -21,7 +25,7 @@ def wget_file(file_url, save_file):
     if 'oss' in file_url:
         file_url = file_url.split('?')[0]
     local_path, _ = FS.map_to_local(save_file)
-    res = os.popen(f"wget -c '{file_url}' -O '{local_path}'")
+    res = os.popen(f"wget -c '{file_url.strip()}' -O '{local_path.strip()}'")
     res.readlines()
     FS.put_object_from_local_file(local_path, save_file)
     return save_file, res
@@ -31,8 +35,12 @@ class CreateDatasetUI(UIBase):
     def __init__(self, cfg, is_debug=False, language='en'):
         self.work_dir = cfg.WORK_DIR
         self.language = language
-        self.dataset_type_dict = OrderedDict(
-            {'scepter_txt2img': Text2ImageDataCard})
+        self.dataset_type_dict = OrderedDict({
+            'scepter_txt2img':
+            Text2ImageDataCard,
+            'scepter_img2img':
+            Image2ImageDataCard
+        })
         self.components_name = CreateDatasetUIName(language)
         self.default_dataset_type = list(self.dataset_type_dict.keys())[0]
         self.default_dataset_cls = Text2ImageDataCard
@@ -54,32 +62,47 @@ class CreateDatasetUI(UIBase):
             }
         '''
         self.init_example()
+        self.default_dataset = self.example_dataset_ins[
+            self.default_dataset_type]
         self.user_level_dataset_list = self.load_history()
+        self.load_history_time = datetime.datetime.now()
 
     def init_example(self):
-        file_url = self.components_name.default_dataset_zip
-        file_name, surfix = os.path.splitext(file_url)
-        save_file = os.path.join(
-            self.work_dir,
-            f'{self.components_name.default_dataset_name}{surfix}')
-        save_file, res = wget_file(file_url, save_file)
-        if not FS.exists(save_file):
-            print('Init example eroor, skip!')
-            self.example_dataset_ins = None
-            return
+        self.example_dataset_ins = {}
+        for example_type, example_name in self.components_name.default_dataset_name.items(
+        ):
+            dataset_folder = os.path.join(
+                self.work_dir, '_'.join([example_type, example_name]))
 
-        dataset_folder = os.path.join(
-            self.work_dir, '_'.join([
-                self.default_dataset_type,
-                self.components_name.default_dataset_name
-            ]))
-        self.example_dataset_ins = self.default_dataset_cls(
-            dataset_folder,
-            dataset_name=self.components_name.default_dataset_name,
-            src_file=save_file,
-            surfix=surfix,
-            user_name='example',
-            language=self.language)
+            meta_file = os.path.join(dataset_folder, 'meta.json')
+            if FS.exists(meta_file):
+                self.example_dataset_ins[
+                    example_type] = self.dataset_type_dict[example_type](
+                        dataset_folder,
+                        dataset_name=self.components_name.default_dataset_name,
+                        user_name='example',
+                        language=self.language)
+                continue
+            file_url = self.components_name.default_dataset_zip[example_type]
+            file_name, surfix = os.path.splitext(file_url)
+            save_file = os.path.join(
+                self.work_dir,
+                f'{self.components_name.default_dataset_name[example_type]}{surfix}'
+            )
+            save_file, res = wget_file(file_url, save_file)
+            if not FS.exists(save_file):
+                print('Init example eroor, skip!')
+                self.example_dataset_ins[example_type] = None
+                continue
+
+            self.example_dataset_ins[example_type] = self.dataset_type_dict[
+                example_type](dataset_folder,
+                              dataset_name=self.components_name.
+                              default_dataset_name[example_type],
+                              src_file=save_file,
+                              surfix=surfix,
+                              user_name='example',
+                              language=self.language)
         # add to list by load_history.
 
     def user_filter(self, dataset_ins, login_user_name):
@@ -93,10 +116,28 @@ class CreateDatasetUI(UIBase):
         return False
 
     def load_history(self, login_user_name='admin'):
+        # load history every day
+        if hasattr(self, 'load_history_time') and (
+                datetime.datetime.now() -
+                self.load_history_time).days < 1 and hasattr(
+                    self, 'user_level_dataset_list'):
+            if login_user_name not in self.user_level_dataset_list:
+                self.user_level_dataset_list[login_user_name] = {}
+                for dataset_t, name_dataset_ins in self.dataset_dict.items():
+                    for dataset_name, dataset_ins in name_dataset_ins.items():
+                        if self.user_filter(dataset_ins, login_user_name):
+                            if dataset_t not in self.user_level_dataset_list[
+                                    login_user_name]:
+                                self.user_level_dataset_list[login_user_name][
+                                    dataset_t] = []
+                            self.user_level_dataset_list[login_user_name][
+                                dataset_t].append(dataset_ins.dataset_name)
+            self.load_history_time = datetime.datetime.now()
+            return self.user_level_dataset_list
         dataset_list = {login_user_name: {}}
         self.dir_list = FS.walk_dir(self.work_dir, recurse=False)
         # From v0.0.5 we use the classname of DataCard as prefix of folder to indicate the type of data.
-        for one_dir in self.dir_list:
+        for one_dir in tqdm(self.dir_list):
             if not FS.isdir(one_dir):
                 continue
             # the meta.json is the unique sign for dataset
@@ -140,23 +181,23 @@ class CreateDatasetUI(UIBase):
                         interactive=True,
                         value=self.components_name.dataset_type_name[
                             self.default_dataset_type])
-                with gr.Column(scale=3, min_width=0):
+                with gr.Column(scale=4, min_width=0):
                     self.dataset_name = gr.Dropdown(
                         label=self.components_name.dataset_name,
                         choices=self.user_level_dataset_list.get(
                             'admin', {}).get(self.default_dataset_type, []),
-                        value=None if self.example_dataset_ins is None else
-                        self.example_dataset_ins.dataset_name,
+                        value=None if self.default_dataset is None else
+                        self.default_dataset.dataset_name,
                         interactive=True)
-                with gr.Column(scale=3, min_width=0):
+                with gr.Column(scale=4, min_width=0):
                     self.user_dataset_name = gr.Text(
                         label=self.components_name.user_data_name,
-                        value='' if self.example_dataset_ins is None else
-                        self.example_dataset_ins.dataset_name,
+                        value='' if self.default_dataset is None else
+                        self.default_dataset.dataset_name,
                         interactive=True)
                     self.user_data_name_state = gr.State(
-                        value=None if self.example_dataset_ins is None else
-                        self.example_dataset_ins.dataset_name)
+                        value=None if self.default_dataset is None else self.
+                        default_dataset.dataset_name)
                     self.create_mode = gr.State(value=0)
                 with gr.Column(scale=1, min_width=0):
                     with gr.Column(scale=1, min_width=0):
@@ -198,7 +239,7 @@ class CreateDatasetUI(UIBase):
                                 label=self.components_name.zip_file_url,
                                 value='',
                                 placeholder=self.components_name.
-                                default_dataset_zip,
+                                default_dataset_zip_str,
                                 visible=False)
                 with gr.Column(scale=1, visible=False,
                                min_width=0) as btn_panel:

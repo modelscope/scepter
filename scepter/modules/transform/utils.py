@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+from packaging import version
+
 import cv2
 import numpy as np
 import torch
-from packaging import version
 from PIL import Image
 from torchvision.version import __version__ as tv_version
 

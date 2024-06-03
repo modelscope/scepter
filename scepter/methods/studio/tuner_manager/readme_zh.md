@@ -1,7 +1,7 @@
 ---
 frameworks:
 - Pytorch
-license: Apache License 2.0
+license: apache-2.0
 tasks:
 - efficient-diffusion-tuning
 ---

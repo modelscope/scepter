@@ -5,7 +5,6 @@ from collections import OrderedDict
 
 import numpy as np
 import torch
-
 from scepter.modules.model.network.train_module import TrainModule
 from scepter.modules.model.registry import BACKBONES, LOSSES, MODELS
 from scepter.modules.utils.config import dict_to_yaml

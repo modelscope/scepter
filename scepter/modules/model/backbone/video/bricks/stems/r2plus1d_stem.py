@@ -4,7 +4,6 @@
 import math
 
 import torch.nn as nn
-
 from scepter.modules.model.backbone.video.bricks.stems.base_3d_stem import \
     Base3DStem
 from scepter.modules.model.registry import STEMS

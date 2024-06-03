@@ -3,7 +3,6 @@
 import copy
 
 import torch.nn as nn
-
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import gather_data, we
 from scepter.modules.utils.probe import (ProbeData, merge_gathered_probe,

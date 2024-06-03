@@ -7,7 +7,6 @@ import time
 
 import torch
 from PIL import Image
-
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 from scepter.studio.preprocess.processors.base_processor import \

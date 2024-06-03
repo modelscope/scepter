@@ -3,7 +3,6 @@
 import warnings
 
 import torch
-
 from scepter.modules.solver.hooks.hook import Hook
 from scepter.modules.solver.hooks.registry import HOOKS
 from scepter.modules.utils.config import dict_to_yaml

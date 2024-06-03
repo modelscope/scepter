@@ -48,6 +48,12 @@ class ModelscopeFs(BaseFs):
         from modelscope.hub.file_download import model_file_download
 
         key = osp.relpath(target_path, self.get_prefix())
+
+        if '#' in key:
+            key, token = key.split('#', 1)
+        else:
+            token = None
+
         key, file_path = key.split('@', 1)
 
         if ':' in key:
@@ -72,9 +78,14 @@ class ModelscopeFs(BaseFs):
                     if not osp.exists(local_path):
                         self._model_file_loaded.remove(key)
                 else:
+                    if token is not None:
+                        cookies = self.get_modelscope_cookie(token)
+                    else:
+                        cookies = None
                     local_path = model_file_download(model_id=key,
                                                      revision=revision,
                                                      file_path=file_path,
+                                                     cookies=cookies,
                                                      cache_dir=local_path)
                 if osp.exists(local_path):
                     break
@@ -94,11 +105,18 @@ class ModelscopeFs(BaseFs):
                              wait_finish=False,
                              multi_thread=False,
                              timeout=3600,
+                             sign_key=None,
                              worker_id=-1) -> Optional[str]:
         from modelscope.hub.snapshot_download import snapshot_download
         assert target_path.startswith(self.get_prefix())
 
         key = osp.relpath(target_path, self.get_prefix())
+
+        if '#' in key:
+            key, token = key.split('#', 1)
+        else:
+            token = None
+
         if '@' not in key:
             key, ret_folder = key.split('@', 1)[0], ''
         else:
@@ -128,8 +146,13 @@ class ModelscopeFs(BaseFs):
                     if not osp.exists(local_path):
                         self._model_id_loaded.remove(key)
                 else:
+                    if token is not None:
+                        cookies = self.get_modelscope_cookie(token)
+                    else:
+                        cookies = None
                     local_path = snapshot_download(key,
                                                    revision=revision,
+                                                   cookies=cookies,
                                                    cache_dir=local_path)
                 if osp.exists(local_path):
                     break
@@ -145,6 +168,21 @@ class ModelscopeFs(BaseFs):
         if not ret_folder == '':
             local_path = os.path.join(local_path, ret_folder)
         return local_path
+
+    def get_modelscope_cookie(self, m_session_id: str):
+        from modelscope.hub.utils.utils import get_endpoint
+        from modelscope.hub.api import ModelScopeConfig
+        from modelscope.hub.errors import raise_on_error
+        import requests
+        path = f'{get_endpoint()}/api/v1/login'
+        r = requests.post(
+            path,
+            json={'AccessToken': m_session_id},
+            headers={'user-agent': ModelScopeConfig.get_user_agent()})
+        r.raise_for_status()
+        d = r.json()
+        raise_on_error(d)
+        return r.cookies
 
     def get_object(self, target_path):
         try:
@@ -199,7 +237,11 @@ class ModelscopeFs(BaseFs):
             delimiter=None) -> (Union[bytes, str, None], Optional[int]):
         raise NotImplementedError
 
-    def get_url(self, target_path, set_public=False, lifecycle=3600 * 100):
+    def get_url(self,
+                target_path,
+                set_public=False,
+                skip_check=False,
+                lifecycle=3600 * 100):
         return target_path
 
     def exists(self, target_path) -> bool:

@@ -71,54 +71,73 @@ class ModelUIName():
 
 class TrainerUIName():
     def __init__(self, language='en'):
+        self.task_choices = ['Text2Image', 'Image Editing']
+        self.data_task_map = {
+            'scepter_txt2img': None,
+            'scepter_img2img': 'edit'
+        }
         if language == 'en':
             self.user_direction = '''
                 ### User Guide
-                - Data: Select the template data from Examples, or prepare your custom data
-                for upload according to the format of the example dog.zip package.
+                - Data: Data preparation is done through the Data Manager. (zip example: [3D](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip))
                 - Parameters: You can try modifying the related parameters.
                 - Training: Click on [Start Training].
-                - Testing: After completing the training, click [Go to inference ].
+                - Testing: After completing the training, click [Go to inference].
                 - Note: Timeouts may cause the connection to disconnect (an Error may occur).
                  After waiting for the time when the training is likely to be almost complete,
                  refresh the interface and then click [Refresh Model] at the bottom of the page.
                  The trained model should appear in the [Output Model Name] if training was successful;
                  if not, the training may be incomplete or have failed.
-                - zip example: https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip
                 - For processing and training with large-scale data, it is recommended to use the command line.
             '''  # noqa
-            self.data_type_choices = ['Dataset zip', 'MaaS Dataset']
-            self.data_type_value = 'Dataset zip'
-            self.data_type_name = 'Data Source'
+            self.data_source_choices = [
+                'Dataset zip', 'MaaS Dataset', 'Dataset Management'
+            ]
+            self.data_source_value = 'Dataset zip'
+            self.data_source_name = 'Data Source'
+            self.data_type_map = {
+                'scepter_txt2img': 'Text2Image Generation',
+                'scepter_img2img': 'Image Edit Generation'
+            }
+            self.data_type_choices = list(self.data_type_map.keys())
+            self.data_type_value = 'scepter_txt2img'
+            self.data_type_name = 'Data Type'
             self.ori_data_name = 'Data Name'
-            self.ms_data_name_place_hold = 'Supports MaaS dataset/local/HTTP Zip package'
+            # Supports MaaS dataset/local/HTTP Zip package
+            self.ms_data_name_place_hold = 'Please use Dataset Management.'
             self.ms_data_space = 'ModelScope Space'
             self.ms_data_subname = 'MaaS Dataset - Subset'
+            self.task = 'Eval Editing Image'
+            self.eval_data = 'Evaluation Data'
+            self.train_data = 'Training Data'
+            self.eval_prompts = 'Eval Prompts'
+            self.eval_image = 'Eval Image'
             self.training_block = 'Training Parameters'
             self.base_model = 'Base Model'
             self.tuner_name = 'Tuner Method'
             self.base_model_revision = 'Model Version Number'
-            self.resolution_height = 'Resolution Height'
-            self.resolution_width = 'Resolution Width'
+            self.resolution_height = 'Train Image Height'
+            self.resolution_width = 'Train Image Width'
             self.resolution_height_max = 'Resolution Height Max'
             self.resolution_width_max = 'Resolution Width Max'
-            self.train_epoch = 'Number of Training Epochs'
+            self.train_epoch = 'Total Training Epochs'
             self.learning_rate = 'Learning Rate'
-            self.save_interval = 'Save Interval'
+            self.save_interval = 'Checkpoint Save Interval (Epochs)'
             self.train_batch_size = 'Training Batch Size'
             self.prompt_prefix = 'Prefix'
             self.replace_keywords = 'Trigger Keywords'
             self.work_name = 'Save Model Name (refresh to get a random value)'
             self.push_to_hub = 'Push to hub'
             self.training_button = 'Start Training'
-            self.eval_prompts = 'Eval Prompts'
             self.tuner_param = 'Tuner Parameters'
             self.enable_resolution_bucket = 'Enable Resolution Bucket'
+            self.enable_resolution_bucket_ins = 'Automatically Pack Multi-Resolution Batches'
             self.resolution_param = 'Resolution Parameters'
             self.min_bucket_resolution = 'Min Bucket Resolution'
             self.max_bucket_resolution = 'Max Bucket Resolution'
             self.bucket_resolution_steps = 'Bucket Resolution Steps'
             self.bucket_no_upscale = 'Bucket No Upscale'
+            self.bucket_no_upscale_ins = 'Disable Automatic Image Upscaling'
             # Error or Warning
             self.training_err1 = 'CUDA is unavailable.'
             self.training_err2 = 'Currently insufficient VRAM, training failed!'
@@ -130,45 +149,57 @@ class TrainerUIName():
         elif language == 'zh':
             self.user_direction = '''
                 ### 使用说明
-                - 数据: 选择Example的模版数据或可以按照样例中dog.zip包的格式准备自定义数据进行上传
+                - 数据: 通过数据管理器进行数据的准备（ZIP样例：[3D](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip)）
                 - 参数: 可尝试进行相关参数的修改
                 - 训练: 点击【开始训练】
                 - 测试: 完成训练后点击【使用模型】
                 - 注意：超时可能导致连接断开(出现Error)，可以等差不多可能训完后，刷新界面再点击页面最后的[刷新模型]，即可在[产出模型名称中]出现已经完成训练的模型，若不存在则没有完成训练或训练失败
-                - ZIP样例：https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip
                 - 对于大规模数据的处理和训练，建议使用命令行形式
                 '''  # noqa
-            self.data_type_choices = ['数据集zip', 'MaaS数据集']
-            self.data_type_value = '数据集zip'
-            self.data_type_name = '数据集来源'
+            self.data_source_choices = ['数据集zip', 'MaaS数据集', '数据管理器']
+            self.data_source_value = '数据集zip'
+            self.data_source_name = '数据集来源'
+            self.data_type_map = {
+                'scepter_txt2img': '文生图数据',
+                'scepter_img2img': '图像编辑（图生图）数据'
+            }
+            self.data_type_choices = list(self.data_type_map.keys())
+            self.data_type_value = 'scepter_txt2img'
+            self.data_type_name = '数据类型'
             self.ori_data_name = '数据集名称'
-            self.ms_data_name_place_hold = '支持MaaS数据集/本地/Http Zip包'
+            self.ms_data_name_place_hold = '请使用数据管理器导入'  # '支持MaaS数据集/本地/Http Zip包'
             self.ms_data_space = 'ModelScope 空间'
             self.ms_data_subname = 'MaaS数据集-子集'
+            self.task = '任务'
+            self.eval_data = '评测数据'
+            self.train_data = '训练数据'
+            self.eval_prompts = '评测文本'
+            self.eval_image = '评测图片'
             self.training_block = '训练参数'
             self.base_model = '基础模型'
             self.tuner_name = '微调方法'
             self.base_model_revision = '模型版本号'
-            self.resolution_height = '训练高度'
-            self.resolution_width = '训练宽度'
+            self.resolution_height = '训练图片高度'
+            self.resolution_width = '训练图片宽度'
             self.resolution_height_max = '最大训练高度'
             self.resolution_width_max = '最大训练宽度'
-            self.train_epoch = '训练轮数'
+            self.train_epoch = '总训练轮数'
             self.learning_rate = '学习率'
-            self.save_interval = '存储间隔'
-            self.train_batch_size = '训练批次'
+            self.save_interval = '中间结果存储间隔（轮数）'
+            self.train_batch_size = '每批次数据条数（Batch Size）'
             self.prompt_prefix = '前缀'
             self.replace_keywords = '触发关键词'
             self.work_name = '保存模型名称（刷新获得随机值）'
             self.push_to_hub = '推送魔搭社区'
-            self.eval_prompts = '评测文本'
             self.tuner_param = '微调参数'
             self.enable_resolution_bucket = '开启分辨率分桶'
+            self.enable_resolution_bucket_ins = '自动组装多分辨率Batch'
             self.resolution_param = '分辨率参数'
             self.min_bucket_resolution = '最小分桶分辨率'
             self.max_bucket_resolution = '最大分桶分辨率'
             self.bucket_resolution_steps = '分桶分辨率步长'
             self.bucket_no_upscale = '分桶分辨率不做放大'
+            self.bucket_no_upscale_ins = '禁止图片分辨率上采样'
             # Error or Warning
             self.training_err1 = 'CUDA不可用.'
             self.training_err2 = '目前显存不足，训练失败！'

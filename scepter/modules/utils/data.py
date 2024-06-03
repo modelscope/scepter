@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
-
+import base64
 from collections import OrderedDict
 
+import numpy as np
 import torch
 
 
@@ -86,3 +87,17 @@ def transfer_data_to_cuda(data_map: dict) -> dict:
         else:
             ret[key] = value
     return ret
+
+
+def np_to_base64(np_array):
+    shape = list(np_array.shape)
+    dtype = str(np_array.dtype)
+    np_str = np_array.tostring()
+    np_base64 = base64.b64encode(np_str).decode()
+    return {'array': np_base64, 'shape': shape, 'dtype': dtype}
+
+
+def base64_to_np(base64_str, shape, dtype=np.float32):
+    base64_str = base64.b64decode(base64_str)
+    np_array = np.frombuffer(base64_str, dtype).reshape(shape)
+    return np_array

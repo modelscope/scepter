@@ -5,14 +5,13 @@ import random
 
 # https://github.com/TengdaHan/DPC/blob/master/utils/augmentation.py
 import torch
-from torchvision.transforms import Compose, Lambda
-
 from scepter.modules.transform.image import ImageTransform
 from scepter.modules.transform.registry import TRANSFORMS
 from scepter.modules.transform.utils import (BACKEND_CV2, BACKEND_PILLOW,
                                              BACKEND_TORCHVISION,
                                              TORCHVISION_CAPABILITY)
 from scepter.modules.utils.config import dict_to_yaml
+from torchvision.transforms import Compose, Lambda
 
 if TORCHVISION_CAPABILITY:
     BACKENDS = (BACKEND_PILLOW, BACKEND_CV2, BACKEND_TORCHVISION)

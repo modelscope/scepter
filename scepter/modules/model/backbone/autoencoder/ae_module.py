@@ -4,14 +4,13 @@
 import torch
 import torch.nn as nn
 from einops import repeat
-from torch.utils.checkpoint import checkpoint
-
 from scepter.modules.model.backbone.autoencoder.ae_utils import (
     XFORMERS_IS_AVAILBLE, AttnBlock, Downsample, MemoryEfficientAttention,
     Normalize, ResnetBlock, Upsample, nonlinearity)
 from scepter.modules.model.base_model import BaseModel
 from scepter.modules.model.registry import BACKBONES
 from scepter.modules.utils.config import dict_to_yaml
+from torch.utils.checkpoint import checkpoint
 
 
 @BACKBONES.register_class()

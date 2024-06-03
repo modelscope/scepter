@@ -33,7 +33,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional
 from einops import rearrange
-
 from scepter.modules.model.backbone.video.init_helper import (
     _init_transformer_weights, trunc_normal_)
 from scepter.modules.model.registry import BACKBONES, BRICKS, STEMS

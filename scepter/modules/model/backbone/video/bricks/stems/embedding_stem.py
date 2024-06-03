@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import torch.nn as nn
-
 from scepter.modules.model.backbone.video.bricks.visualize_3d_module import \
     Visualize3DModule
 from scepter.modules.model.registry import STEMS

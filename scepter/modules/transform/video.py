@@ -3,18 +3,18 @@
 
 import random
 
+from packaging import version
+
 import numpy as np
 import torch
 import torchvision.transforms.functional as functional
 import torchvision.transforms.transforms as transforms
-from packaging import version
-from torchvision.version import __version__ as tv_version
-
 from scepter.modules.transform.registry import TRANSFORMS
 from scepter.modules.transform.utils import (BACKEND_TORCHVISION,
                                              INTERPOLATION_STYLE, is_tensor)
 # torchvision.transform._transforms_video is deprecated since torchvision 0.10.0, use transform instead
 from scepter.modules.utils.config import dict_to_yaml
+from torchvision.version import __version__ as tv_version
 
 use_video_transforms = version.parse(tv_version) < version.parse('0.10.0')
 

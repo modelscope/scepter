@@ -2,9 +2,9 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 
-import gradio as gr
 from tqdm import tqdm
 
+import gradio as gr
 from scepter.modules.utils.file_system import FS
 from scepter.studio.inference.inference_ui.component_names import MantraUIName
 from scepter.studio.utils.uibase import UIBase

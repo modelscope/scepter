@@ -4,7 +4,6 @@ import copy
 import random
 
 import gradio as gr
-
 from scepter.studio.inference.inference_ui.component_names import \
     DiffusionUIName
 from scepter.studio.utils.uibase import UIBase

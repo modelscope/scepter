@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import gradio as gr
-
 from scepter.studio.inference.inference_ui.component_names import RefinerUIName
 from scepter.studio.utils.uibase import UIBase
 

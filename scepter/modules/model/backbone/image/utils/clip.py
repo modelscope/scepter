@@ -3,14 +3,14 @@
 from collections import OrderedDict
 from typing import List, Tuple, Union
 
+from pkg_resources import packaging
+
 import numpy as np
 import torch
 import torch.nn.functional as F
-from pkg_resources import packaging
-from torch import nn
-
 from scepter.modules.model.backbone.image.utils.simple_tokenizer import \
     SimpleTokenizer as _Tokenizer
+from torch import nn
 
 _tokenizer = _Tokenizer()
 

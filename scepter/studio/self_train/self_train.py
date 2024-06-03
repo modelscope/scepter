@@ -3,7 +3,6 @@
 import os
 
 import gradio as gr
-
 import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS

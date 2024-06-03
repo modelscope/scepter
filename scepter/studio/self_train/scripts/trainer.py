@@ -8,7 +8,6 @@ import time
 
 import psutil
 import torch
-
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import as_time
 
@@ -25,9 +24,9 @@ class TaskStatus():
     @property
     def error_msg(self):
         if os.path.exists(self.error_log):
-            return "\n".join(open(self.error_log, "r").readlines()[-50:])
+            return '\n'.join(open(self.error_log, 'r').readlines()[-50:])
         else:
-            return "No error msg."
+            return 'No error msg.'
 
 
 def kill_job(pid):
@@ -52,9 +51,9 @@ class Trainer():
 
     def __call__(self, task_name):
         torch.cuda.empty_cache()
-        error_folder = "./error_logs"
+        error_folder = './error_logs'
         os.makedirs(error_folder, exist_ok=True)
-        self.status_message.error_log = f"{error_folder}/{int(time.time())}.log"
+        self.status_message.error_log = f'{error_folder}/{int(time.time())}.log'
         cmd = f'PYTHONPATH=. python {self.run_script} ' \
               f'--cfg={task_name}/train.yaml 2> {self.status_message.error_log}'
         # cmd = [f"python {self.run_script}"]

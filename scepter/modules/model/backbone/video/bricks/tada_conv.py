@@ -8,7 +8,6 @@ from itertools import repeat
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from scepter.modules.model.backbone.video.bricks.base_branch import BaseBranch
 from scepter.modules.model.registry import BRICKS
 from scepter.modules.utils.config import Config, dict_to_yaml

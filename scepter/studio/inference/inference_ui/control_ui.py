@@ -5,7 +5,6 @@ import gradio as gr
 import numpy as np
 import torchvision.transforms as TT
 from PIL import Image
-
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.utils.distribute import we
 from scepter.studio.inference.inference_ui.component_names import ControlUIName

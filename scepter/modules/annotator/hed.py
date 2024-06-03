@@ -11,13 +11,14 @@ from abc import ABCMeta
 import cv2
 import numpy as np
 import torch
+import torchvision
 from einops import rearrange
-
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
+from torchvision.transforms import InterpolationMode
 
 
 def nms(x, t, s):
@@ -123,6 +124,8 @@ class HedAnnotator(BaseAnnotator, metaclass=ABCMeta):
             if len(image.shape) == 3:
                 image = rearrange(image, 'h w c -> 1 c h w')
                 B, C, H, W = image.shape
+            elif len(image.shape) == 4:
+                B, C, H, W = image.shape
             else:
                 raise "Unsurpport input image's shape"
         elif isinstance(image, np.ndarray):
@@ -130,22 +133,22 @@ class HedAnnotator(BaseAnnotator, metaclass=ABCMeta):
             if len(image.shape) == 3:
                 image = rearrange(image, 'h w c -> 1 c h w')
                 B, C, H, W = image.shape
+            elif len(image.shape) == 4:
+                B, C, H, W = image.shape
             else:
                 raise "Unsurpport input image's shape"
         else:
             raise "Unsurpport input image's type"
+        transform = torchvision.transforms.Resize(
+            (H, W), interpolation=InterpolationMode.BILINEAR, antialias=True)
         edges = self.netNetwork(image.to(we.device_id))
-        edges = [
-            e.detach().cpu().numpy().astype(np.float32)[0, 0] for e in edges
-        ]
-        edges = [
-            cv2.resize(e, (W, H), interpolation=cv2.INTER_LINEAR)
-            for e in edges
-        ]
-        edges = np.stack(edges, axis=2)
-        edge = 1 / (1 + np.exp(-np.mean(edges, axis=2).astype(np.float64)))
-        edge = 255 - (edge * 255.0).clip(0, 255).astype(np.uint8)
-        return edge[..., None].repeat(3, 2)
+        edges = [transform(e) for e in edges]
+        edges = torch.cat(edges, dim=1)
+        edges = 1 / (1 +
+                     torch.exp(-torch.mean(edges, dim=1).type(torch.float)))
+        edges = edges.cpu().numpy()
+        edges = 255 - (edges * 255.0).clip(0, 255).astype(np.uint8)
+        return edges[..., None].repeat(3, -1)
 
     @staticmethod
     def get_config_template():

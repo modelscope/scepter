@@ -6,7 +6,6 @@ from collections import OrderedDict
 
 import torch
 import torch.nn.functional as F
-
 from scepter.modules.model.network.ldm import LatentDiffusion
 from scepter.modules.model.registry import BACKBONES, MODELS
 from scepter.modules.model.utils.basic_utils import default

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
+import albumentations as A
 import cv2
 import gradio as gr
 import numpy as np
@@ -8,8 +9,6 @@ import torch
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 from PIL import Image
-
-import albumentations as A
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.model.utils.data_utils import (box2squre, expand_bbox,
                                                     get_bbox_from_mask,

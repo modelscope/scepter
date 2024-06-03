@@ -128,10 +128,15 @@ class HttpFs(BaseFs):
                              wait_finish=False,
                              multi_thread=False,
                              timeout=3600,
+                             sign_key=None,
                              worker_id=0) -> Optional[str]:
         raise NotImplementedError
 
-    def get_url(self, target_path, set_public=False, lifecycle=3600 * 100):
+    def get_url(self,
+                target_path,
+                set_public=False,
+                skip_check=False,
+                lifecycle=3600 * 100):
         return target_path
 
     def exists(self, target_path) -> bool:

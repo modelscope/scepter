@@ -22,7 +22,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange, repeat
-
 from scepter.modules.model.backbone.video.bricks.visualize_3d_module import \
     Visualize3DModule
 from scepter.modules.model.registry import BRICKS

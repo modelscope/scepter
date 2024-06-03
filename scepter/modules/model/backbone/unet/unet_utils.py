@@ -6,16 +6,16 @@ import warnings
 from abc import abstractmethod
 from importlib import find_loader
 
+from packaging import version
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 from einops import rearrange, repeat
-from packaging import version
-from torch.utils.checkpoint import checkpoint
-
 from scepter.modules.model.utils.basic_utils import default, exists
+from torch.utils.checkpoint import checkpoint
 
 try:
     import xformers

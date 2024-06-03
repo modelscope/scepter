@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import torch
-from torch import nn
-
 from scepter.modules.model.registry import LOSSES
 from scepter.modules.utils.config import dict_to_yaml
+from torch import nn
 
 
 @LOSSES.register_class()
