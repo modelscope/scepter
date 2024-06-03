@@ -16,7 +16,7 @@ parser.add_argument(
     '--python_engine',
     dest='python_engine',
     help='the engine path of python interpreter!',
-    default='/home/pai/envs/scepter/bin/python',
+    default='',
     type=str,
 )
 
@@ -24,7 +24,7 @@ parser.add_argument(
     '--script',
     dest='script',
     help='the script to run!',
-    default='main_mmpose.py',
+    default='',
     type=str,
 )
 parser.add_argument(
