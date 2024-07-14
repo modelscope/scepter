@@ -124,3 +124,7 @@ For style and de-style tuning, we use a private high-resolution I2I model traine
 ### Training Data.
 
 Please check the zips for correct format: [De-Text](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdetext.zip), [Image2Hed](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fhed_pair.zip), [Image2Depth](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fimage2depth.zip), [Depth2Image](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdepth2image.zip).
+
+### Launch.
+
+See [code](https://github.com/modelscope/scepter/blob/cbbef4a2da5b66fc33b9f8ece7f2fb4aac9d6e3c/tests/tools/test_train.py#L220) for more information.
