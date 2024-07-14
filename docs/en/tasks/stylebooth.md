@@ -56,7 +56,7 @@ Given an original image, image editing aims to generate an image that align with
 - More models will be released in the future.
 
 ## Run StyleBooth
-- Code implementation: See model configuration and code based on [🪄SCEPTER](https://github.com/modelscope/scepter).
+- Code implementation: See model configuration and code based on [🪄SCEPTER](https://github.com/modelscope/scepter/blob/main/docs/en/tasks/stylebooth.md).
 
 - Demo: Try [🖥️SCEPTER Studio](https://github.com/modelscope/scepter/tree/main?tab=readme-ov-file#%EF%B8%8F-scepter-studio).
 
@@ -114,3 +114,13 @@ class DiffusionInferenceTest(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 ```
+
+## StyleTuner and De-StyleTuner.
+
+### Base I2I Model.
+
+For style and de-style tuning, we use a private high-resolution I2I model trained with [InstructPix2Pix dataset](https://instruct-pix2pix.eecs.berkeley.edu/) as base model. However, one can try the same tunning process using this [yaml](https://github.com/modelscope/scepter/blob/main/scepter/methods/edit/edit_512_lora.yaml) based on any other I2I model, such as StyleBooth (shown in this yaml), [InstructPix2Pix](https://github.com/timothybrooks/instruct-pix2pix) or [MagicBrush](https://github.com/OSU-NLP-Group/MagicBrush).
+
+### Training Data.
+
+Please check the zips for correct format: [De-Text](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdetext.zip), [Image2Hed](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fhed_pair.zip), [Image2Depth](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fimage2depth.zip), [Depth2Image](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdepth2image.zip).
