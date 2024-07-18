@@ -170,6 +170,45 @@ def adaptive_anisotropic_filter(x, g=None):
     return y
 
 
+def extract_into_tensor(a, t, x_shape):
+    b, *_ = t.shape
+    out = a.gather(-1, t)
+    return out.reshape(b, *((1, ) * (len(x_shape) - 1)))
+
+
+def discretize_timesteps(t_max, t_min, steps, discretization):
+    """
+    Implementation of timestep discretization methods.
+    """
+    if discretization == 'leading':
+        steps = torch.arange(t_min, t_max + 1,
+                             (t_max - t_min + 1) / steps).flip(0)
+    elif discretization == 'linspace':
+        steps = torch.linspace(t_max, t_min, steps)
+    elif discretization == 'trailing':
+        steps = torch.arange(t_max, t_min - 1, -((t_max - t_min + 1) / steps))
+    else:
+        raise NotImplementedError(
+            f'{discretization} discretization not implemented')
+    return steps.clamp_(t_min, t_max)
+
+
+def get_scalings_for_boundary_condition(sigma):
+    sigma_data = 0.5
+    c_skip = (1 -
+              sigma**2)**0.5 * sigma_data**2 / (sigma**2 +
+                                                (1 - sigma**2) * sigma_data**2)
+    c_out = (sigma * sigma_data / (sigma**2 +
+                                   (1 - sigma**2) * sigma_data**2)**0.5)
+    return c_skip, c_out
+
+
+def v_to_x0(v, t, x_t, diffusion):
+    sigmas = _i(diffusion.sigmas, t, v)
+    alphas = _i(diffusion.alphas, t, v)
+    return alphas * x_t - sigmas * v
+
+
 class GaussianDiffusion(object):
     def __init__(self, sigmas, prediction_type='eps'):
         assert prediction_type in {'x0', 'eps', 'v'}
@@ -666,40 +705,212 @@ class GaussianDiffusion(object):
             noise)
 
 
-def extract_into_tensor(a, t, x_shape):
-    b, *_ = t.shape
-    out = a.gather(-1, t)
-    return out.reshape(b, *((1, ) * (len(x_shape) - 1)))
+class GaussianDiffusionRF(object):
+    def __init__(self, sigmas, prediction_type='rf'):
+        assert prediction_type in {'rf'}
+        self.sigmas = sigmas
+        self.num_timesteps = len(sigmas)
 
+    def diffuse(self, x0, t, noise, sigma):
+        """
+        Add Gaussian noise to signal x0 according to:
+        q(x_t | x_0) = N(x_t | alpha_t x_0, sigma_t^2 I).
+        """
+        shape = (x0.size(0), ) + (1, ) * (x0.ndim - 1)
+        sigma = sigma.view(shape)
+        alpha = 1 - sigma
+        xt = alpha * x0 + sigma * noise
+        return xt
 
-def discretize_timesteps(t_max, t_min, steps, discretization):
-    """
-    Implementation of timestep discretization methods.
-    """
-    if discretization == 'leading':
-        steps = torch.arange(t_min, t_max + 1,
-                             (t_max - t_min + 1) / steps).flip(0)
-    elif discretization == 'linspace':
-        steps = torch.linspace(t_max, t_min, steps)
-    elif discretization == 'trailing':
-        steps = torch.arange(t_max, t_min - 1, -((t_max - t_min + 1) / steps))
-    else:
-        raise NotImplementedError(
-            f'{discretization} discretization not implemented')
-    return steps.clamp_(t_min, t_max)
+    def denoise(self,
+                xt,
+                t,
+                sigma,
+                model,
+                model_kwargs={},
+                guide_scale=None,
+                guide_rescale=None,
+                cat_uc=False,
+                **kwargs):
 
+        assert sigma is not None
+        shape = (xt.size(0), ) + (1, ) * (xt.ndim - 1)
+        sigma = sigma.view(shape)
 
-def get_scalings_for_boundary_condition(sigma):
-    sigma_data = 0.5
-    c_skip = (1 -
-              sigma**2)**0.5 * sigma_data**2 / (sigma**2 +
-                                                (1 - sigma**2) * sigma_data**2)
-    c_out = (sigma * sigma_data / (sigma**2 +
-                                   (1 - sigma**2) * sigma_data**2)**0.5)
-    return c_skip, c_out
+        # prediction
+        if guide_scale is None:
+            if isinstance(model_kwargs, dict):
+                out = model(xt, t=t, **model_kwargs, **kwargs)
+            elif isinstance(model_kwargs, list) and len(model_kwargs) > 0:
+                out = model(xt, t=t, **model_kwargs[0], **kwargs)
+            else:
+                raise Exception('Error')
+        else:
+            # classifier-free guidance (arXiv:2207.12598)
+            # model_kwargs[0]: conditional kwargs
+            # model_kwargs[1]: non-conditional kwargs
+            assert isinstance(model_kwargs, list) and len(model_kwargs) >= 2
+            if isinstance(guide_scale, float) or isinstance(guide_scale, int):
+                assert len(model_kwargs) == 2
+                if guide_scale == 1.:
+                    out = model(xt, t=t, **model_kwargs[0], **kwargs)
+                else:
+                    if cat_uc:
 
+                        def parse_model_kwargs(prev_value, value):
+                            if isinstance(value, torch.Tensor):
+                                prev_value = torch.cat([prev_value, value],
+                                                       dim=0)
+                            elif isinstance(value, dict):
+                                for k, v in value.items():
+                                    prev_value[k] = parse_model_kwargs(
+                                        prev_value[k], v)
+                            elif isinstance(value, list):
+                                for idx, v in enumerate(value):
+                                    prev_value[idx] = parse_model_kwargs(
+                                        prev_value[idx], v)
+                            return prev_value
 
-def v_to_x0(v, t, x_t, diffusion):
-    sigmas = _i(diffusion.sigmas, t, v)
-    alphas = _i(diffusion.alphas, t, v)
-    return alphas * x_t - sigmas * v
+                        all_model_kwargs = copy.deepcopy(model_kwargs[0])
+                        for model_kwarg in model_kwargs[1:]:
+                            for key, value in model_kwarg.items():
+                                all_model_kwargs[key] = parse_model_kwargs(
+                                    all_model_kwargs[key], value)
+                        all_out = model(xt.repeat(2, 1, 1, 1),
+                                        t=t.repeat(2),
+                                        **all_model_kwargs,
+                                        **kwargs)
+                        y_out, u_out = all_out.chunk(2)
+                    else:
+                        y_out = model(xt, t=t, **model_kwargs[0], **kwargs)
+                        u_out = model(xt, t=t, **model_kwargs[1], **kwargs)
+
+            out = u_out + guide_scale * (y_out - u_out)
+            if guide_rescale is not None and guide_rescale > 0.0:
+                assert guide_rescale >= 0 and guide_rescale <= 1
+                ratio = (
+                    y_out.flatten(1).std(dim=1) /
+                    (out.flatten(1).std(dim=1) + 1e-12)).view((-1, ) + (1, ) *
+                                                              (y_out.ndim - 1))
+                out *= guide_rescale * ratio + (1 - guide_rescale) * 1.0
+
+        x0 = xt - sigma * out
+        return x0
+
+    def loss(self,
+             x0,
+             t,
+             model,
+             model_kwargs={},
+             reduction='mean',
+             noise=None,
+             **kwargs):
+
+        sigma = t / self.num_timesteps
+        shape = (x0.size(0), ) + (1, ) * (x0.ndim - 1)
+        sigma = sigma.view(shape)
+        if noise is None:
+            noise = torch.randn_like(x0)
+        xt = self.diffuse(x0, t, noise, sigma=sigma)
+        out = model(xt, t=t, **model_kwargs, **kwargs)
+        loss = ((xt - sigma * out) - x0)**2
+        # loss = (out - (x0 - noise)) ** 2
+        if reduction == 'mean':
+            loss = loss.flatten(1).mean(dim=1)
+        return loss
+
+    @torch.no_grad()
+    def sample(self,
+               noise,
+               model,
+               model_kwargs={},
+               guide_scale=None,
+               guide_rescale=None,
+               solver='euler',
+               steps=20,
+               shift=3,
+               discretization=None,
+               return_intermediate=None,
+               show_progress=False,
+               seed=-1,
+               intermediate_callback=None,
+               cat_uc=False,
+               **kwargs):
+        # sanity check
+        assert isinstance(steps, (int, torch.LongTensor))
+        assert return_intermediate in (None, 'x0', 'xt')
+
+        # function of diffusion solver
+        solver_fn = {
+            'ddim': sample_ddim,
+            'euler_ancestral': sample_euler_ancestral,
+            'euler': sample_euler,
+            'heun': sample_heun,
+            'dpm2': sample_dpm_2,
+            'dpm2_ancestral': sample_dpm_2_ancestral,
+            'dpmpp_2s_ancestral': sample_dpmpp_2s_ancestral,
+            'dpmpp_2m': sample_dpmpp_2m,
+            'dpmpp_sde': sample_dpmpp_sde,
+            'dpmpp_2m_sde': sample_dpmpp_2m_sde,
+            'dpm2_karras': sample_dpm_2,
+            'dpm2_ancestral_karras': sample_dpm_2_ancestral,
+            'dpmpp_2s_ancestral_karras': sample_dpmpp_2s_ancestral,
+            'dpmpp_2m_karras': sample_dpmpp_2m,
+            'dpmpp_sde_karras': sample_dpmpp_sde,
+            'dpmpp_2m_sde_karras': sample_dpmpp_2m_sde,
+            'onestep': sample_onestep,
+            'multistep': stochastic_iterative_sampler,
+            'multistep2': stochastic_iterative_sampler2,
+            'multistep3': stochastic_iterative_sampler3,
+            'dpmpp_2m_sde_lcm': sample_dpmpp_2m_sde_lcm,
+        }[solver]
+
+        seed = seed if seed >= 0 else random.randint(0, 2**31)
+        intermediates = []
+
+        def model_fn(xt, sigma):
+            # denoising
+            sigma = sigma.repeat(len(xt)).to(xt.device)
+            t = self._sigma_to_t(sigma).round().long()
+            x0 = self.denoise(xt,
+                              t,
+                              sigma,
+                              model,
+                              model_kwargs,
+                              guide_scale,
+                              guide_rescale,
+                              cat_uc=cat_uc,
+                              **kwargs)
+
+            # collect intermediate outputs
+            if return_intermediate == 'xt':
+                intermediates.append(xt)
+            elif return_intermediate == 'x0':
+                intermediates.append(x0)
+            if intermediate_callback is not None:
+                intermediate_callback(intermediates[-1])
+            return x0
+
+        # get timesteps
+        device = self.sigmas.device
+        sigma_max = self.sigmas[0]
+        sigma_min = self.sigmas[-1]
+        t_max = sigma_max * self.num_timesteps
+        t_min = sigma_min * self.num_timesteps
+        steps = torch.linspace(t_max, t_min, steps).to(device)
+        sigmas = steps / self.num_timesteps
+        sigmas = shift * sigmas / (1 + (shift - 1) * sigmas)
+        sigmas = sigmas.to(torch.float32).to(device)
+        sigmas = torch.cat([sigmas, sigmas.new_zeros([1])])
+
+        kwargs['seed'] = seed
+        # sampling
+        x0 = solver_fn(noise,
+                       model_fn,
+                       sigmas,
+                       show_progress=show_progress,
+                       **kwargs)
+        return (x0, intermediates) if return_intermediate is not None else x0
+
+    def _sigma_to_t(self, sigma):
+        return sigma * self.num_timesteps

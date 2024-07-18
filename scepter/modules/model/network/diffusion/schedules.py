@@ -13,6 +13,7 @@ where alpha_t^2 = 1 - sigma_t^2.
 """
 import math
 
+import numpy as np
 import torch
 
 __all__ = [
@@ -154,6 +155,15 @@ def logsnr_cosine_interp_schedule(n,
         _logsnr_cosine_interp(n, logsnr_min, logsnr_max, scale_min, scale_max))
 
 
+def shifted_schedule(n, shift=3):
+    timesteps = np.linspace(1, n, n, dtype=np.float32)[::-1].copy()
+    timesteps = torch.from_numpy(timesteps).to(dtype=torch.float32)
+
+    sigmas = timesteps / n
+    sigmas = shift * sigmas / (1 + (shift - 1) * sigmas)
+    return sigmas
+
+
 def noise_schedule(schedule='logsnr_cosine_interp',
                    n=1000,
                    zero_terminal_snr=False,
@@ -171,7 +181,8 @@ def noise_schedule(schedule='logsnr_cosine_interp',
         'vp': vp_schedule,
         'logsnr_cosine': logsnr_cosine_schedule,
         'logsnr_cosine_shifted': logsnr_cosine_shifted_schedule,
-        'logsnr_cosine_interp': logsnr_cosine_interp_schedule
+        'logsnr_cosine_interp': logsnr_cosine_interp_schedule,
+        'shifted': shifted_schedule,
     }[schedule](n, **kwargs)
 
     # post-processing

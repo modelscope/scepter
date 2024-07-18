@@ -47,12 +47,10 @@ class GalleryUI(UIBase):
                         container=False,
                         autofocus=True,
                         elem_classes='type_row',
-                        submit_on_enter=True,
                         lines=1)
 
                 with gr.Column(scale=3, min_width=0):
                     self.generate_button = gr.Button(
-                        label='Generate',
                         value=self.component_names.generate,
                         elem_classes='type_row',
                         elem_id='generate_button',
@@ -280,7 +278,7 @@ class GalleryUI(UIBase):
                       **kwargs):
         self.manager = manager
         self.gen_inputs = list(self.component_mapping.values())
-        print(self.gen_inputs, len(self.gen_inputs))
+        # print(self.gen_inputs, len(self.gen_inputs))
         self.gen_outputs = [
             self.before_refine_panel,
             self.before_refine_gallery,

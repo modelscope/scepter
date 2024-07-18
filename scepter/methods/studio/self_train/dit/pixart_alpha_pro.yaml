@@ -1,0 +1,264 @@
+ENV:
+  BACKEND: nccl
+META:
+  VERSION: 'PIXART_ALPHA'
+  DESCRIPTION: "PIXART ALPHA"
+  IS_DEFAULT: False
+  IS_SHARE: True
+  INFERENCE_PARAS:
+    INFERENCE_BATCH_SIZE: 1
+    INFERENCE_PREFIX: ""
+    DEFAULT_SAMPLER: "ddim"
+    DEFAULT_SAMPLE_STEPS: 20
+    INFERENCE_N_PROMPT: ""
+    RESOLUTION: [1024, 1024]
+  PARAS:
+    -
+      TRAIN_BATCH_SIZE: 2
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: [1024, 1024]
+      MEMORY: 29000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 0.0001
+      IS_DEFAULT: False
+      TUNER: FULL
+    -
+      TRAIN_BATCH_SIZE: 2
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: [1024, 1024]
+      MEMORY: 29000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 0.0001
+      IS_DEFAULT: False
+      TUNER: LORA
+  #
+  TUNERS:
+    LORA:
+      -
+        NAME: SwiftLoRA
+        R: 256
+        LORA_ALPHA: 256
+        LORA_DROPOUT: 0.0
+        BIAS: "none"
+        TARGET_MODULES: "model.*(.q|.k|.v|.o|mlp.fc1|mlp.fc2)$"
+#
+SOLVER:
+  NAME: LatentDiffusionSolver
+  RESUME_FROM:
+  LOAD_MODEL_ONLY: True
+  USE_FSDP: False
+  SHARDING_STRATEGY:
+  USE_AMP: True
+  DTYPE: float16
+  CHANNELS_LAST: True
+  MAX_STEPS: 1000
+  MAX_EPOCHS: -1
+  NUM_FOLDS: 1
+  ACCU_STEP: 1
+  EVAL_INTERVAL: -1
+  RESCALE_LR: False
+  #
+  WORK_DIR: cache/scepter_ui/self_train/dit/pixart_alpha_pro
+  LOG_FILE: std_log.txt
+  #
+  FILE_SYSTEM:
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "./cache/cache_data"
+  #
+  FREEZE:
+  #
+  TUNER:
+  #
+  MODEL:
+    NAME: LatentDiffusionPixart
+    PARAMETERIZATION: eps
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL:
+    IGNORE_KEYS: [ ]
+    SCALE_FACTOR: 0.18215
+    SIZE_FACTOR: 8
+    DECODER_BIAS: 0.5
+    DEFAULT_N_PROMPT:
+    SCHEDULE_ARGS:
+      "NAME": "linear"
+      "BETA_MIN": 0.0001
+      "BETA_MAX": 0.02
+    USE_EMA: False
+    LOAD_REFINER: False
+    #
+    DIFFUSION_MODEL:
+      NAME: PixArt
+      PRETRAINED_MODEL: ms://AI-ModelScope/PixArt-alpha@PixArt-XL-2-1024-MS.pth
+      INPUT_SIZE: 128
+      PATCH_SIZE: 2
+      IN_CHANNELS: 4
+      HIDDEN_SIZE: 1152
+      DEPTH: 28
+      NUM_HEADS: 16
+      MLP_RATIO: 4.0
+      CLASS_DROPOUT_PROB: 0.1
+      PRED_SIGMA: True
+      DROP_PATH: 0.0
+      WINDOW_DIZE: 0
+      USE_REL_POS: False
+      CAPTION_CHANNELS: 4096
+      LEWEI_SCALE: 2
+      MODEL_MAX_LENGTH: 120
+    #
+    FIRST_STAGE_MODEL:
+      NAME: AutoencoderKL
+      PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-2-base@512-base-ema.safetensors
+      EMBED_DIM: 4
+      IGNORE_KEYS: [ ]
+      BATCH_SIZE: 1
+      #
+      ENCODER:
+        NAME: Encoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DOUBLE_Z: True
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+      #
+      DECODER:
+        NAME: Decoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 4
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+        GIVE_PRE_END: False
+        TANH_OUT: False
+    #
+    COND_STAGE_MODEL:
+      NAME: T5EmbedderHF
+      PRETRAINED_MODEL: ms://AI-ModelScope/PixArt-alpha@t5-v1_1-xxl/
+      TOKENIZER_PATH: ms://AI-ModelScope/PixArt-alpha@t5-v1_1-xxl/
+      LENGTH: 120
+      CLEAN: heavy
+      USE_GRAD: False
+    #
+    LOSS:
+      NAME: ReconstructLoss
+      LOSS_TYPE: l2
+  #
+  SAMPLE_ARGS:
+    SAMPLER: ddim
+    SAMPLE_STEPS: 20
+    SEED: 2024
+    GUIDE_SCALE: 4.5
+    GUIDE_RESCALE: 0.5
+    DISCRETIZATION: trailing
+    RUN_TRAIN_N: False
+  #
+  OPTIMIZER:
+    NAME: AdamW
+    LEARNING_RATE: 0.0001
+    BETAS: [ 0.9, 0.999 ]
+    EPS: 1e-8
+    WEIGHT_DECAY: 1e-2
+    AMSGRAD: False
+  #
+  TRAIN_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: train
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_DATASET_SPLIT: train
+    MS_REMAP_KEYS: { 'Image:FILE': 'Target:FILE' }
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    SAMPLER:
+      NAME: LoopSampler
+    TRANSFORMS:
+      - NAME: LoadImageFromFile
+        RGB_ORDER: RGB
+        BACKEND: pillow
+      - NAME: FlexibleResize
+        INTERPOLATION: bilinear
+        SIZE: [ 1024, 1024 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: FlexibleCenterCrop
+        SIZE: [ 1024, 1024 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: Normalize
+        MEAN: [ 0.5,  0.5,  0.5 ]
+        STD: [ 0.5,  0.5,  0.5 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'image' ]
+        BACKEND: torchvision
+      - NAME: Select
+        KEYS: [ 'image', 'prompt' ]
+        META_KEYS: [ 'data_key' ]
+  #
+  EVAL_DATA:
+    NAME: Text2ImageDataset
+    MODE: eval
+    PROMPT_FILE:
+    PROMPT_DATA: [ "a boy wearing a jacket", "a dog running on the lawn" ]
+    IMAGE_SIZE: [ 1024, 1024 ]
+    FIELDS: [ "prompt" ]
+    DELIMITER: '#;#'
+    PROMPT_PREFIX: ''
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    TRANSFORMS:
+      - NAME: Select
+        KEYS: [ 'index', 'prompt' ]
+        META_KEYS: [ 'image_size' ]
+  #
+  TRAIN_HOOKS:
+    -
+      NAME: BackwardHook
+      PRIORITY: 0
+    -
+      NAME: LogHook
+      LOG_INTERVAL: 10
+      SHOW_GPU_MEM: True
+    -
+      NAME: TensorboardLogHook
+    -
+      NAME: CheckpointHook
+      INTERVAL: 10000
+      PRIORITY: 200
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      DISABLE_SNAPSHOT: True
+  #
+  EVAL_HOOKS:
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      SAVE_PROBE_PREFIX: 'image'

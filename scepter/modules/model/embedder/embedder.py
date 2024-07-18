@@ -11,20 +11,22 @@ import torch
 import torch.nn as nn
 import torch.utils.dlpack
 from einops import rearrange
-# to check
 from scepter.modules.model.backbone.unet.unet_utils import Timestep
+from scepter.modules.model.embedder.base_embedder import BaseEmbedder
+from scepter.modules.model.embedder.resampler import Resampler
 from scepter.modules.model.registry import EMBEDDERS
+from scepter.modules.model.tokenizer.tokenizer_component import (
+    basic_clean, canonicalize, heavy_clean, whitespace_clean)
 from scepter.modules.model.utils.basic_utils import expand_dims_like
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 from torch.utils.checkpoint import checkpoint
 
-from .base_embedder import BaseEmbedder
-from .resampler import Resampler
-
 try:
-    from transformers import CLIPTextModel, CLIPTokenizer, CLIPVisionModelWithProjection
+    from transformers import (CLIPTextModel, CLIPTokenizer,
+                              CLIPVisionModelWithProjection, AutoTokenizer,
+                              T5EncoderModel, CLIPTextModelWithProjection)
 except Exception as e:
     warnings.warn(
         f'Import transformers error, please deal with this problem: {e}')
@@ -117,7 +119,6 @@ class FrozenCLIPEmbedder(BaseEmbedder):
         for param in self.parameters():
             param.requires_grad = False
 
-    # @torch.no_grad()
     def _forward(self, text):
         batch_encoding = self.tokenizer(text,
                                         truncation=True,
@@ -779,3 +780,296 @@ class GeneralConditioner(BaseEmbedder):
                             __class__.__name__,
                             GeneralConditioner.para_dict,
                             set_name=True)
+
+
+@EMBEDDERS.register_class()
+class T5EmbedderHF(BaseEmbedder):
+    """
+    Uses the OpenCLIP transformer encoder for text
+    """
+    """
+        Uses the OpenCLIP transformer encoder for text
+        """
+    para_dict = {
+        'PRETRAINED_MODEL': {
+            'value':
+            'google/umt5-small',
+            'description':
+            'Pretrained Model for umt5, modelcard path or local path.'
+        },
+        'TOKENIZER_PATH': {
+            'value': 'google/umt5-small',
+            'description':
+            'Tokenizer Path for umt5, modelcard path or local path.'
+        },
+        'FREEZE': {
+            'value': True,
+            'description': ''
+        },
+        'USE_GRAD': {
+            'value': False,
+            'description': 'Compute grad or not.'
+        },
+        'CLEAN': {
+            'value':
+            'whitespace',
+            'description':
+            'Set the clean strtegy for tokenizer, used when TOKENIZER_PATH is not None.'
+        },
+        'LAYER': {
+            'value': 'last',
+            'description': ''
+        },
+        'LEGACY': {
+            'value':
+            True,
+            'description':
+            'Whether use legacy returnd feature or not ,default True.'
+        }
+    }
+
+    def __init__(self, cfg, logger=None):
+        super().__init__(cfg, logger=logger)
+        pretrained_path = cfg.get('PRETRAINED_MODEL', None)
+        t5_dtype = cfg.get('T5_DTYPE', None)
+        assert pretrained_path
+        with FS.get_dir_to_local_dir(pretrained_path,
+                                     wait_finish=True) as local_path:
+            if t5_dtype is not None:
+                self.model = T5EncoderModel.from_pretrained(
+                    local_path, torch_dtype=getattr(torch, t5_dtype))
+            else:
+                self.model = T5EncoderModel.from_pretrained(local_path)
+        tokenizer_path = cfg.get('TOKENIZER_PATH', None)
+        self.length = cfg.get('LENGTH', 77)
+        if tokenizer_path:
+            self.tokenize_kargs = {'return_tensors': 'pt'}
+            with FS.get_dir_to_local_dir(tokenizer_path,
+                                         wait_finish=True) as local_path:
+                self.tokenizer = AutoTokenizer.from_pretrained(local_path)
+            if self.length is not None:
+                self.tokenize_kargs.update({
+                    'padding': 'max_length',
+                    'truncation': True,
+                    'max_length': self.length
+                })
+            self.eos_token = self.tokenizer(
+                self.tokenizer.eos_token)['input_ids'][0]
+        else:
+            self.tokenizer = None
+            self.tokenize_kargs = {}
+
+        self.use_grad = cfg.get('USE_GRAD', False)
+        self.clean = cfg.get('CLEAN', 'whitespace')
+
+    def freeze(self):
+        self.model = self.model.eval()
+        for param in self.parameters():
+            param.requires_grad = False
+
+    # encode && encode_text
+    def forward(self, tokens, return_mask=False):
+        # tokenization
+        embedding_context = nullcontext if self.use_grad else torch.no_grad
+        with embedding_context():
+            x = self.model(tokens.input_ids.to(we.device_id),
+                           tokens.attention_mask.to(we.device_id))
+            x = x.last_hidden_state
+            # if not self.return_pooled:
+            #     return x.detach()
+            # else:
+            #     return x.detach(), self.pool(x, tokens.input_ids)
+            if return_mask:
+                return x.detach() + 0.0, tokens.attention_mask.to(we.device_id)
+            else:
+                return x.detach() + 0.0
+
+    def pool(self, x, tokens):
+        # take features from the eot embedding (eot_token is the highest number in each sequence)
+        return x[torch.arange(x.shape[0]),
+                 torch.argmax((tokens.input_ids == 1).float(), dim=-1)]
+
+    def _clean(self, text):
+        if self.clean == 'whitespace':
+            text = whitespace_clean(basic_clean(text))
+        elif self.clean == 'lower':
+            text = whitespace_clean(basic_clean(text)).lower()
+        elif self.clean == 'canonicalize':
+            text = canonicalize(basic_clean(text))
+        elif self.clean == 'heavy':
+            text = heavy_clean(heavy_clean(text))
+        return text
+
+    def encode_text(self,
+                    tokens,
+                    tokenizer=None,
+                    append_sentence_embedding=False,
+                    return_mask=False):
+        return self(tokens, return_mask=return_mask)
+
+    def encode(self, text, return_mask=False):
+        if isinstance(text, str):
+            text = [text]
+        if self.clean:
+            text = [self._clean(u) for u in text]
+        assert self.tokenizer is not None
+        tokens = self.tokenizer(text, **self.tokenize_kargs)
+        return self(tokens, return_mask=return_mask)
+
+    @staticmethod
+    def get_config_template():
+        return dict_to_yaml('MODELS',
+                            __class__.__name__,
+                            T5EmbedderHF.para_dict,
+                            set_name=True)
+
+
+@EMBEDDERS.register_class()
+class FrozenCLIPEmbedder2(FrozenCLIPEmbedder):
+    """Uses the CLIP transformer encoder for text (from huggingface)"""
+    para_dict = {
+        'RETURN_POOLED': {
+            'value': False,
+            'description':
+            'Whether return pooled results or not, default False.'
+        }
+    }
+    para_dict.update(FrozenCLIPEmbedder.para_dict)
+    LAYERS = ['hidden', 'last', 'penultimate']
+
+    def __init__(self, cfg, logger=None):
+        super(FrozenCLIPEmbedder, self).__init__(cfg, logger=logger)
+        self.return_pooled = cfg.get('RETURN_POOLED', False)
+        tokenizer_path = cfg.get('TOKENIZER_PATH', None)
+        if tokenizer_path is not None:
+            with FS.get_dir_to_local_dir(tokenizer_path,
+                                         wait_finish=True) as local_path:
+                self.tokenizer = CLIPTokenizer.from_pretrained(local_path)
+
+        pretrained_model = cfg.get('PRETRAINED_MODEL', None)
+        if pretrained_model is None:
+            raise 'You should set pretrained_model: modelcard.'
+        with FS.get_dir_to_local_dir(cfg.PRETRAINED_MODEL,
+                                     wait_finish=True) as local_path:
+            self.transformer = CLIPTextModelWithProjection.from_pretrained(
+                local_path)
+
+        self.use_grad = cfg.get('USE_GRAD', False)
+        self.freeze_flag = cfg.get('FREEZE', True)
+        if self.freeze_flag:
+            self.freeze()
+
+        self.max_length = cfg.get('MAX_LENGTH', 77)
+        self.layer = cfg.get('LAYER', 'last')
+        self.layer_idx = cfg.get('LAYER_IDX', None)
+        self.use_final_layer_norm = cfg.get('USE_FINAL_LAYER_NORM', False)
+        assert self.layer in self.LAYERS
+        if self.layer == 'hidden':
+            assert self.layer_idx is not None
+            assert 0 <= abs(self.layer_idx) <= 12
+
+    def _forward(self, text):
+        batch_encoding = self.tokenizer(text,
+                                        truncation=True,
+                                        max_length=self.max_length,
+                                        return_length=True,
+                                        return_overflowing_tokens=False,
+                                        padding='max_length',
+                                        return_tensors='pt')
+        tokens = batch_encoding['input_ids'].to(we.device_id)
+        outputs = self.transformer(input_ids=tokens, output_hidden_states=True)
+        if self.layer == 'last':
+            context = outputs.last_hidden_state
+        elif self.layer == 'penultimate':
+            context = outputs.hidden_states[-2]
+        else:
+            context = outputs.hidden_states[self.layer_idx]
+
+        if self.return_pooled:
+            pooled = outputs[0]
+            return context, pooled
+        return context
+
+
+@EMBEDDERS.register_class()
+class SD3TextEmbedder(BaseEmbedder):
+    def __init__(self, cfg, logger=None):
+        super().__init__(cfg, logger=logger)
+
+        clip_l_config = cfg.get('CLIP_L', None)
+        clip_g_config = cfg.get('CLIP_G', None)
+        t5_xxl_config = cfg.get('T5_XXL', None)
+
+        self.clip_l = EMBEDDERS.build(clip_l_config) if clip_l_config else None
+        self.clip_g = EMBEDDERS.build(clip_g_config) if clip_g_config else None
+        self.t5_xxl = EMBEDDERS.build(t5_xxl_config) if t5_xxl_config else None
+
+        self.p_zero = cfg.get('P_ZERO', 0.464)
+
+    def encode(self, text):
+        return self(text)
+
+    def forward(self, text):
+        l_ctx, g_ctx, t5_ctx = None, None, None
+        n = len(text)
+        l_pooled = torch.zeros((n, 768), device=we.device_id)
+        g_pooled = torch.zeros((n, 1280), device=we.device_id)
+        if self.clip_l:
+            with torch.autocast(device_type='cuda',
+                                enabled=True,
+                                dtype=torch.float16):
+                l_ctx, l_pooled = self.clip_l.encode(text)
+        if self.clip_g:
+            with torch.autocast(device_type='cuda',
+                                enabled=True,
+                                dtype=torch.float16):
+                g_ctx, g_pooled = self.clip_g.encode(text)
+        if self.t5_xxl:
+            with torch.autocast(device_type='cuda',
+                                enabled=True,
+                                dtype=torch.float16):
+                t5_ctx = self.t5_xxl.encode(text)
+
+        pooled = torch.cat((l_pooled, g_pooled), dim=-1)
+
+        if l_ctx is not None and g_ctx is not None:
+            lg_ctx = torch.cat([l_ctx, g_ctx], dim=-1)
+            lg_ctx = torch.nn.functional.pad(lg_ctx,
+                                             (0, 4096 - lg_ctx.shape[-1]))
+        elif l_ctx is not None:
+            lg_ctx = torch.nn.functional.pad(l_ctx,
+                                             (0, 4096 - l_ctx.shape[-1]))
+        elif g_ctx is not None:
+            lg_ctx = torch.nn.functional.pad(g_ctx, (768, 0))
+            lg_ctx = torch.nn.functional.pad(lg_ctx,
+                                             (0, 4096 - lg_ctx.shape[-1]))
+        else:
+            lg_ctx = None
+
+        if t5_ctx is not None and lg_ctx is not None:
+            ctx = torch.cat([lg_ctx, t5_ctx], dim=-2)
+        elif t5_ctx is not None:
+            ctx = t5_ctx
+        elif lg_ctx is not None:
+            ctx = lg_ctx
+        else:
+            ctx = torch.zeros((n, 77, 4096), device=we.device_id)
+
+        return ctx, pooled
+
+
+if __name__ == '__main__':
+    import argparse
+    from scepter.modules.utils.config import Config
+    from scepter.modules.utils.logger import get_logger
+    std_logger = get_logger(name='scepter')
+    parser = argparse.ArgumentParser(description='Argparser for Scepter:\n')
+    cfg = Config(load=True, parser_ins=parser)
+
+    for file_sys in cfg.FILE_SYSTEM:
+        FS.init_fs_client(file_sys)
+    model = SD3TextEmbedder(cfg.COND_STAGE_MODEL,
+                            logger=std_logger).to(we.device_id)
+    text = ['a dog is eating food.']
+    ctx, pooled = model(text)
+    print(ctx.shape, pooled.shape)

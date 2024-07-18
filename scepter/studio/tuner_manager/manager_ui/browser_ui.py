@@ -5,9 +5,8 @@ import shutil
 from collections import OrderedDict
 
 import gradio as gr
-from huggingface_hub import HfApi, snapshot_download
-
 import scepter
+from huggingface_hub import HfApi, snapshot_download
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.module_transform import \
@@ -95,7 +94,7 @@ class BrowserUI(UIBase):
         diffusion_models_choice, diffusion_model, tuner_models_choice, tuner_model = self.get_choices_and_values(
         )
         with gr.Column():
-            with gr.Box():
+            with gr.Group():
                 gr.Markdown(self.component_names.browser_block_name)
                 with gr.Row(variant='panel', equal_height=True):
                     with gr.Column(scale=4, min_width=0):
@@ -114,38 +113,33 @@ class BrowserUI(UIBase):
                             interactive=True)
                     with gr.Column(scale=1, min_width=0):
                         self.save_button = gr.Button(
-                            label='Save',
                             value=self.component_names.save_symbol,
                             elem_classes='type_row',
                             elem_id='save_button',
                             visible=True)
                         self.delete_button = gr.Button(
-                            label='Delete',
                             value=self.component_names.delete_symbol,
                             elem_classes='type_row',
                             elem_id='delete_button',
                             visible=False)
                         self.model_export = gr.Button(
-                            label='Model Export',
                             value=self.component_names.model_export,
                             elem_classes='type_row',
                             elem_id='save_button',
                             visible=True)
                     with gr.Column(scale=1, min_width=0):
                         self.refresh_button = gr.Button(
-                            label='Refresh',
                             value=self.component_names.refresh_symbol,
                             elem_classes='type_row',
                             elem_id='refresh_button',
                             visible=True)
                         self.model_import = gr.Button(
-                            label='Model Import',
                             value=self.component_names.model_import,
                             elem_classes='type_row',
                             elem_id='save_button',
                             visible=True)
 
-                with gr.Box(visible=False) as self.export_setting:
+                with gr.Group(visible=False) as self.export_setting:
                     gr.Markdown(self.component_names.export_desc)
                     with gr.Column(variant='panel'):
                         with gr.Row(equal_height=True):
@@ -157,7 +151,6 @@ class BrowserUI(UIBase):
                                     show_label=False)
                             with gr.Column(scale=1, min_width=0):
                                 self.export_close = gr.Button(
-                                    label='Close Export',
                                     value=self.component_names.close,
                                     elem_classes='type_row',
                                     elem_id='save_button')
@@ -185,7 +178,6 @@ class BrowserUI(UIBase):
                                     value=False)
                             with gr.Column(scale=1, min_width=0):
                                 self.ms_export_submit = gr.Button(
-                                    label='Submit MS',
                                     value=self.component_names.submit,
                                     elem_classes='type_row',
                                     elem_id='save_button')
@@ -213,12 +205,11 @@ class BrowserUI(UIBase):
                                     value=False)
                             with gr.Column(scale=1, min_width=0):
                                 self.hf_export_submit = gr.Button(
-                                    label='Submit HF',
                                     value=self.component_names.submit,
                                     elem_classes='type_row',
                                     elem_id='save_button')
 
-                with gr.Box(visible=False) as self.import_setting:
+                with gr.Group(visible=False) as self.import_setting:
                     gr.Markdown(self.component_names.import_desc)
                     with gr.Column(variant='panel'):
                         with gr.Row(equal_height=True):
@@ -232,21 +223,20 @@ class BrowserUI(UIBase):
                                     show_label=False)
                             with gr.Column(scale=1, min_width=0):
                                 self.import_close = gr.Button(
-                                    label='Close Download',
                                     value=self.component_names.close,
                                     elem_classes='type_row',
                                     elem_id='save_button')
 
                         with gr.Row(
                                 equal_height=True) as self.ms_import_setting:
-                            with gr.Column(scale=4.5, min_width=0):
+                            with gr.Column(scale=4, min_width=0):
                                 self.ms_modelid = gr.Text(
                                     label=self.component_names.ms_modelid,
                                     show_label=False,
                                     container=False,
                                     placeholder='ModelScope Model Path',
                                     value='')
-                            with gr.Column(scale=4.5, min_width=0):
+                            with gr.Column(scale=4, min_width=0):
                                 self.ms_import_username = gr.Text(
                                     label=self.component_names.ms_username,
                                     show_label=False,
@@ -255,7 +245,6 @@ class BrowserUI(UIBase):
                                     value='')
                             with gr.Column(scale=1, min_width=0):
                                 self.ms_import_submit = gr.Button(
-                                    label='Submit MS',
                                     value=self.component_names.submit,
                                     elem_classes='type_row',
                                     elem_id='save_button')
@@ -285,7 +274,6 @@ class BrowserUI(UIBase):
                                     value='')
                             with gr.Column(scale=1, min_width=0):
                                 self.hf_import_submit = gr.Button(
-                                    label='Submit HF',
                                     value=self.component_names.submit,
                                     elem_classes='type_row',
                                     elem_id='save_button')
@@ -333,7 +321,6 @@ class BrowserUI(UIBase):
                                     placeholder='Upload Tuner Name',
                                     value='')
                                 self.local_upload_bt = gr.Button(
-                                    label='Submit Local Model',
                                     value=self.component_names.submit,
                                     elem_classes='type_row',
                                     elem_id='upload_button')
@@ -358,7 +345,8 @@ class BrowserUI(UIBase):
         tar_path = os.path.join(tar_path, tuner_name)
         if FS.exists(tar_path):
             raise gr.Error(self.component_names.same_name)
-        local_model_dir, _ = FS.map_to_local(tar_path)
+        # local_model_dir, _ = FS.map_to_local(tar_path)
+        local_model_dir = src_path
         FS.put_dir_from_local_dir(src_path, tar_path)
         # save image
         tuner_example_path = None

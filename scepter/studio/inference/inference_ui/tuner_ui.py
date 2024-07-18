@@ -51,8 +51,8 @@ class TunerUI(UIBase):
 
     def create_ui(self, *args, **kwargs):
         self.state = gr.State(value=False)
-        with gr.Column(equal_height=True, visible=False) as self.tab:
-            with gr.Row(scale=1):
+        with gr.Column(visible=False) as self.tab:
+            with gr.Row():
                 with gr.Column(variant='panel', scale=1, min_width=0):
                     with gr.Group(visible=True):
                         with gr.Row(equal_height=True):
@@ -72,7 +72,6 @@ class TunerUI(UIBase):
                                     multiselect=True,
                                     interactive=True)
                                 self.save_button = gr.Button(
-                                    label=self.component_names.save_button,
                                     value=self.component_names.save_button,
                                     elem_classes='type_row',
                                     elem_id='save_button',
@@ -96,7 +95,7 @@ class TunerUI(UIBase):
                         with gr.Row(equal_height=True):
                             self.tuner_example = gr.Image(
                                 label=self.component_names.tuner_example,
-                                source='upload',
+                                sources=['upload'],
                                 value=None,
                                 interactive=False)
                         with gr.Row(equal_height=True):

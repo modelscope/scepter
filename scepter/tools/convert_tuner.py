@@ -2,8 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import argparse
 import importlib
-# from safetensors.torch import save_file
-# from safetensors import safe_open
 import json
 import os
 import sys

@@ -6,9 +6,15 @@ from scepter.modules.utils.file_system import FS
 
 
 def download_image(image):
+    # return None
     if image is not None:
-        name = get_md5(image)
-        local_path = FS.get_from(image, f'/tmp/gradio/scepter_examples/{name}')
+        client = FS.get_fs_client(image)
+        if client.tmp_dir.startswith('/home'):
+            name = get_md5(image)
+            local_path = FS.get_from(image,
+                                     f'/tmp/gradio/scepter_examples/{name}')
+        else:
+            local_path = FS.get_from(image)
         return local_path
     else:
         return image
@@ -48,20 +54,20 @@ class ModelManageUIName():
         if language == 'en':
             self.model_block_name = 'Model Management'
             self.postprocess_model_name = 'Refiners and Tuners'
-            self.diffusion_model = 'Unet'
+            self.diffusion_model = 'Model'
             self.first_stage_model = 'Vae'
             self.cond_stage_model = 'Condition Model'
-            self.refine_diffusion_model = 'Refine Unet'
+            self.refine_diffusion_model = 'Refine Model'
             self.refine_cond_model = 'Refine Condition Model'
             self.load_lora_tuner = 'Load Lora Tuner'
             self.load_swift_tuner = 'Load swift Tuner'
         elif language == 'zh':
             self.model_block_name = '模型管理'
             self.postprocess_model_name = 'Refiners and Tuners'
-            self.diffusion_model = 'Unet'
+            self.diffusion_model = 'Model'
             self.first_stage_model = 'Vae'
             self.cond_stage_model = 'Condition Model'
-            self.refine_diffusion_model = 'Refine Unet'
+            self.refine_diffusion_model = 'Refine Model'
             self.refine_cond_model = 'Refine Condition Model'
             self.load_lora_tuner = '加载 Lora 微调模型'
             self.load_swift_tuner = '加载 Swift 微调模型'
@@ -371,6 +377,7 @@ class LargenUIName():
             self.masked_image = 'Masked Image'
             self.preprocess = 'Input Preprocess'
             self.button_name = 'Data Preprocess'
+            self.value = 'CenterAround'
             self.direction = (
                 'Instruction: \n\n'
                 'For customized data: \n\n'
@@ -404,6 +411,7 @@ class LargenUIName():
             self.masked_image = '掩码图片'
             self.preprocess = '输入图片预处理'
             self.button_name = '数据预处理'
+            self.value = '中心向外'
             self.direction = ('使用说明：\n'
                               '针对自定义数据：\n'
                               'a.1）上传背景图片（待编辑）；\n'
@@ -435,7 +443,7 @@ class LargenUIName():
                 None,
                 1.0,
                 0.75,
-                'CenterAround',
+                self.value,
                 1024,
                 1024
             ],
@@ -456,7 +464,7 @@ class LargenUIName():
                 ),
                 1.0,
                 0.0,
-                '',
+                None,
                 1024,
                 1024
             ],
@@ -473,7 +481,7 @@ class LargenUIName():
                 None,
                 1.0,
                 0.0,
-                '',
+                None,
                 1024,
                 1024
             ],
@@ -494,7 +502,7 @@ class LargenUIName():
                 ),
                 0.45,
                 0.0,
-                '',
+                None,
                 1024,
                 1024
             ],

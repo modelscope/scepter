@@ -1,7 +1,8 @@
 albumentations
+beautifulsoup4
 bezier
 einops
-modelscope
+modelscope==1.14.0
 ms-swift>=2.0.1
 numpy
 open_clip_torch

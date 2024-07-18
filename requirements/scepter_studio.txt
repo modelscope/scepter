@@ -1,5 +1,5 @@
 bitsandbytes
-gradio>=3.47.1,<4.0.0
+gradio
 imagehash
 psutil
 tiktoken

@@ -33,10 +33,12 @@ class DiffusionInference():
     '''
     def __init__(self, logger=None):
         self.logger = logger
+        self.is_redefine_paras = True
         self.loaded_model = {}
         self.loaded_model_name = [
             'diffusion_model', 'first_stage_model', 'cond_stage_model'
         ]
+        self.diffusion_insclass = GaussianDiffusion
         self.tuner_infer = TunerInference(self.logger)
         self.control_infer = ControlInference(self.logger)
 
@@ -45,7 +47,8 @@ class DiffusionInference():
         self.is_default = cfg.get('IS_DEFAULT', False)
         module_paras = self.load_default(cfg.get('DEFAULT_PARAS', None))
         assert cfg.have('MODEL')
-        cfg.MODEL = self.redefine_paras(cfg.MODEL)
+        if self.is_redefine_paras:
+            cfg.MODEL = self.redefine_paras(cfg.MODEL)
         self.diffusion = self.load_schedule(cfg.MODEL.SCHEDULE)
         self.diffusion_model = self.infer_model(
             cfg.MODEL.DIFFUSION_MODEL, module_paras.get(
@@ -316,8 +319,8 @@ class DiffusionInference():
     def load_schedule(self, cfg):
         parameterization = cfg.get('PARAMETERIZATION', 'eps')
         assert parameterization in [
-            'eps', 'x0', 'v'
-        ], 'currently only supporting "eps" and "x0" and "v"'
+            'eps', 'x0', 'v', 'rf'
+        ], 'currently only supporting "eps" and "x0" and "v" and "rf"'
         num_timesteps = cfg.get('TIMESTEPS', 1000)
 
         schedule_args = {
@@ -336,8 +339,8 @@ class DiffusionInference():
                                 n=num_timesteps,
                                 zero_terminal_snr=zero_terminal_snr,
                                 **schedule_args)
-        diffusion = GaussianDiffusion(sigmas=sigmas,
-                                      prediction_type=parameterization)
+        diffusion = self.diffusion_insclass(sigmas=sigmas,
+                                            prediction_type=parameterization)
         return diffusion
 
     def get_batch(self, value_dict, num_samples=1):

@@ -43,7 +43,7 @@ class InfoUI(UIBase):
 
     def create_ui(self, *args, **kwargs):
         with gr.Column():
-            with gr.Box():
+            with gr.Group():
                 gr.Markdown(self.component_names.info_block_name)
                 with gr.Row(variant='panel', equal_height=True):
                     with gr.Column(variant='panel', scale=1, min_width=0):
@@ -80,7 +80,6 @@ class InfoUI(UIBase):
                                 with gr.Column(scale=1):
                                     self.save_bt2 = gr.Button(
                                         value=self.component_names.save_symbol,
-                                        label='Save',
                                         elem_classes='type_row',
                                         elem_id='save_button',
                                         visible=True,
@@ -91,7 +90,7 @@ class InfoUI(UIBase):
                             with gr.Row(equal_height=True):
                                 self.tuner_example = gr.Image(
                                     label=self.component_names.tuner_example,
-                                    source='upload',
+                                    sources=['upload'],
                                     value=None,
                                     interactive=True)
                             with gr.Row(equal_height=True):
@@ -116,7 +115,6 @@ class InfoUI(UIBase):
                                         self.component_names.go_to_inference)
                                 with gr.Column(scale=1, min_width=0):
                                     self.local_download_bt = gr.Button(
-                                        label='Download to Local Dir',
                                         value=self.component_names.
                                         download_to_local,
                                         # elem_classes='type_row',
@@ -134,7 +132,6 @@ class InfoUI(UIBase):
                                         show_label=False)
                                 with gr.Column(scale=1, min_width=0):
                                     self.download_confirm = gr.Button(
-                                        label='Confirm Download Format',
                                         value=self.component_names.submit,
                                         elem_classes='type_row',
                                         elem_id='save_button')

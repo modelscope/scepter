@@ -4,8 +4,6 @@ import copy
 import os
 from collections import OrderedDict, defaultdict
 
-from tqdm import tqdm
-
 import numpy as np
 import torch
 import torch.cuda.amp as amp
@@ -23,6 +21,7 @@ from torch.distributed.fsdp import (BackwardPrefetch, CPUOffload,
                                     FullyShardedDataParallel, MixedPrecision,
                                     ShardingStrategy, StateDictType)
 from torch.nn.parallel import DistributedDataParallel
+from tqdm import tqdm
 
 sharding_strategy_map = {
     'full_shard': ShardingStrategy.FULL_SHARD,
@@ -343,9 +342,7 @@ class LatentDiffusionSolver(BaseSolver):
                 self.train_mode()
             batch_data = next(data_iter)
             self.before_iter(self.hooks_dict[self._mode])
-            if self.sample_args:
-                batch_data.update(self.sample_args.get_lowercase_dict())
-            if 'meta' in batch_data:
+            if 'meta' in batch_data and isinstance(batch_data['meta'], dict):
                 self.register_probe({
                     'data_key':
                     ProbeData(batch_data['meta'].get('data_key', []),
@@ -356,6 +353,8 @@ class LatentDiffusionSolver(BaseSolver):
                 'batch_size': len(batch_data['prompt'])
             })
             self.current_batch_data[self.mode] = batch_data
+            if self.sample_args:
+                batch_data.update(self.sample_args.get_lowercase_dict())
             with torch.autocast(device_type='cuda',
                                 enabled=self.use_amp,
                                 dtype=self.dtype):
@@ -524,6 +523,8 @@ class LatentDiffusionSolver(BaseSolver):
         if len(swift_cfg_dict) > 0:
             from swift import Swift
             model = Swift.prepare_model(self.model, config=swift_cfg_dict)
+
+        # self.logger.info([(key, param.shape) for key, param in self.model.named_parameters() if param.requires_grad])
         return model
 
     def freeze(self, freeze_cfg, model=None):

@@ -147,6 +147,7 @@ SOLVER:
   MAX_EPOCHS: -1
   # NUM_FOLDS DESCRIPTION: Num folds for training. TYPE: int default: 1
   NUM_FOLDS: 1
+  RESCALE_LR: False
   #
   EVAL_INTERVAL: -1
   # WORK_DIR DESCRIPTION: Save dir of the training log or model. TYPE: str default: ''
@@ -155,7 +156,7 @@ SOLVER:
   LOG_FILE: std_log.txt
   FILE_SYSTEM:
     NAME: "ModelscopeFs"
-    TEMP_DIR: "./cache/data"
+    TEMP_DIR: "./cache/cache_data"
   TUNER:
   # MODEL DESCRIPTION:  TYPE:  default: ''
   MODEL:
@@ -538,7 +539,7 @@ SOLVER:
   OPTIMIZER:
     # NAME DESCRIPTION:  TYPE:  default: ''
     NAME: AdamW
-    LEARNING_RATE: 0.0064
+    LEARNING_RATE: 0.00001
     EPS: 1e-8
     AMSGRAD: False
   #

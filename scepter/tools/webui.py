@@ -171,5 +171,4 @@ if __name__ == '__main__':
         root_path=config['ROOT'],
         show_error=True,
         debug=True,
-        enable_queue=True,
         auth=check_auth if len(auth_info) > 0 else None)

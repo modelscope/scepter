@@ -134,11 +134,11 @@ def load_pretrained_dict(model: torch.nn.Module,
     missing_keys = load_status.missing_keys
     err_msgs = []
     if unexpected_keys:
-        err_msgs.append('unexpected key in source '
-                        f'state_dict: {", ".join(unexpected_keys)}\n')
+        err_msgs.append('unexpected key in source state_dict: {}\n'.format(
+            ', '.join(unexpected_keys)))
     if missing_keys:
-        err_msgs.append('missing key in source '
-                        f'state_dict: {", ".join(missing_keys)}\n')
+        err_msgs.append('missing key in source state_dict: {}\n'.format(
+            ', '.join(missing_keys)))
     err_msgs = '\n'.join(err_msgs)
 
     if len(err_msgs) > 0:

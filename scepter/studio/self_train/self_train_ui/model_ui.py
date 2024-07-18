@@ -89,21 +89,21 @@ class ModelUI(UIBase):
         return all_gallery_list
 
     def create_ui(self, *args, **kwargs):
-        with gr.Box():
+        with gr.Group():
             gr.Markdown(self.component_names.output_model_block)
             with gr.Row(variant='panel', equal_height=True):
                 with gr.Column(scale=7, min_width=0):
                     self.output_model_name = gr.Dropdown(
                         label=self.component_names.output_model_name,
                         choices=self.model_list,
-                        value=self.base_model_info.get('model_default', ''),
+                        value=None,
                         show_label=False,
                         container=False,
                         interactive=True)
                 with gr.Column(scale=2, min_width=0):
                     self.output_ckpt_name = gr.Dropdown(
                         label=self.component_names.output_ckpt_name,
-                        value='',
+                        value=None,
                         choices=[],
                         show_label=False,
                         container=False,
@@ -127,7 +127,7 @@ class ModelUI(UIBase):
                     self.confirm_add = gr.Button(value=confirm_symbol)
             with gr.Row(variant='panel', equal_height=True):
                 with gr.Column(scale=3, min_width=0):
-                    with gr.Box():
+                    with gr.Group():
                         self.log_message = gr.Text(
                             placeholder='Please select model'
                             'or press export button.',

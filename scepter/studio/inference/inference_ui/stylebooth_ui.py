@@ -15,7 +15,7 @@ class StyleboothUI(UIBase):
 
     def create_ui(self, *args, **kwargs):
         self.state = gr.State(value=False)
-        with gr.Column(equal_height=False, visible=False) as self.tab:
+        with gr.Column(visible=False) as self.tab:
             with gr.Row():
                 self.selected_app = gr.Dropdown(
                     label=self.component_names.dropdown_name,
@@ -30,7 +30,7 @@ class StyleboothUI(UIBase):
                     self.edit_image = gr.Image(
                         label=self.component_names.source_image,
                         type='pil',
-                        tool='editor',
+                        sources=['upload'],
                         interactive=True)
                 with gr.Column(variant='panel',
                                scale=1,
@@ -58,7 +58,6 @@ class StyleboothUI(UIBase):
                             interactive=True,
                             allow_custom_value=True)
                         self.compose_instruction = gr.Button(
-                            label=self.component_names.compose_button,
                             value=self.component_names.compose_button,
                             elem_classes='type_row',
                             elem_id='push')
