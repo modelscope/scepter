@@ -14,13 +14,14 @@ SOLVER:
   NUM_FOLDS: 1
   ACCU_STEP: 1
   EVAL_INTERVAL: 100
+  RESCALE_LR: False
   #
   WORK_DIR: ./cache/save_data/sd21_768_sce_ctr_pose
   LOG_FILE: std_log.txt
   #
   FILE_SYSTEM:
     NAME: "ModelscopeFs"
-    TEMP_DIR: "./cache/data"
+    TEMP_DIR: "./cache/cache_data"
   #
   FREEZE:
     FREEZE_PART: [ "first_stage_model", "cond_stage_model", "model" ]
@@ -140,7 +141,7 @@ SOLVER:
   #
   OPTIMIZER:
     NAME: AdamW
-    LEARNING_RATE: 0.064
+    LEARNING_RATE: 0.0001
     BETAS: [ 0.9, 0.999 ]
     EPS: 1e-8
     WEIGHT_DECAY: 1e-2

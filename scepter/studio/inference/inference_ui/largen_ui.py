@@ -68,30 +68,29 @@ class LargenUI(UIBase):
                 with gr.Column(scale=2, min_width=0):
                     with gr.Row():
                         with gr.Column(scale=1, min_width=0):
-                            self.scene_image = gr.Image(
+                            self.scene_image = gr.ImageMask(
                                 label=self.component_names.scene_image,
                                 type='pil',
-                                tool='sketch',
-                                source='upload',
-                                height=400,
+                                sources=['upload'],
+                                layers=False,
                                 interactive=True)
                             self.cache_button = gr.Button(
                                 value='Use Last Generated Image', visible=True)
                         with gr.Column(scale=1, min_width=0):
-                            self.subject_image = gr.Image(
+                            self.subject_image = gr.ImageMask(
                                 label=self.component_names.subject_image,
                                 type='pil',
-                                tool='sketch',
-                                source='upload',
-                                interactive=True,
-                                height=400,
-                                visible=False)
+                                sources=['upload'],
+                                layers=False,
+                                visible=False,
+                                interactive=True)
 
                     self.gallery = gr.Gallery(label='Image History',
                                               value=[],
                                               columns=1,
                                               rows=1,
-                                              height=500)
+                                              height=500,
+                                              interactive=False)
                     self.clear_button = gr.Button(value='Clear History',
                                                   visible=True)
 
@@ -255,7 +254,7 @@ class LargenUI(UIBase):
                                queue=False)
 
         def read_gallery_image(gallery):
-            if len(gallery) == 0:
+            if gallery is None:
                 last_image = None
             else:
                 last_image = gallery[-1]['name']
@@ -267,7 +266,7 @@ class LargenUI(UIBase):
 
         def clear_gallery(image_history, gallery):
             image_history.clear()
-            gallery.clear()
+            gallery = []
             return image_history, gallery
 
         self.clear_button.click(fn=clear_gallery,
@@ -276,8 +275,8 @@ class LargenUI(UIBase):
 
         def data_process(scene_image, subject_image, task, image_ratio,
                          out_direction, output_height, output_width):
-            tar_image = scene_image['image'].convert('RGB')
-            tar_mask = scene_image['mask'].convert('L')
+            tar_image = scene_image['background'].convert('RGB')
+            tar_mask = scene_image['layers'][0].split()[-1].convert('L')
             tar_image = np.asarray(tar_image)
             tar_mask = np.asarray(tar_mask)
             tar_mask = np.where(tar_mask > 128, 1, 0).astype(np.uint8)
@@ -288,8 +287,8 @@ class LargenUI(UIBase):
                                                     output_height,
                                                     output_width)
             elif task == 'Subject_Guided_Inpainting':
-                ref_image = subject_image['image'].convert('RGB')
-                ref_mask = subject_image['mask'].convert('L')
+                ref_image = subject_image['background'].convert('RGB')
+                ref_mask = subject_image['layers'][0].split()[-1].convert('L')
                 ref_image = np.asarray(ref_image)
                 ref_mask = np.asarray(ref_mask)
                 ref_mask = np.where(ref_mask > 128, 1, 0).astype(np.uint8)
@@ -298,8 +297,8 @@ class LargenUI(UIBase):
                                                     1.3, output_height,
                                                     output_width)
             elif task == 'Text_Subject_Guided_Inpainting':
-                ref_image = subject_image['image'].convert('RGB')
-                ref_mask = subject_image['mask'].convert('L')
+                ref_image = subject_image['background'].convert('RGB')
+                ref_mask = subject_image['layers'][0].split()[-1].convert('L')
                 ref_image = np.asarray(ref_image)
                 ref_mask = np.asarray(ref_mask)
                 ref_mask = np.where(ref_mask > 128, 1, 0).astype(np.uint8)

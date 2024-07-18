@@ -8,16 +8,12 @@ from collections import OrderedDict
 import gradio as gr
 import torch
 import torchvision.transforms.functional as TF
+from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.utils.data_utils import crop_back
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 
-from .diffusion_inference import DiffusionInference
-
-
-def get_model(model_tuple):
-    assert 'model' in model_tuple
-    return model_tuple['model']
+from .diffusion_inference import DiffusionInference, get_model
 
 
 class LargenInference(DiffusionInference):
@@ -28,10 +24,12 @@ class LargenInference(DiffusionInference):
     '''
     def __init__(self, logger=None):
         self.logger = logger
+        self.is_redefine_paras = True
         self.loaded_model = {}
         self.loaded_model_name = [
             'diffusion_model', 'first_stage_model', 'cond_stage_model'
         ]
+        self.diffusion_insclass = GaussianDiffusion
 
     def redefine_paras(self, cfg):
         if cfg.get('PRETRAINED_MODEL', None):

@@ -39,13 +39,13 @@ class DatasetGalleryUI(UIBase):
             self.default_image_format = os.path.splitext(
                 current_info.get('relative_path', ''))[-1]
 
-            self.default_edit_image_width = gr.Text(value=current_info.get(
-                'edit_width', current_info.get('width', -1)))
-            self.default_edit_image_height = gr.Text(value=current_info.get(
-                'edit_height', current_info.get('height', -1)))
-            self.default_edit_image_format = gr.Text(value=os.path.splitext(
+            self.default_edit_image_width = current_info.get(
+                'edit_width', current_info.get('width', -1))
+            self.default_edit_image_height = current_info.get(
+                'edit_height', current_info.get('height', -1))
+            self.default_edit_image_format = os.path.splitext(
                 current_info.get('edit_relative_path',
-                                 current_info.get('relative_path', '')))[-1])
+                                 current_info.get('relative_path', '')))[-1]
 
             self.default_select_index = self.default_dataset.cursor
             self.default_info = f'{self.default_dataset.cursor + 1}/{len(self.default_dataset)}'
@@ -120,6 +120,8 @@ class DatasetGalleryUI(UIBase):
                             elem_id='dataset_tag_editor_dataset_gallery',
                             value=self.default_image_list,
                             selected_index=self.default_select_index,
+                            object_fit='fill',
+                            preview=True,
                             columns=4,
                             visible=False,
                             interactive=False)
@@ -162,9 +164,7 @@ class DatasetGalleryUI(UIBase):
                                 preview=True,
                                 allow_preview=True,
                                 object_fit='fill')
-                    # with gr.Column(variant='panel', scale=2, min_width=0):
 
-        # with gr.Row(visible=False) as :
         with gr.Row(visible=False) as self.edit_setting_panel:
             self.sys_log = gr.Markdown(
                 self.component_names.system_log.format(''))
@@ -173,7 +173,7 @@ class DatasetGalleryUI(UIBase):
                            visible=False,
                            scale=1,
                            min_width=0) as self.edit_confirm_panel:
-                with gr.Box():
+                with gr.Group():
                     with gr.Row():
                         gr.Markdown(self.component_names.confirm_direction)
                     with gr.Row():
@@ -235,6 +235,7 @@ class DatasetGalleryUI(UIBase):
                     with gr.Column(variant='panel', scale=1, min_width=0):
                         self.upload_image = gr.Image(
                             label=self.component_names.upload_image,
+                            sources=['upload'],
                             type='pil')
                 with gr.Row():
                     with gr.Column(min_width=0):
@@ -251,7 +252,7 @@ class DatasetGalleryUI(UIBase):
                         variant='panel',
                         visible=False,
                 ) as self.image_preprocess_panel:
-                    with gr.Box():
+                    with gr.Group():
                         with gr.Column(variant='panel', min_width=0):
                             with gr.Row():
                                 self.image_preprocess_method = gr.Dropdown(
@@ -294,7 +295,7 @@ class DatasetGalleryUI(UIBase):
                                     image_preprocess_btn)
                 with gr.Row(variant='panel',
                             visible=False) as self.caption_preprocess_panel:
-                    with gr.Box():
+                    with gr.Group():
                         with gr.Column(variant='panel', min_width=0):
                             with gr.Row():
                                 self.caption_preprocess_method = gr.Dropdown(

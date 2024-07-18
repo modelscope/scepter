@@ -132,8 +132,9 @@ class CheckpointHook(Hook):
                 else:
                     if hasattr(solver, 'save_pretrained'):
                         save_path = osp.join(
-                            solver.work_dir, 'checkpoints/{}-{}-bin'.format(
-                                self.save_name_prefix, solver.total_iter + 1))
+                            solver.work_dir,
+                            'checkpoints/{}-{}'.format(self.save_name_prefix,
+                                                       solver.total_iter + 1))
                         local_folder, _ = FS.map_to_local(save_path)
                         FS.make_dir(local_folder)
                         ckpt, cfg = solver.save_pretrained()

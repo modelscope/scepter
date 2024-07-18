@@ -1,0 +1,233 @@
+ENV:
+  BACKEND: nccl
+#
+SOLVER:
+  NAME: LatentDiffusionSolver
+  RESUME_FROM:
+  LOAD_MODEL_ONLY: True
+  USE_FSDP: False
+  SHARDING_STRATEGY:
+  USE_AMP: True
+  DTYPE: float16
+  CHANNELS_LAST: True
+  MAX_STEPS: 500
+  MAX_EPOCHS: -1
+  NUM_FOLDS: 1
+  ACCU_STEP: 1
+  EVAL_INTERVAL: 50
+  RESCALE_LR: False
+  #
+  WORK_DIR: ./cache/save_data/dit_sd3_1024
+  LOG_FILE: std_log.txt
+  #
+  FILE_SYSTEM:
+    - NAME: "ModelscopeFs"
+      TEMP_DIR: ./cache/cache_data
+  #
+  MODEL:
+    NAME: LatentDiffusionSD3
+    PARAMETERIZATION: rf
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL:
+    IGNORE_KEYS: [ ]
+    SCALE_FACTOR: 1.5305
+    SHIFT_FACTOR: 0.0609
+    DEFAULT_N_PROMPT:
+    SCHEDULE_ARGS:
+      "NAME": "shifted"
+      "SHIFT": 3
+    USE_EMA: False
+    T_WEIGHT: uniform
+    #
+    DIFFUSION_MODEL:
+      NAME: MMDiT
+      PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium@sd3_medium.safetensors
+      IGNORE_KEYS: '^first_stage_model.'
+      IN_CHANNELS: 16
+      PATCH_SIZE: 2
+      OUT_CHANNELS: 16
+      DEPTH: 24
+      INPUT_SIZE:
+      ADM_IN_CHANNELS: 2048
+      CONTEXT_EMBEDDER_CONFIG: { 'target': 'torch.nn.Linear', 'params': { 'in_features': 4096, 'out_features': 1536 } }
+      NUM_PATCHES: 36864
+      POS_EMBED_MAX_SIZE: 192
+      POS_EMBED_SCALING_FACTOR:
+      USE_CHECKPOINT: True
+    #
+    FIRST_STAGE_MODEL:
+      NAME: AutoencoderKL
+      PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium@sd3_medium.safetensors
+      EMBED_DIM: 16
+      IGNORE_KEYS: '^model.diffusion_model.'
+      BATCH_SIZE: 1
+      USE_CONV: False
+      #
+      ENCODER:
+        NAME: Encoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 16
+        DOUBLE_Z: True
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+      #
+      DECODER:
+        NAME: Decoder
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 16
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+        GIVE_PRE_END: False
+        TANH_OUT: False
+    #
+    COND_STAGE_MODEL:
+      NAME: SD3TextEmbedder
+      P_ZERO: 0.0
+      CLIP_L:
+        NAME: FrozenCLIPEmbedder2
+        PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@text_encoder
+        TOKENIZER_PATH: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@tokenizer
+        MAX_LENGTH: 77
+        FREEZE: True
+        LAYER: penultimate
+        RETURN_POOLED: True
+        USE_FINAL_LAYER_NORM: False
+        IS_TRAINABLE: False
+      CLIP_G:
+        NAME: FrozenCLIPEmbedder2
+        PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@text_encoder_2
+        TOKENIZER_PATH: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@tokenizer_2
+        MAX_LENGTH: 77
+        FREEZE: True
+        LAYER: penultimate
+        RETURN_POOLED: True
+        USE_FINAL_LAYER_NORM: False
+        IS_TRAINABLE: False
+      T5_XXL:
+        NAME: T5EmbedderHF
+        PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@text_encoder_3
+        TOKENIZER_PATH: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@tokenizer_3
+        LENGTH: 256
+        CLEAN: whitespace
+        USE_GRAD: False
+        T5_DTYPE: float16
+    #
+    LOSS:
+      NAME: ReconstructLoss
+      LOSS_TYPE: l2
+  #
+  SAMPLE_ARGS:
+    SAMPLER: euler
+    SAMPLE_STEPS: 28
+    SEED: 1749023094
+    GUIDE_SCALE: 5.0
+    GUIDE_RESCALE: 0.0
+    DISCRETIZATION: trailing
+    RUN_TRAIN_N: False
+  #
+  OPTIMIZER:
+    NAME: AdamW
+    LEARNING_RATE: 1e-5
+    BETAS: [ 0.9, 0.999 ]
+    EPS: 1e-8
+    WEIGHT_DECAY: 1e-2
+    AMSGRAD: False
+  #
+  TRAIN_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: train
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_DATASET_SPLIT: train
+    MS_REMAP_KEYS: { 'Image:FILE': 'Target:FILE' }
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    SAMPLER:
+      NAME: LoopSampler
+    TRANSFORMS:
+      - NAME: LoadImageFromFile
+        RGB_ORDER: RGB
+        BACKEND: pillow
+      - NAME: FlexibleResize
+        INTERPOLATION: bilinear
+        SIZE: [ 1024, 1024 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: FlexibleCenterCrop
+        SIZE: [ 1024, 1024 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: Normalize
+        MEAN: [ 0.5,  0.5,  0.5 ]
+        STD: [ 0.5,  0.5,  0.5 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'image' ]
+        BACKEND: torchvision
+      - NAME: Select
+        KEYS: [ 'image', 'prompt' ]
+        META_KEYS: [ 'data_key' ]
+  #
+  EVAL_DATA:
+    NAME: Text2ImageDataset
+    MODE: eval
+    PROMPT_FILE:
+    PROMPT_DATA: [ "a cat holds a blackboard that writes \"hello world\"", "a dog running on the lawn" ]
+    IMAGE_SIZE: [ 1024, 1024 ]
+    FIELDS: [ "prompt" ]
+    DELIMITER: '#;#'
+    PROMPT_PREFIX: ''
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    TRANSFORMS:
+      - NAME: Select
+        KEYS: [ 'index', 'prompt' ]
+        META_KEYS: [ 'image_size' ]
+  #
+  TRAIN_HOOKS:
+    -
+      NAME: BackwardHook
+      PRIORITY: 10000
+    -
+      NAME: LogHook
+      LOG_INTERVAL: 10
+      SHOW_GPU_MEM: True
+    -
+      NAME: TensorboardLogHook
+    -
+      NAME: CheckpointHook
+      INTERVAL: 10000
+      PRIORITY: 200
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      DISABLE_SNAPSHOT: True
+  #
+  EVAL_HOOKS:
+    -
+      NAME: ProbeDataHook
+      PROB_INTERVAL: 50
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      SAVE_PROBE_PREFIX: 'image'

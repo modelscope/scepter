@@ -2,6 +2,8 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 from scepter.modules.inference.diffusion_inference import DiffusionInference
 from scepter.modules.inference.largen_inference import LargenInference
+from scepter.modules.inference.pixart_inference import PixArtInference
+from scepter.modules.inference.sd3_inference import SD3Inference
 from scepter.modules.inference.stylebooth_inference import StyleboothInference
 from scepter.modules.utils.logger import get_logger
 
@@ -102,6 +104,10 @@ class PipelineManager():
             PipelineBuilder = LargenInference
         elif pipeline_name.startswith('EDIT'):
             PipelineBuilder = StyleboothInference
+        elif pipeline_name.startswith('PIXART'):
+            PipelineBuilder = PixArtInference
+        elif pipeline_name.startswith('SD3'):
+            PipelineBuilder = SD3Inference
         else:
             PipelineBuilder = DiffusionInference
         new_inference = PipelineBuilder(logger=self.logger)

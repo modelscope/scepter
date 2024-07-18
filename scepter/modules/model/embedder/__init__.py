@@ -2,6 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 from scepter.modules.model.embedder.embedder import (
-    ConcatTimestepEmbedderND, FrozenCLIPEmbedder, FrozenOpenCLIPEmbedder,
-    FrozenOpenCLIPEmbedder2, GeneralConditioner, IPAdapterPlusEmbedder,
-    RefCrossEmbedder)
+    ConcatTimestepEmbedderND, FrozenCLIPEmbedder, FrozenCLIPEmbedder2,
+    FrozenOpenCLIPEmbedder, FrozenOpenCLIPEmbedder2, GeneralConditioner,
+    IPAdapterPlusEmbedder, RefCrossEmbedder, SD3TextEmbedder, T5EmbedderHF)

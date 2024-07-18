@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import datetime
+import json
 import os.path
 from collections import OrderedDict
 
 import gradio as gr
-from tqdm import tqdm
-
 from scepter.modules.utils.file_system import FS
 from scepter.studio.preprocess.caption_editor_ui.component_names import \
     CreateDatasetUIName
@@ -17,6 +16,7 @@ from scepter.studio.preprocess.utils.img2img_data_card import \
 from scepter.studio.preprocess.utils.txt2img_data_card import \
     Text2ImageDataCard
 from scepter.studio.utils.uibase import UIBase
+from tqdm import tqdm
 
 refresh_symbol = '\U0001f504'  # 🔄
 
@@ -144,10 +144,17 @@ class CreateDatasetUI(UIBase):
             meta_file = os.path.join(one_dir, 'meta.json')
             if not FS.exists(meta_file):
                 continue
+            with FS.get_from(meta_file) as local_meta:
+                meta = json.load(open(local_meta, 'r'))
+                dataset_type_name = 'scepter_' + meta.get('task_type', '')
             dataset_type = self.default_dataset_type
             dataset_cls = self.default_dataset_cls
             for key, value in self.dataset_type_dict.items():
-                if one_dir.split('/')[-1].startswith(key):
+                if one_dir.endswith('/'):
+                    folder_name = one_dir[:-1].split('/')[-1]
+                else:
+                    folder_name = one_dir.split('/')[-1]
+                if folder_name.startswith(key) or dataset_type_name == key:
                     dataset_type = key
                     dataset_cls = value
                     break
@@ -164,9 +171,9 @@ class CreateDatasetUI(UIBase):
         return dataset_list
 
     def create_ui(self):
-        with gr.Box():
+        with gr.Group():
             gr.Markdown(self.components_name.user_direction)
-        with gr.Box():
+        with gr.Group():
             with gr.Row():
                 self.sys_log = gr.Markdown(
                     self.components_name.system_log.format(''))
@@ -518,8 +525,8 @@ class CreateDatasetUI(UIBase):
                     if prev_data_name in dataset_list:
                         dataset_list.remove(prev_data_name)
                         dataset_list.append(user_dataset_name)
-                    self.user_level_dataset_list[
-                        login_user_name] = dataset_list
+                    self.user_level_dataset_list[login_user_name][
+                        dataset_type] = dataset_list
                     self.dataset_dict[dataset_type].pop(prev_data_name)
                     self.dataset_dict[dataset_type][
                         user_dataset_name] = ori_dataset_ins
@@ -582,8 +589,11 @@ class CreateDatasetUI(UIBase):
             user_level_dataset_list = self.load_history(
                 login_user_name=login_user_name)
             self.user_level_dataset_list.update(user_level_dataset_list)
-            dataset_list = user_level_dataset_list[login_user_name].get(
-                trans_dataset_type, [])
+            if user_level_dataset_list.get(login_user_name) is not None:
+                dataset_list = user_level_dataset_list[login_user_name].get(
+                    trans_dataset_type, [])
+            else:
+                dataset_list = []
             return gr.Dropdown(
                 value=dataset_list[-1] if len(dataset_list) > 0 else '',
                 choices=dataset_list), self.components_name.system_log.format(

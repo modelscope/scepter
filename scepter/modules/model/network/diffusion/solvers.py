@@ -12,9 +12,8 @@ q(x_t | x_0) = N(x_t | alpha_t x_0, sigma_t^2 I),
 
 where 0 <= sigma_t <= 1 and alpha_t^2 = 1 - sigma_t^2.
 """
-from tqdm.auto import trange
-
 import torch
+from tqdm.auto import trange
 
 __all__ = [
     'sample_euler', 'sample_euler_ancestral', 'sample_heun', 'sample_dpm_2',
@@ -77,8 +76,9 @@ def sample_euler(noise,
             denoised = model(noise, sigma_hat)
             x = denoised + sigmas[i + 1] * (gamma + 1) * noise
         else:
-            _, c_in = get_scalings(sigma_hat)
-            denoised = model(x * c_in, sigma_hat)
+            # _, c_in = get_scalings(sigma_hat)
+            # denoised = model(x * c_in, sigma_hat)
+            denoised = model(x, sigmas[i])
             d = (x - denoised) / sigma_hat
             dt = sigmas[i + 1] - sigma_hat
             x = x + d * dt

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
-
+import re
 from collections import OrderedDict
 
 import numpy as np
 import torch
+
 from scepter.modules.model.network.train_module import TrainModule
 from scepter.modules.model.registry import BACKBONES, LOSSES, MODELS
 from scepter.modules.utils.config import dict_to_yaml
@@ -87,6 +88,7 @@ class AutoencoderKL(TrainModule):
         self.pretrained_model = self.cfg.get('PRETRAINED_MODEL', None)
         self.ignore_keys = self.cfg.get('IGNORE_KEYS', [])
         self.batch_size = self.cfg.get('BATCH_SIZE', 16)
+        self.use_conv = self.cfg.get('USE_CONV', True)
 
         self.construct_network()
         self.init_network()
@@ -95,8 +97,12 @@ class AutoencoderKL(TrainModule):
         z_channels = self.encoder_cfg.Z_CHANNELS
         self.encoder = BACKBONES.build(self.encoder_cfg, logger=self.logger)
         self.decoder = BACKBONES.build(self.decoder_cfg, logger=self.logger)
-        self.conv1 = torch.nn.Conv2d(2 * z_channels, 2 * self.embed_dim, 1)
-        self.conv2 = torch.nn.Conv2d(self.embed_dim, z_channels, 1)
+        self.conv1 = torch.nn.Conv2d(
+            2 * z_channels, 2 *
+            self.embed_dim, 1) if self.use_conv else torch.nn.Identity()
+        self.conv2 = torch.nn.Conv2d(
+            self.embed_dim, z_channels,
+            1) if self.use_conv else torch.nn.Identity()
 
         if self.loss_cfg is not None:
             self.loss = LOSSES.build(self.loss_cfg, logger=self.logger)
@@ -107,7 +113,7 @@ class AutoencoderKL(TrainModule):
                              wait_finish=True) as local_model:
                 self.init_from_ckpt(local_model, ignore_keys=self.ignore_keys)
 
-    def init_from_ckpt(self, path, ignore_keys=list()):
+    def init_from_ckpt(self, path, ignore_keys):
         if path.find('.safetensors') > -1:
             from safetensors import safe_open
             sd = OrderedDict()
@@ -122,20 +128,17 @@ class AutoencoderKL(TrainModule):
                 sd = sd['state_dict']
 
         new_sd = OrderedDict()
+
         for k, v in sd.items():
-            ignored = False
-            for ik in ignore_keys:
-                if ik in k:
-                    if we.rank == 0:
-                        self.logger.info(
-                            'ignore key {} from state_dict.'.format(k))
-                    ignored = True
-                    break
+            if self.ignore_keys is not None:
+                if (isinstance(self.ignore_keys, str) and re.match(self.ignore_keys, k)) or \
+                        (isinstance(self.ignore_keys, list) and k in self.ignore_keys):
+                    continue
             k = k.replace('post_quant_conv',
                           'conv2') if 'post_quant_conv' in k else k
             k = k.replace('quant_conv', 'conv1') if 'quant_conv' in k else k
-            if not ignored:
-                new_sd[k] = v
+            k = k.replace('first_stage_model.', '')
+            new_sd[k] = v
 
         missing, unexpected = self.load_state_dict(new_sd, strict=False)
         if we.rank == 0:
@@ -264,3 +267,14 @@ class AutoencoderKL(TrainModule):
                             __class__.__name__,
                             AutoencoderKL.para_dict,
                             set_name=True)
+
+
+if __name__ == '__main__':
+    import argparse
+    from scepter.modules.utils.config import Config
+    from scepter.modules.utils.logger import get_logger
+    std_logger = get_logger(name='scepter')
+    parser = argparse.ArgumentParser(description='Argparser for Scepter:\n')
+    cfg = Config(load=True, parser_ins=parser)
+    model = AutoencoderKL(cfg, logger=std_logger)
+    model.load_pretrained_model(cfg.PRETRAINED_MODEL)

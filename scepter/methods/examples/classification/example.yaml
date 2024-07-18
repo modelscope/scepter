@@ -11,7 +11,7 @@ SOLVER:
   # NUM_FOLDS DESCRIPTION: Num folds for training. TYPE: int default: 0
   NUM_FOLDS: 1
   # WORK_DIR DESCRIPTION: Save dir of the training log or model. TYPE: str default: ''
-  WORK_DIR: ./exp12/
+  WORK_DIR: ./cache/save_data/example/
   LOG_FILE: std_log.txt
   # EVAL_INTERVAL DESCRIPTION: Eval the model interval. TYPE: int default: 1
   EVAL_INTERVAL: 1
@@ -102,7 +102,7 @@ SOLVER:
     # DATASET DESCRIPTION: the public dataset name TYPE: str default: 'cifar10'
     DATASET: cifar10
     # DATA_ROOT DESCRIPTION: the download data save path TYPE: str default: ''
-    DATA_ROOT: ./local_data/cifar10
+    DATA_ROOT: ./cache/cache_data/cifar10
     # MODE DESCRIPTION: test TYPE: str default: test
     MODE: test
     # PIN_MEMORY DESCRIPTION: pin_memory for data loader TYPE: bool default: False

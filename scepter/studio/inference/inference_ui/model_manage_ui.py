@@ -142,6 +142,7 @@ class ModelManageUI(UIBase):
                 last_pipeline_ins = self.pipe_manager.pipeline_level_modules[
                     last_pipline]
                 last_pipeline_ins.dynamic_unload(name='all')
+
             now_pipeline = self.pipe_manager.model_level_info[diffusion_model][
                 'pipeline'][0]
             pipeline_ins = self.pipe_manager.pipeline_level_modules[
@@ -202,9 +203,11 @@ class ModelManageUI(UIBase):
                             value=controller_default),
                 gr.Dropdown(choices=mantra_ui.all_styles.get(now_pipeline, []),
                             value=[]),
-                gr.Textbox(choices=cur_paras.NEGATIVE_PROMPT.get('VALUES', []),
+                gr.Textbox(elem_classes=cur_paras.NEGATIVE_PROMPT.get(
+                    'VALUES', []),
                            value=cur_paras.NEGATIVE_PROMPT.get('DEFAULT', '')),
-                gr.Textbox(choices=cur_paras.PROMPT_PREFIX.get('VALUES', []),
+                gr.Textbox(elem_classes=cur_paras.PROMPT_PREFIX.get(
+                    'VALUES', []),
                            value=cur_paras.PROMPT_PREFIX.get('DEFAULT', '')),
                 gr.Dropdown(choices=[key for key in h_level_dict.keys()],
                             value=default_res[0]),

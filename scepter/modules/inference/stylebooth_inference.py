@@ -7,16 +7,12 @@ import gradio as gr
 import torch
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
+from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.utils.distribute import we
 
 from .control_inference import ControlInference
-from .diffusion_inference import DiffusionInference
+from .diffusion_inference import DiffusionInference, get_model
 from .tuner_inference import TunerInference
-
-
-def get_model(model_tuple):
-    assert 'model' in model_tuple
-    return model_tuple['model']
 
 
 class StyleboothInference(DiffusionInference):
@@ -27,10 +23,12 @@ class StyleboothInference(DiffusionInference):
     '''
     def __init__(self, logger=None):
         self.logger = logger
+        self.is_redefine_paras = True
         self.loaded_model = {}
         self.loaded_model_name = [
             'diffusion_model', 'first_stage_model', 'cond_stage_model'
         ]
+        self.diffusion_insclass = GaussianDiffusion
         self.tuner_infer = TunerInference(self.logger)
         self.control_infer = ControlInference(self.logger)
 

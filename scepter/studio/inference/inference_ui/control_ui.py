@@ -75,13 +75,13 @@ class ControlUI(UIBase):
                     self.source_image = gr.Image(
                         label=self.component_names.source_image,
                         type='pil',
-                        tool='editor',
+                        sources=['upload'],
                         interactive=True)
                 with gr.Column(scale=1, min_width=0):
                     self.cond_image = gr.Image(
                         label=self.component_names.cond_image,
                         type='pil',
-                        tool='editor',
+                        sources=['upload'],
                         interactive=True)
             with gr.Row():
                 with gr.Column(scale=1, min_width=0):

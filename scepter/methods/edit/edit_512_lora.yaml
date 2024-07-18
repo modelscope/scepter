@@ -20,7 +20,7 @@ SOLVER:
   #
   FILE_SYSTEM:
     NAME: "ModelscopeFs"
-    TEMP_DIR: "./cache/data"
+    TEMP_DIR: "./cache/cache_data"
   #
   TUNER:
     -

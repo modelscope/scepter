@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+import copy
 import numbers
 import random
 from collections import OrderedDict
 
 import torch
+
 from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.network.train_module import TrainModule
@@ -91,8 +93,8 @@ class LatentDiffusion(TrainModule):
     def init_params(self):
         self.parameterization = self.cfg.get('PARAMETERIZATION', 'eps')
         assert self.parameterization in [
-            'eps', 'x0', 'v'
-        ], 'currently only supporting "eps" and "x0" and "v"'
+            'eps', 'x0', 'v', 'rf'
+        ], 'currently only supporting "eps" and "x0" and "v" and "rf"'
         self.num_timesteps = self.cfg.get('TIMESTEPS', 1000)
 
         self.schedule_args = {
@@ -137,15 +139,18 @@ class LatentDiffusion(TrainModule):
             self.default_n_prompt = ''
         if self.train_n_prompt is None:
             self.train_n_prompt = ''
-        self.use_ema = self.cfg.get('USE_EMA', True)
+        self.use_ema = self.cfg.get('USE_EMA', False)
         self.model_ema_config = self.cfg.get('DIFFUSION_MODEL_EMA', None)
 
     def construct_network(self):
         self.model = BACKBONES.build(self.model_config, logger=self.logger)
         self.logger.info('all parameters:{}'.format(count_params(self.model)))
-        if self.use_ema and self.model_ema_config:
-            self.model_ema = BACKBONES.build(self.model_ema_config,
-                                             logger=self.logger)
+        if self.use_ema:
+            if self.model_ema_config:
+                self.model_ema = BACKBONES.build(self.model_ema_config,
+                                                 logger=self.logger)
+            else:
+                self.model_ema = copy.deepcopy(self.model)
             self.model_ema = self.model_ema.eval()
             for param in self.model_ema.parameters():
                 param.requires_grad = False
@@ -154,13 +159,15 @@ class LatentDiffusion(TrainModule):
         if self.tokenizer_config is not None:
             self.tokenizer = TOKENIZERS.build(self.tokenizer_config,
                                               logger=self.logger)
-
-        self.first_stage_model = MODELS.build(self.first_stage_config,
-                                              logger=self.logger)
-        self.first_stage_model = self.first_stage_model.eval()
-        self.first_stage_model.train = disabled_train
-        for param in self.first_stage_model.parameters():
-            param.requires_grad = False
+        if self.first_stage_config:
+            self.first_stage_model = MODELS.build(self.first_stage_config,
+                                                  logger=self.logger)
+            self.first_stage_model = self.first_stage_model.eval()
+            self.first_stage_model.train = disabled_train
+            for param in self.first_stage_model.parameters():
+                param.requires_grad = False
+        else:
+            self.first_stage_model = None
         if self.tokenizer_config is not None:
             self.cond_stage_config.KWARGS = {
                 'vocab_size': self.tokenizer.vocab_size
@@ -269,8 +276,8 @@ class LatentDiffusion(TrainModule):
         ret = {'loss': loss, 'probe_data': {'prompt': prompt}}
         return ret
 
-    def noise_sample(self, batch_size, h, w, g):
-        noise = torch.empty(batch_size, 4, h, w,
+    def noise_sample(self, batch_size, h, w, g, c=4):
+        noise = torch.empty(batch_size, c, h, w,
                             device=we.device_id).normal_(generator=g)
         return noise
 
