@@ -168,13 +168,13 @@ SOLVER:
         RGB_ORDER: RGB
         BACKEND: pillow
       - NAME: Resize
-        SIZE: 768
+        SIZE: 512
         INTERPOLATION: bilinear
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
       - NAME: CenterCrop
-        SIZE: 768
+        SIZE: 512
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
@@ -216,13 +216,13 @@ SOLVER:
         RGB_ORDER: RGB
         BACKEND: pillow
       - NAME: Resize
-        SIZE: 768
+        SIZE: 512
         INTERPOLATION: bilinear
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
       - NAME: CenterCrop
-        SIZE: 768
+        SIZE: 512
         INPUT_KEY: [ 'img' ]
         OUTPUT_KEY: [ 'img' ]
         BACKEND: pillow
