@@ -105,7 +105,10 @@ class LatentDiffusionSCEControl(LatentDiffusion):
         hints = []
         for ctr in control:
             hint = self.control_processor(ctr)
-            hint = TT.ToTensor()(hint)
+            if len(hint.shape) == 4:
+                hint = TT.ToTensor()(hint.squeeze())
+            else:
+                hint = TT.ToTensor()(hint)
             hints.append(hint)
         hints = torch.stack(hints).to(control.device)
         return hints
