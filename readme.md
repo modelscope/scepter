@@ -18,6 +18,8 @@ SCEPTER offers 3 core components:
 
 
 ## 🎉 News
+- [2024.09]: We introduce **ACE**, an **A**ll-round **C**reator and **E**ditor adept at executing a diverse array of image editing tasks tailored to your specifications. Built upon the cutting-edge Diffusion Transformer architecture, ACE has been extensively trained on a comprehensive dataset to seamlessly interpret and execute any natural language instruction. For further information, please consult the [project page]().
+- [2024.07]: Support the inference and training of open-source generative models based on the [DiT](https://arxiv.org/abs/2212.09748) architecture, such as [SD3](https://arxiv.org/pdf/2403.03206) and [PixArt](https://arxiv.org/abs/2310.00426).
 - [2024.05]: Introducing SCEPTER v1, supporting customized image edit tasks! Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `Clay Style`, `De-Text`, `Segmentation`, etc.
 - [2024.04]: New [StyleBooth](https://ali-vilab.github.io/stylebooth-page/) demo on SCEPTER Studio for`Text-Based Style Editing`.
 - [2024.03]: We optimize the training UI and checkpoint management. New [LAR-Gen](https://arxiv.org/abs/2403.19534) model has been added on SCEPTER Studio, supporting `zoom-out`, `virtual try on`, `inpainting`.
@@ -30,45 +32,16 @@ SCEPTER offers 3 core components:
 
 ## 🖼 Gallery for Recent Works
 
-### Edit Tuners
+### <img src="asset/images/ace/logo.png" height=20> <img src="asset/images/ace/text.png" height=20>
 
-Simply provide 10 image pairs, SCEPTER will tune an edit tuner for your own Image-to-Image tasks, like `Clay Style`, `De-Text`, `Segmentation`, etc.
-Try our official few-shot datasets: [De-Text](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdetext.zip), [Image2Hed](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fhed_pair.zip), [Image2Depth](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fimage2depth.zip), [Depth2Image](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets%2Fdepth2image.zip).
+ACE is a unified foundational model framework that supports a wide range of visual generation tasks. By defining CU for unifying multi-modal inputs across different tasks and incorporating long-
+context CU, we introduce historical contextual information into visual generation tasks, paving
+the way for ChatGPT-like dialog systems in visual generation.
 
+<a href="https://ali-vilab.github.io/ace-page/">
+  <img src="asset/images/ace/teaser_dy.gif" width=1024>
+</a>
 
-<table><tbody>
-  <tr>
-    <th align="center" colspan="4">Clay Style<br>Prompt: "Convert this image into clay style"</th>
-  </tr>
-  <tr>
-    <td><img src="asset/images/edit_tuner/vermeer.jpeg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/clay_vermeer.jpeg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/cat_512.jpg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/clay_cat.jpeg" width="300"></td>
-  </tr>
-  <tr>
-    <th align="center" colspan="2">De-Text<br>Prompt: "Remove the texts"</th>
-    <th align="center" colspan="2">Image2Hed<br>Prompt: "Convert to an edge map"</th>
-  </tr>
-  <tr>
-    <td><img src="asset/images/edit_tuner/text.jpg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/detext.jpeg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/cat_512.jpg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/hed.jpeg" width="300"></td>
-  </tr>
-    <tr>
-    <th align="center" colspan="2">Image2Depth<br>Prompt: "Calculate the depth map"</th>
-    <th align="center" colspan="2">Depth2Image<br>Prompt: "Convert depth map into color image"</th>
-  </tr>
-  <tr>
-    <td><img src="asset/images/edit_tuner/house.jpg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/image2depth.jpeg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/depth.jpg" width="300"></td>
-    <td><img src="asset/images/edit_tuner/depth2image.jpeg" width="300"></td>
-  </tr>
-</tbody>
-</table>
-Note: Left image is input and right image is output.
 
 ## 🛠️ Installation
 
