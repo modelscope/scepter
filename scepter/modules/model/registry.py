@@ -26,6 +26,27 @@ def build_model(cfg, registry, logger=None, *args, **kwargs):
             model.load_pretrained_model(pretrain_cfg)
     return model
 
+def build_diffusion(cfg, registry, logger=None, *args, **kwargs):
+    """ After build model, load pretrained model if exists key `pretrain`.
+
+    pretrain (str, dict): Describes how to load pretrained model.
+        str, treat pretrain as model path;
+        dict: should contains key `path`, and other parameters token by function load_pretrained();
+    """
+    if not isinstance(cfg, Config):
+        raise TypeError(f'Config must be type dict, got {type(cfg)}')
+    return build_from_config(cfg, registry, logger=logger, *args, **kwargs)
+
+def build_scheduler(cfg, registry, logger=None, *args, **kwargs):
+    if not isinstance(cfg, Config):
+        raise TypeError(f'Config must be type dict, got {type(cfg)}')
+    return build_from_config(cfg, registry, logger=logger, *args, **kwargs)
+
+def build_diffusion_sampler(cfg, registry, logger=None, *args, **kwargs):
+    if not isinstance(cfg, Config):
+        raise TypeError(f'Config must be type dict, got {type(cfg)}')
+    return build_from_config(cfg, registry, logger=logger, *args, **kwargs)
+
 
 MODELS = Registry('MODELS', build_func=build_model)
 TOKENIZERS = Registry('TOKENIZER', build_func=build_model)
@@ -37,3 +58,9 @@ BRICKS = Registry('BRICKS', build_func=build_model)
 STEMS = BRICKS
 LOSSES = Registry('LOSSES', build_func=build_model)
 TUNERS = Registry('TUNERS', build_func=build_model)
+
+# reigister cls for diffusion.
+
+DIFFUSIONS = Registry('DIFFUSIONS', build_func=build_diffusion)
+NOISE_SCHEDULERS = Registry('NOISE_SCHEDULERS', build_func=build_diffusion)
+DIFFUSION_SAMPLERS = Registry('DIFFUSION_SAMPLERS', build_func=build_diffusion_sampler)

@@ -2,8 +2,8 @@ albumentations
 beautifulsoup4
 bezier
 einops
-modelscope==1.14.0
-ms-swift>=2.0.1
+modelscope
+ms-swift
 numpy
 open_clip_torch
 opencv-python
@@ -14,3 +14,4 @@ pyyaml>=5.3.1
 scikit-image
 torchsde
 transformers
+scikit-learn

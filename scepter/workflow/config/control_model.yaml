@@ -1,0 +1,32 @@
+CONTROLLERS:
+  # SD_XL1.0
+  - NAME: SD_XL1.0_canny
+    NAME_ZH:
+    DESCRIPTION:
+    BASE_MODEL: SD_XL1.0
+    TYPE: Canny
+    MODEL_PATH: ms://iic/scepter_scedit@controllable_model/SD_XL1.0/canny_control
+  - NAME: SD_XL1.0_color
+    NAME_ZH:
+    DESCRIPTION:
+    BASE_MODEL: SD_XL1.0
+    TYPE: Color
+    MODEL_PATH: ms://iic/scepter_scedit@controllable_model/SD_XL1.0/color_control
+  - NAME: SD_XL1.0_depth
+    NAME_ZH:
+    DESCRIPTION:
+    BASE_MODEL: SD_XL1.0
+    TYPE: Midas
+    MODEL_PATH: ms://iic/scepter_scedit@controllable_model/SD_XL1.0/depth_control
+  - NAME: SD_XL1.0_hed
+    NAME_ZH:
+    DESCRIPTION:
+    BASE_MODEL: SD_XL1.0
+    TYPE: Hed
+    MODEL_PATH: ms://iic/scepter_scedit@controllable_model/SD_XL1.0/hed_control
+  - NAME: SD_XL1.0_openpose
+    NAME_ZH:
+    DESCRIPTION:
+    BASE_MODEL: SD_XL1.0
+    TYPE: Openpose
+    MODEL_PATH: ms://iic/scepter_scedit@controllable_model/SD_XL1.0/pose_control

@@ -523,12 +523,15 @@ class MultiLevelBatchSampler(BaseSampler):
 class MixtureOfSamplers(BaseSampler):
     para_dict = {'SUB_SAMPLERS': []}
 
-    def __init__(self, samplers, probabilities, rank=0, seed=8888):
+    def __init__(self, samplers, probabilities, rank=0, seed=8888, keep_order = False):
         self.samplers = samplers
         self.iterators = [iter(u) for u in samplers]
         self.probabilities = probabilities
         self.seed = seed
-        self.rng = np.random.default_rng(seed + rank)
+        if keep_order:
+            self.rng = np.random.default_rng(seed)
+        else:
+            self.rng = np.random.default_rng(seed + rank)
 
     def __iter__(self):
         while True:

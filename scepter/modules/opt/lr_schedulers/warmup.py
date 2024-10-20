@@ -33,7 +33,6 @@ class WarmupToConstantLR(BaseScheduler):
                             WarmupToConstantLR.para_dict,
                             set_name=True)
 
-
 class AnnealingLR(_LRScheduler):
     def __init__(self,
                  optimizer,

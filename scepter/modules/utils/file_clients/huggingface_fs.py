@@ -84,6 +84,7 @@ class HuggingfaceFs(BaseFs):
                              target_path,
                              local_path=None,
                              wait_finish=False,
+                             multi_thread=False,
                              timeout=3600,
                              sign_key=None,
                              worker_id=-1) -> Optional[str]:

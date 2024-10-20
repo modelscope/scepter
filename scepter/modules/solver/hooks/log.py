@@ -124,12 +124,17 @@ class LogHook(Hook):
 
         self.time = time.time()
         self.start_time = time.time()
+        self.all_throughput = 0
         self.data_time = 0
+        self.batch_size = defaultdict(dict)
 
     def before_all_iter(self, solver):
         self.time = time.time()
         self.last_log_step = (solver.mode, 0)
-
+        if hasattr(solver, "datas"):
+            for k, v in solver.datas.items():
+                if hasattr(v, 'batch_size'):
+                    self.batch_size[k] = v.batch_size
     def before_iter(self, solver):
         data_time = time.time() - self.time
         self.data_time = data_time
@@ -141,16 +146,21 @@ class LogHook(Hook):
         outputs = solver.iter_outputs.copy()
         outputs['time'] = iter_time
         outputs['data_time'] = self.data_time
-        if 'batch_size' in outputs:
-            batch_size = outputs.pop('batch_size')
-        else:
-            batch_size = 1
+        if solver.mode in self.batch_size:
+            outputs['throughput'] = int(self.batch_size[solver.mode] * we.world_size / iter_time * 86400)
+        log_agg.update(outputs, 1)
+        log_agg = log_agg.aggregate(self.log_interval)
+        if 'throughput' in log_agg:
+            log_agg['throughput'] = f"{int(log_agg['throughput'][-1])}/day"
+        if solver.mode in self.batch_size:
+            log_agg['all_throughput'] = (solver.iter + 1) * we.world_size * self.batch_size[solver.mode]
+
         if self.show_gpu_mem:
-            outputs['nvidia-smi'] = print_memory_status()
-        log_agg.update(outputs, batch_size)
+            log_agg['nvidia-smi'] = str(print_memory_status()) +"MiB"
+
         if (solver.iter + 1) % self.log_interval == 0:
             _print_iter_log(solver,
-                            log_agg.aggregate(self.log_interval),
+                            log_agg,
                             start_time=self.start_time,
                             mode=solver.mode)
             self.last_log_step = (solver.mode, solver.iter + 1)

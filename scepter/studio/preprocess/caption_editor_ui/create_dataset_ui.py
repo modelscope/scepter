@@ -25,6 +25,11 @@ def wget_file(file_url, save_file):
     if 'oss' in file_url:
         file_url = file_url.split('?')[0]
     local_path, _ = FS.map_to_local(save_file)
+    if os.path.exists(local_path):
+        try:
+            os.remove(local_path)
+        except:
+            pass
     res = os.popen(f"wget -c '{file_url.strip()}' -O '{local_path.strip()}'")
     res.readlines()
     FS.put_object_from_local_file(local_path, save_file)

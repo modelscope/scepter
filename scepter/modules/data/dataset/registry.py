@@ -258,6 +258,8 @@ class DataObject(object):
             if sampler_name == 'MixtureOfSamplers':
                 subsampler_configs = self.data_sampler_config.get(
                     'SUB_SAMPLERS', [])
+                keep_order = self.data_sampler_config.get(
+                    'KEEP_ORDER', False)
                 subsamplers = list()
                 subsampler_probs = list()
                 for ssconfig in subsampler_configs:
@@ -277,7 +279,7 @@ class DataObject(object):
                     subsampler_probs.append(prob)
                 self.batch_sampler = MixtureOfSamplers(subsamplers,
                                                        subsampler_probs, rank,
-                                                       seed)
+                                                       seed, keep_order = keep_order)
             elif sampler_name == 'MultiLevelBatchSampler':
                 self.batch_sampler = self._instantiate_multi_level_batch_sampler(
                     self.data_sampler_config, self.batch_size, rank, seed)

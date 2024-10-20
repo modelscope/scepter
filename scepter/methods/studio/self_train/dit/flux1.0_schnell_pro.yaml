@@ -1,0 +1,342 @@
+ENV:
+  BACKEND: nccl
+META:
+  VERSION: 'FLUX1.0_SCHNELL'
+  DESCRIPTION: "flux 1.0 schnell"
+  IS_DEFAULT: False
+  IS_SHARE: True
+  INFERENCE_PARAS:
+    INFERENCE_BATCH_SIZE: 1
+    INFERENCE_PREFIX: ""
+    DEFAULT_SAMPLER: "flow_euler"
+    DEFAULT_SAMPLE_STEPS: 4
+    INFERENCE_N_PROMPT: ""
+    RESOLUTION: [1024, 1024]
+  PARAS:
+    -
+      TRAIN_BATCH_SIZE: 1
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: [1024, 1024]
+      MEMORY: 89000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 4e-4
+      IS_DEFAULT: False
+      TUNER: FULL
+    -
+      TRAIN_BATCH_SIZE: 1
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: [1024, 1024]
+      MEMORY: 89000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 4e-4
+      IS_DEFAULT: True
+      TUNER: LORA
+  #
+  TUNERS:
+    LORA:
+      -
+        NAME: SwiftLoRA
+        R: 4
+        LORA_ALPHA: 4
+        LORA_DROPOUT: 0.0
+        BIAS: "none"
+        TARGET_MODULES: "(model.double_blocks.*(.qkv|.proj|.img_mod.lin|.txt_mod.lin))|(model.single_blocks.*(.linear1|.linear2|.modulation.lin))$"
+#
+SOLVER:
+  NAME: LatentDiffusionSolver
+  # MAX_STEPS DESCRIPTION: The total steps for training. TYPE: int default: 100000
+  MAX_STEPS: 100000
+  # USE_AMP DESCRIPTION: Use amp to surpport mix precision or not, default is False. TYPE: bool default: False
+  USE_AMP: True
+  # DTYPE DESCRIPTION: The precision for training. TYPE: str default: 'float32'
+  DTYPE: bfloat16
+  # USE_FAIRSCALE DESCRIPTION: Use fairscale as the backend of ddp, default False. TYPE: bool default: False
+  USE_FAIRSCALE: False
+  # USE_FSDP DESCRIPTION: Use fsdp as the backend of ddp, default False. TYPE: bool default: False
+  USE_FSDP: True
+  # LOAD_MODEL_ONLY DESCRIPTION: Only load the model rather than the optimizer and schedule, default is False. TYPE: bool default: False
+  LOAD_MODEL_ONLY: False
+  # RESUME_FROM DESCRIPTION: Resume from some state of training! TYPE: str default: ''
+  RESUME_FROM:
+  WORK_DIR: ./cache/save_data/dit_flux_schnell_1024_lora
+  LOG_FILE: std_log.txt
+  # EVAL_INTERVAL DESCRIPTION: Eval the model interval. TYPE: int default: 1
+  EVAL_INTERVAL: 100
+  # LOG_TRAIN_NUM DESCRIPTION: The number samples used to log in training phase. TYPE: int default: -1
+  LOG_TRAIN_NUM: 16
+  # FSDP_REDUCE_DTYPE DESCRIPTION: The dtype of reduce in FSDP. TYPE: str default: 'float16'
+  FSDP_REDUCE_DTYPE: float32
+  # FSDP_BUFFER_DTYPE DESCRIPTION: The dtype of buffer in FSDP. TYPE: str default: 'float16'
+  FSDP_BUFFER_DTYPE: float32
+  # FSDP_SHARD_MODULES DESCRIPTION: The modules to be sharded in FSDP. TYPE: list default: ['model']
+  FSDP_SHARD_MODULES: [ 'model', 'cond_stage_model.t5_model' ] #
+  SAVE_MODULES: [ 'model'] #
+  TRAIN_MODULES: ['model']
+  #
+  FILE_SYSTEM:
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "./cache/cache_data"
+  #
+  FREEZE:
+  #
+  TUNER:
+  #
+  MODEL:
+    NAME: LatentDiffusionFlux
+    PARAMETERIZATION: rf
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL:
+    IGNORE_KEYS: [ ]
+    DEFAULT_N_PROMPT:
+    USE_EMA: False
+    EVAL_EMA: False
+    DIFFUSION:
+      # NAME DESCRIPTION:  TYPE:  default: 'DiffusionFluxRF'
+      NAME: DiffusionFluxRF
+      PREDICTION_TYPE: raw
+      # NOISE_SCHEDULER DESCRIPTION:  TYPE:  default: ''
+      NOISE_SCHEDULER:
+        # NAME DESCRIPTION:  TYPE:  default: 'FlowMatchSigmaScheduler'
+        NAME: FlowMatchSigmaScheduler
+        # WEIGHTING_SCHEME DESCRIPTION: The weighting scheme for sampling timesteps, choose from ['sigma_sqrt', 'logit_normal', 'mode', 'cosmap', 'none']. TYPE: str default: 'logit_normal'
+        WEIGHTING_SCHEME: logit_normal
+        SHIFT: 3.0
+        # LOGIT_MEAN DESCRIPTION: The mean of the logit distribution for sampling timesteps. TYPE: float default: 0.0
+        LOGIT_MEAN: 0.0
+        # LOGIT_STD DESCRIPTION: The standard deviation of the logit distribution for sampling timesteps. TYPE: float default: 1.0
+        LOGIT_STD: 1.0
+        # MODE_SCALE DESCRIPTION: The scale factor for the mode of the logit distribution for sampling timesteps. TYPE: float default: 1.29
+        MODE_SCALE: 1.29
+      SAMPLER_SCHEDULER:
+        # NAME DESCRIPTION:  TYPE:  default: 'FlowMatchFluxShiftScheduler'
+        NAME: FlowMatchFluxShiftScheduler
+        # SHIFT DESCRIPTION: Use timestamp shift or not, default is True. TYPE: bool default: True
+        SHIFT: False
+        # SIGMOID_SCALE DESCRIPTION: The scale of sigmoid function for sampling timesteps. TYPE: int default: 1
+        SIGMOID_SCALE: 1
+        # BASE_SHIFT DESCRIPTION: The base shift factor for the timestamp. TYPE: float default: 0.5
+        BASE_SHIFT: 0.5
+        # MAX_SHIFT DESCRIPTION: The max shift factor for the timestamp. TYPE: float default: 1.15
+        MAX_SHIFT: 1.15
+        #
+    DIFFUSION_MODEL:
+      # NAME DESCRIPTION:  TYPE:  default: 'Flux'
+      NAME: Flux
+      PRETRAINED_MODEL: ms://AI-ModelScope/FLUX.1-schnell@flux1-schnell.safetensors
+      # IN_CHANNELS DESCRIPTION: model's input channels. TYPE: int default: 64
+      IN_CHANNELS: 64
+      # HIDDEN_SIZE DESCRIPTION: model's hidden size. TYPE: int default: 1024
+      HIDDEN_SIZE: 3072
+      # NUM_HEADS DESCRIPTION: number of heads in the transformer. TYPE: int default: 16
+      NUM_HEADS: 24
+      # AXES_DIM DESCRIPTION: dimensions of the axes of the positional encoding. TYPE: list default: [16, 56, 56]
+      AXES_DIM: [ 16, 56, 56 ]
+      # THETA DESCRIPTION: theta for positional encoding. TYPE: int default: 10000
+      THETA: 10000
+      # VEC_IN_DIM DESCRIPTION: dimension of the vector input. TYPE: int default: 768
+      VEC_IN_DIM: 768
+      # GUIDANCE_EMBED DESCRIPTION: whether to use guidance embedding. TYPE: bool default: False
+      GUIDANCE_EMBED: False
+      # CONTEXT_IN_DIM DESCRIPTION: dimension of the context input. TYPE: int default: 4096
+      CONTEXT_IN_DIM: 4096
+      # MLP_RATIO DESCRIPTION: ratio of mlp hidden size to hidden size. TYPE: float default: 4.0
+      MLP_RATIO: 4.0
+      # QKV_BIAS DESCRIPTION: whether to use bias in qkv projection. TYPE: bool default: True
+      QKV_BIAS: True
+      # DEPTH DESCRIPTION: number of transformer blocks. TYPE: int default: 19
+      DEPTH: 19
+      # DEPTH_SINGLE_BLOCKS DESCRIPTION: number of transformer blocks in the single stream block. TYPE: int default: 38
+      DEPTH_SINGLE_BLOCKS: 38
+      USE_GRAD_CHECKPOINT: True
+
+    #
+    FIRST_STAGE_MODEL:
+      NAME: AutoencoderKLFlux
+      EMBED_DIM: 16
+      PRETRAINED_MODEL: ms://AI-ModelScope/FLUX.1-schnell@ae.safetensors
+      IGNORE_KEYS: [ ]
+      BATCH_SIZE: 8
+      USE_CONV: False
+      SCALE_FACTOR: 0.3611
+      SHIFT_FACTOR: 0.1159
+      #
+      ENCODER:
+        NAME: Encoder
+        USE_CHECKPOINT: True
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 16
+        DOUBLE_Z: True
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+      #
+      DECODER:
+        NAME: Decoder
+        USE_CHECKPOINT: True
+        CH: 128
+        OUT_CH: 3
+        NUM_RES_BLOCKS: 2
+        IN_CHANNELS: 3
+        ATTN_RESOLUTIONS: [ ]
+        CH_MULT: [ 1, 2, 4, 4 ]
+        Z_CHANNELS: 16
+        DROPOUT: 0.0
+        RESAMP_WITH_CONV: True
+        GIVE_PRE_END: False
+        TANH_OUT: False
+    #
+    COND_STAGE_MODEL:
+      # NAME DESCRIPTION:  TYPE:  default: 'T5PlusClipFluxEmbedder'
+      NAME: T5PlusClipFluxEmbedder
+      # T5_MODEL DESCRIPTION:  TYPE:  default: ''
+      T5_MODEL:
+        # NAME DESCRIPTION:  TYPE:  default: 'HFEmbedder'
+        NAME: HFEmbedder
+        # HF_MODEL_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
+        HF_MODEL_CLS: T5EncoderModel
+        # MODEL_PATH DESCRIPTION: model folder path TYPE: NoneType default: None
+        MODEL_PATH: ms://AI-ModelScope/FLUX.1-schnell@text_encoder_2/
+        # HF_TOKENIZER_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
+        HF_TOKENIZER_CLS: T5Tokenizer
+        # TOKENIZER_PATH DESCRIPTION: tokenizer folder path TYPE: NoneType default: None
+        TOKENIZER_PATH: ms://AI-ModelScope/FLUX.1-schnell@tokenizer_2/
+        # MAX_LENGTH DESCRIPTION: max length of input TYPE: int default: 77
+        MAX_LENGTH: 256
+        # OUTPUT_KEY DESCRIPTION: output key TYPE: str default: 'last_hidden_state'
+        OUTPUT_KEY: last_hidden_state
+        # D_TYPE DESCRIPTION: dtype TYPE: str default: 'bfloat16'
+        D_TYPE: bfloat16
+        # BATCH_INFER DESCRIPTION: batch infer TYPE: bool default: False
+        BATCH_INFER: False
+        CLEAN: whitespace
+      # CLIP_MODEL DESCRIPTION:  TYPE:  default: ''
+      CLIP_MODEL:
+        # NAME DESCRIPTION:  TYPE:  default: 'HFEmbedder'
+        NAME: HFEmbedder
+        # HF_MODEL_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
+        HF_MODEL_CLS: CLIPTextModel
+        # MODEL_PATH DESCRIPTION: model folder path TYPE: NoneType default: None
+        MODEL_PATH: ms://AI-ModelScope/FLUX.1-schnell@text_encoder/
+        # HF_TOKENIZER_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
+        HF_TOKENIZER_CLS: CLIPTokenizer
+        # TOKENIZER_PATH DESCRIPTION: tokenizer folder path TYPE: NoneType default: None
+        TOKENIZER_PATH: ms://AI-ModelScope/FLUX.1-schnell@tokenizer/
+        # MAX_LENGTH DESCRIPTION: max length of input TYPE: int default: 77
+        MAX_LENGTH: 77
+        # OUTPUT_KEY DESCRIPTION: output key TYPE: str default: 'last_hidden_state'
+        OUTPUT_KEY: pooler_output
+        # D_TYPE DESCRIPTION: dtype TYPE: str default: 'bfloat16'
+        D_TYPE: bfloat16
+        # BATCH_INFER DESCRIPTION: batch infer TYPE: bool default: False
+        BATCH_INFER: True
+        CLEAN: whitespace
+  #
+  SAMPLE_ARGS:
+    SAMPLE_STEPS: 4
+    SAMPLER: flow_eluer
+    SEED: 2024
+    IMAGE_SIZE: [ 1024, 1024 ]
+    GUIDE_SCALE: 3.5
+  #
+  OPTIMIZER:
+    NAME: AdamW
+    LEARNING_RATE: 4e-4
+    BETAS: [ 0.9, 0.999 ]
+    EPS: 1e-8
+    WEIGHT_DECAY: 1e-2
+    AMSGRAD: False
+  #
+  TRAIN_DATA:
+    NAME: ImageTextPairMSDataset
+    MODE: train
+    MS_DATASET_NAME: style_custom_dataset
+    MS_DATASET_NAMESPACE: damo
+    MS_DATASET_SUBNAME: 3D
+    PROMPT_PREFIX: ""
+    MS_DATASET_SPLIT: train
+    MS_REMAP_KEYS: { 'Image:FILE': 'Target:FILE' }
+    REPLACE_STYLE: False
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    SAMPLER:
+      NAME: LoopSampler
+    TRANSFORMS:
+      - NAME: LoadImageFromFile
+        RGB_ORDER: RGB
+        BACKEND: pillow
+      - NAME: FlexibleResize
+        INTERPOLATION: bilinear
+        SIZE: [ 1024, 1024 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: FlexibleCenterCrop
+        SIZE: [ 1024, 1024 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: ImageToTensor
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'img' ]
+        BACKEND: pillow
+      - NAME: Normalize
+        MEAN: [ 0.5,  0.5,  0.5 ]
+        STD: [ 0.5,  0.5,  0.5 ]
+        INPUT_KEY: [ 'img' ]
+        OUTPUT_KEY: [ 'image' ]
+        BACKEND: torchvision
+      - NAME: Select
+        KEYS: [ 'image', 'prompt' ]
+        META_KEYS: [ 'data_key' ]
+  #
+  EVAL_DATA:
+    NAME: Text2ImageDataset
+    MODE: eval
+    PROMPT_FILE:
+    PROMPT_DATA: [ "a cat holds a blackboard that writes \"hello world\"", "a dog running on the lawn" ]
+    IMAGE_SIZE: [ 1024, 1024 ]
+    FIELDS: [ "prompt" ]
+    DELIMITER: '#;#'
+    PROMPT_PREFIX: ''
+    PIN_MEMORY: True
+    BATCH_SIZE: 2
+    NUM_WORKERS: 4
+    TRANSFORMS:
+      - NAME: Select
+        KEYS: [ 'index', 'prompt' ]
+        META_KEYS: [ 'image_size' ]
+  #
+  TRAIN_HOOKS:
+    - NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+      PRIORITY: 0
+    - NAME: BackwardHook
+#      GRADIENT_CLIP: 1.0
+      PRIORITY: 10
+    - NAME: LogHook
+      LOG_INTERVAL: 10
+    - NAME: CheckpointHook
+      INTERVAL: 10000
+      PRIORITY: 200
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      DISABLE_SNAPSHOT: True
+  EVAL_HOOKS:
+    - NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      SAVE_PROBE_PREFIX: 'image'

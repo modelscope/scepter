@@ -82,6 +82,8 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
                                                overwrite=False)
         self.worker_id = worker_id
         self.logger = self.worker_logger
+        self.local_we["seed"] += (worker_id + we.rank)
+        self.seed = self.local_we["seed"]
         we.set_env(self.local_we)
 
     @abstractmethod

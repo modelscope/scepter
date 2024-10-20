@@ -10,7 +10,7 @@ import torch
 from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.network.train_module import TrainModule
-from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, LOSSES,
+from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, LOSSES, DIFFUSIONS,
                                             MODELS, TOKENIZERS)
 from scepter.modules.model.utils.basic_utils import count_params, default
 from scepter.modules.utils.config import dict_to_yaml
@@ -112,13 +112,18 @@ class LatentDiffusion(TrainModule):
         if self.zero_terminal_snr:
             assert self.parameterization == 'v', 'Now zero_terminal_snr only support v-prediction mode.'
 
-        self.sigmas = noise_schedule(schedule=self.schedule_args.pop('name'),
-                                     n=self.num_timesteps,
-                                     zero_terminal_snr=self.zero_terminal_snr,
-                                     **self.schedule_args)
-
-        self.diffusion = GaussianDiffusion(
-            sigmas=self.sigmas, prediction_type=self.parameterization)
+        diffusion_cfg = self.cfg.get("DIFFUSION", None)
+        if diffusion_cfg is not None:
+            if self.cfg.have("WORK_DIR"):
+                diffusion_cfg.WORK_DIR = self.cfg.WORK_DIR
+            self.diffusion = DIFFUSIONS.build(diffusion_cfg, logger=self.logger)
+        else:
+            self.sigmas = noise_schedule(schedule=self.schedule_args.pop('name'),
+                                         n=self.num_timesteps,
+                                         zero_terminal_snr=self.zero_terminal_snr,
+                                         **self.schedule_args)
+            self.diffusion = GaussianDiffusion(
+                sigmas=self.sigmas, prediction_type=self.parameterization)
 
         self.pretrained_model = self.cfg.get('PRETRAINED_MODEL', None)
         self.ignore_keys = self.cfg.get('IGNORE_KEYS', [])
@@ -131,6 +136,7 @@ class LatentDiffusion(TrainModule):
 
         self.scale_factor = self.cfg.get('SCALE_FACTOR', 0.18215)
         self.size_factor = self.cfg.get('SIZE_FACTOR', 8)
+        self.decoder_bias = self.cfg.get("DECODER_BIAS", 0)
         self.default_n_prompt = self.cfg.get('DEFAULT_N_PROMPT', '')
         self.default_n_prompt = '' if self.default_n_prompt is None else self.default_n_prompt
         self.p_zero = self.cfg.get('P_ZERO', 0.0)
@@ -140,6 +146,7 @@ class LatentDiffusion(TrainModule):
         if self.train_n_prompt is None:
             self.train_n_prompt = ''
         self.use_ema = self.cfg.get('USE_EMA', False)
+        self.eval_ema = self.cfg.get('EVAL_EMA', False)
         self.model_ema_config = self.cfg.get('DIFFUSION_MODEL_EMA', None)
 
     def construct_network(self):
@@ -290,6 +297,7 @@ class LatentDiffusion(TrainModule):
     @torch.no_grad()
     @torch.autocast('cuda', dtype=torch.float16)
     def forward_test(self,
+                     image=None,
                      prompt=None,
                      n_prompt=None,
                      sampler='ddim',

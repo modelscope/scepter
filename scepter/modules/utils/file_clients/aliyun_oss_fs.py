@@ -298,8 +298,7 @@ class AliyunOssFs(BaseFs):
                     try:
                         _ = self._download_object_multi_part(target_path,
                                                              temp_file,
-                                                             chunk_size=50 *
-                                                             1024 * 1024)
+                                                             chunk_size=size // 100)
                         break
                     except Exception as e:
                         retry += 1
@@ -361,7 +360,7 @@ class AliyunOssFs(BaseFs):
 
         def download_one_part(key):
             while not slice_queue.empty():
-                R.acquire()
+                R.acquire(timeout=60)
                 try:
                     if not slice_queue.empty():
                         part_number, chunk = slice_queue.get_nowait()
@@ -383,7 +382,7 @@ class AliyunOssFs(BaseFs):
                             target_path, chunk[0], chunk[1])
                         with open(temp_part_file, 'wb') as f:
                             f.write(data)
-                        R.acquire()
+                        R.acquire(timeout=60)
                         try:
                             ret_slice_queue.put_nowait({
                                 'part_number':
@@ -403,7 +402,7 @@ class AliyunOssFs(BaseFs):
                             'Download part {} for {} error {} retry {} times!'.
                             format(part_number, key, e, retry))
                 if retry >= self._retry_times:
-                    R.acquire()
+                    R.acquire(timeout=60)
                     try:
                         ret_slice_queue.put_nowait({
                             'part_number': part_number,
@@ -539,7 +538,7 @@ class AliyunOssFs(BaseFs):
                     meta_dict[target_path] = etag
                 else:
                     local_path = None
-                R.acquire()
+                R.acquire(timeout=60)
                 try:
                     data_quene.put_nowait([target_path, local_path])
                 except Exception:
@@ -623,7 +622,11 @@ class AliyunOssFs(BaseFs):
             meta_dict = self._get_dir(target_path,
                                       local_path=local_path,
                                       meta_dict=copy.deepcopy(meta_dict))
-        json.dump(meta_dict, open(check_file, 'w'))
+        for _ in range(5):
+            try:
+                json.dump(meta_dict, open(check_file, 'w'))
+            except:
+                time.sleep(1)
         if is_tmp:
             self.add_temp_file(local_path)
         return local_path
@@ -698,7 +701,7 @@ class AliyunOssFs(BaseFs):
 
         def upload_one_part(key, upload_id):
             while not slice_queue.empty():
-                R.acquire()
+                R.acquire(timeout=60)
                 try:
                     if not slice_queue.empty():
                         part_number, offset, num_to_upload = slice_queue.get_nowait(
@@ -721,7 +724,7 @@ class AliyunOssFs(BaseFs):
                     try:
                         result = _bucket.upload_part(key, upload_id,
                                                      part_number, raw_data)
-                        R.acquire()
+                        R.acquire(timeout=60)
                         try:
                             ret_slice_queue.put_nowait({
                                 'part_number': part_number,
@@ -738,7 +741,7 @@ class AliyunOssFs(BaseFs):
                             'Upload part {} for {} error {} retry {} times!'.
                             format(part_number, key, e, retry))
                 if retry >= self._retry_times:
-                    R.acquire()
+                    R.acquire(timeout=60)
                     try:
                         ret_slice_queue.put_nowait({
                             'part_number': part_number,
@@ -965,8 +968,8 @@ class AliyunOssFs(BaseFs):
                                               key,
                                               lifecycle,
                                               slash_safe=slash_safe)
-                _bucket.put_object_acl(key, oss2.OBJECT_ACL_PUBLIC_READ)
                 if set_public:
+                    _bucket.put_object_acl(key, oss2.OBJECT_ACL_PUBLIC_READ)
                     output_url = output_url.replace('%2F', '/').split('?')[0]
                 return output_url
             except Exception as e:
@@ -1060,7 +1063,7 @@ class AliyunOssFs(BaseFs):
                             local_path, target_path)
                     else:
                         flg = False
-                    R.acquire()
+                    R.acquire(timeout=60)
                     try:
                         data_quene.put_nowait([local_path, target_path, flg])
                     except Exception:

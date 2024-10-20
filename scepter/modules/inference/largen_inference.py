@@ -40,7 +40,7 @@ class LargenInference(DiffusionInference):
                     from safetensors.torch import load_file as load_safetensors
                     sd = load_safetensors(local_path)
                 else:
-                    sd = torch.load(local_path, map_location='cpu')
+                    sd = torch.load(local_path, map_location='cpu', weights_only=True)
 
                 if 'model' in sd:
                     sd = sd['model']

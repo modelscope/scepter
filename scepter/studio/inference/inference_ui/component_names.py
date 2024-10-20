@@ -6,7 +6,7 @@ from scepter.modules.utils.file_system import FS
 
 
 def download_image(image):
-    # return None
+    # return " "
     if image is not None:
         client = FS.get_fs_client(image)
         if client.tmp_dir.startswith('/home'):

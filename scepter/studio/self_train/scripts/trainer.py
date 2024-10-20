@@ -319,6 +319,17 @@ class TrainManager():
             self.task_queue.remove(task_name)
         else:
             pass
+
+        status_file = os.path.join(self.work_dir, task_name, 'status.json')
+        with FS.get_from(status_file) as local_status:
+            task_status = json.load(open(local_status, 'r'))
+        task_status['status'] = 'failed'
+        task_status['end_time'] = time.time()
+        task_status['msg'] = 'Task has been killed.'
+        with FS.put_to(status_file) as local_path:
+            json.dump(task_status,
+                      open(local_path, 'w'),
+                      ensure_ascii=False)
         # modify the task's status met
 
     def __del__(self):

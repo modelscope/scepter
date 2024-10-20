@@ -84,14 +84,13 @@ class DiffusionInference():
 
     def redefine_paras(self, cfg):
         if cfg.get('PRETRAINED_MODEL', None):
-            assert FS.isfile(cfg.PRETRAINED_MODEL)
             with FS.get_from(cfg.PRETRAINED_MODEL,
                              wait_finish=True) as local_path:
                 if local_path.endswith('safetensors'):
                     from safetensors.torch import load_file as load_safetensors
                     sd = load_safetensors(local_path)
                 else:
-                    sd = torch.load(local_path, map_location='cpu')
+                    sd = torch.load(local_path, map_location='cpu', weights_only=True)
                 first_stage_model_path = os.path.join(
                     os.path.dirname(local_path), 'first_stage_model.pth')
                 cond_stage_model_path = os.path.join(
@@ -311,7 +310,7 @@ class DiffusionInference():
         module_paras = {}
         if cfg is not None:
             self.paras = cfg.PARAS
-            self.input = {k.lower(): v for k, v in cfg.INPUT.items()}
+            self.input = {k.lower(): dict(v).get('DEFAULT', None) if isinstance(v, (dict, OrderedDict)) else v for k, v in cfg.INPUT.items()}
             self.output = {k.lower(): v for k, v in cfg.OUTPUT.items()}
             module_paras = cfg.MODULES_PARAS
         return module_paras

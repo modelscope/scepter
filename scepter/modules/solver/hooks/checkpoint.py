@@ -13,7 +13,6 @@ from scepter.modules.solver.hooks.registry import HOOKS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
-from swift import push_to_hub
 
 _DEFAULT_CHECKPOINT_PRIORITY = 300
 
@@ -109,35 +108,42 @@ class CheckpointHook(Hook):
                 or solver.total_iter == solver.max_steps - 1):
             solver.logger.info(
                 f'Saving checkpoint after {solver.total_iter + 1} steps')
-            if we.rank == 0:
-                save_path = osp.join(
-                    solver.work_dir,
-                    'checkpoints/{}-{}.pth'.format(self.save_name_prefix,
-                                                   solver.total_iter + 1))
-                if not self.disable_save_snapshot:
+            save_path = osp.join(
+                solver.work_dir,
+                'checkpoints/{}-{}.pth'.format(self.save_name_prefix,
+                                               solver.total_iter + 1))
+            if not self.disable_save_snapshot:
+                checkpoint = solver.save_checkpoint()
+                if we.rank == 0:
                     with FS.put_to(save_path) as local_path:
                         with open(local_path, 'wb') as f:
-                            checkpoint = solver.save_checkpoint()
                             torch.save(checkpoint, f)
+                del checkpoint
 
-                from swift import SwiftModel
-                if isinstance(solver.model, SwiftModel):
-                    save_path = osp.join(
-                        solver.work_dir,
-                        'checkpoints/{}-{}'.format(self.save_name_prefix,
-                                                   solver.total_iter + 1))
+            from swift import SwiftModel
+            if isinstance(solver.model, SwiftModel) or (
+                    hasattr(solver.model, 'module')
+                    and isinstance(solver.model.module, SwiftModel)):
+                save_path = osp.join(
+                    solver.work_dir,
+                    'checkpoints/{}-{}'.format(self.save_name_prefix,
+                                               solver.total_iter + 1))
+                if we.rank == 0:
                     local_folder, _ = FS.map_to_local(save_path)
-                    solver.model.save_pretrained(local_folder)
+                    if hasattr(solver.model, 'module'):
+                        solver.model.module.save_pretrained(local_folder)
+                    else:
+                        solver.model.save_pretrained(local_folder)
                     FS.put_dir_from_local_dir(local_folder, save_path)
-                else:
-                    if hasattr(solver, 'save_pretrained'):
-                        save_path = osp.join(
-                            solver.work_dir,
-                            'checkpoints/{}-{}'.format(self.save_name_prefix,
-                                                       solver.total_iter + 1))
-                        local_folder, _ = FS.map_to_local(save_path)
-                        FS.make_dir(local_folder)
-                        ckpt, cfg = solver.save_pretrained()
+            else:
+                if hasattr(solver, 'save_pretrained'):
+                    save_path = osp.join(
+                        solver.work_dir, 'checkpoints/{}-{}'.format(
+                            self.save_name_prefix, solver.total_iter + 1))
+                    local_folder, _ = FS.map_to_local(save_path)
+                    FS.make_dir(local_folder)
+                    ckpt, cfg = solver.save_pretrained()
+                    if we.rank == 0:
                         with FS.put_to(
                                 os.path.join(
                                     local_folder,
@@ -150,6 +156,7 @@ class CheckpointHook(Hook):
                                     'configuration.json')) as local_path:
                             json.dump(cfg, open(local_path, 'w'))
                         FS.put_dir_from_local_dir(local_folder, save_path)
+                    del ckpt
 
                 if self.save_last and solver.total_iter == solver.max_steps - 1:
                     with FS.get_fs_client(save_path) as client:
@@ -219,8 +226,10 @@ class CheckpointHook(Hook):
                     with open(local_file, 'wb') as f:
                         torch.save(checkpoint['pre_state_dict'], f)
                     client.put_object_from_local_file(local_file, save_path)
+            del checkpoint
 
     def after_all_iter(self, solver):
+        from swift import push_to_hub
         if we.rank == 0:
             if self.push_to_hub and self.last_ckpt:
                 with FS.get_dir_to_local_dir(self.last_ckpt) as local_dir:

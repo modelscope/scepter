@@ -1,0 +1,419 @@
+NAME: SD_XL1.0
+IS_DEFAULT: True
+DEFAULT_PARAS:
+  PARAS:
+    RESOLUTIONS: [[1024, 1024]]
+  INPUT:
+    IMAGE:
+    ORIGINAL_SIZE_AS_TUPLE: [1024, 1024]
+    TARGET_SIZE_AS_TUPLE: [1024, 1024]
+    AESTHETIC_SCORE: 6.0
+    NEGATIVE_AESTHETIC_SCORE: 2.5
+    PROMPT: ""
+    NEGATIVE_PROMPT: ""
+    PROMPT_PREFIX: ""
+    CROP_COORDS_TOP_LEFT: [0, 0]
+    SAMPLE: ddim
+    SAMPLE_STEPS: 50
+    GUIDE_SCALE: 7.5
+    GUIDE_RESCALE: 0.5
+    DISCRETIZATION: trailing
+    REFINE_SAMPLE: ddim
+    REFINE_GUIDE_SCALE: 7.5
+    REFINE_GUIDE_RESCALE: 0.5
+    REFINE_DISCRETIZATION: trailing
+  OUTPUT:
+    LATENT:
+    BEFORE_REFINE_IMAGES:
+    IMAGES:
+    SEED:
+  MODULES_PARAS:
+    FIRST_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: float32
+          INPUT: ["IMAGE"]
+        -
+          NAME: decode
+          DTYPE: float32
+          INPUT: ["LATENT"]
+      PARAS:
+        # SCALE_FACTOR DESCRIPTION: The vae embeding scale. TYPE: float default: 0.18215
+        SCALE_FACTOR: 0.13025
+        SIZE_FACTOR: 8
+    DIFFUSION_MODEL:
+      FUNCTION:
+        -
+          NAME: forward
+          DTYPE: float16
+          INPUT: ["SAMPLE_STEPS", "SAMPLE", "GUIDE_SCALE", "GUIDE_RESCALE", "DISCRETIZATION"]
+    COND_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: float16
+          INPUT: ["ORIGINAL_SIZE_AS_TUPLE", "CROP_COORDS_TOP_LEFT", "PROMPT", "NEGATIVE_PROMPT"]
+    REFINER_MODEL:
+      FUNCTION:
+        -
+          NAME: forward
+          DTYPE: float16
+          INPUT: ["SAMPLE_STEPS", "REFINE_SAMPLE", "REFINE_GUIDE_SCALE", "REFINE_GUIDE_RESCALE", "REFINE_DISCRETIZATION"]
+    REFINER_COND_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: float16
+          INPUT: ["ORIGINAL_SIZE_AS_TUPLE", "AESTHETIC_SCORE", "NEGATIVE_AESTHETIC_SCORE", "CROP_COORDS_TOP_LEFT", "PROMPT", "NEGATIVE_PROMPT"]
+#
+MODEL:
+  PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-xl-base-1.0@sd_xl_base_1.0.safetensors
+  SCHEDULE:
+    PARAMETERIZATION: "eps"
+    TIMESTEPS: 1000
+    ZERO_TERMINAL_SNR: False
+    SCHEDULE_ARGS:
+      NAME: "scaled_linear"
+      BETA_MIN: 0.00085
+      BETA_MAX: 0.0120
+  DIFFUSION_MODEL:
+    NAME: DiffusionUNetXL
+    PRETRAINED_MODEL:
+    IN_CHANNELS: 4
+    OUT_CHANNELS: 4
+    NUM_RES_BLOCKS: 2
+    MODEL_CHANNELS: 320
+    ATTENTION_RESOLUTIONS: [4, 2]
+    DROPOUT: 0
+    CHANNEL_MULT: [1, 2, 4]
+    CONV_RESAMPLE: True
+    DIMS: 2
+    NUM_CLASSES: sequential
+    USE_CHECKPOINT: False
+    NUM_HEADS: -1
+    NUM_HEADS_CHANNELS: 64
+    USE_SCALE_SHIFT_NORM: False
+    RESBLOCK_UPDOWN: False
+    USE_NEW_ATTENTION_ORDER: True
+    USE_SPATIAL_TRANSFORMER: True
+    TRANSFORMER_DEPTH: [1, 2, 10]
+    CONTEXT_DIM: 2048
+    DISABLE_MIDDLE_SELF_ATTN: False
+    USE_LINEAR_IN_TRANSFORMER: True
+    ADM_IN_CHANNELS: 2816
+    USE_SENTENCE_EMB: False
+    USE_WORD_MAPPING: False
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    EMBED_DIM: 4
+    IGNORE_KEYS: [ ]
+    BATCH_SIZE: 1
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: GeneralConditioner
+    USE_GRAD: False
+    EMBEDDERS:
+      -
+        NAME: FrozenCLIPEmbedder
+        PRETRAINED_MODEL: ms://AI-ModelScope/clip-vit-large-patch14
+        TOKENIZER_PATH: ms://AI-ModelScope/clip-vit-large-patch14
+        MAX_LENGTH: 77
+        FREEZE: True
+        LAYER: hidden
+        LAYER_IDX: 11
+        USE_FINAL_LAYER_NORM: False
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["prompt"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: FrozenOpenCLIPEmbedder2
+        ARCH: ViT-bigG-14
+        MAX_LENGTH: 77
+        FREEZE: True
+        ALWAYS_RETURN_POOLED: True
+        LEGACY: False
+        LAYER: penultimate
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["prompt"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["original_size_as_tuple"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["crop_coords_top_left"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["target_size_as_tuple"]
+        LEGACY_UCG_VALUE:
+#
+MODEL_LOCAL:
+  PRETRAINED_MODEL: models/scepter/stable-diffusion-xl-base-1.0/sd_xl_base_1.0.safetensors
+  SCHEDULE:
+    PARAMETERIZATION: "eps"
+    TIMESTEPS: 1000
+    ZERO_TERMINAL_SNR: False
+    SCHEDULE_ARGS:
+      NAME: "scaled_linear"
+      BETA_MIN: 0.00085
+      BETA_MAX: 0.0120
+  DIFFUSION_MODEL:
+    NAME: DiffusionUNetXL
+    PRETRAINED_MODEL:
+    IN_CHANNELS: 4
+    OUT_CHANNELS: 4
+    NUM_RES_BLOCKS: 2
+    MODEL_CHANNELS: 320
+    ATTENTION_RESOLUTIONS: [4, 2]
+    DROPOUT: 0
+    CHANNEL_MULT: [1, 2, 4]
+    CONV_RESAMPLE: True
+    DIMS: 2
+    NUM_CLASSES: sequential
+    USE_CHECKPOINT: False
+    NUM_HEADS: -1
+    NUM_HEADS_CHANNELS: 64
+    USE_SCALE_SHIFT_NORM: False
+    RESBLOCK_UPDOWN: False
+    USE_NEW_ATTENTION_ORDER: True
+    USE_SPATIAL_TRANSFORMER: True
+    TRANSFORMER_DEPTH: [1, 2, 10]
+    CONTEXT_DIM: 2048
+    DISABLE_MIDDLE_SELF_ATTN: False
+    USE_LINEAR_IN_TRANSFORMER: True
+    ADM_IN_CHANNELS: 2816
+    USE_SENTENCE_EMB: False
+    USE_WORD_MAPPING: False
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    EMBED_DIM: 4
+    IGNORE_KEYS: [ ]
+    BATCH_SIZE: 1
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: GeneralConditioner
+    USE_GRAD: False
+    EMBEDDERS:
+      -
+        NAME: FrozenCLIPEmbedder
+        PRETRAINED_MODEL: models/scepter/clip-vit-large-patch14
+        TOKENIZER_PATH: models/scepter/clip-vit-large-patch14
+        MAX_LENGTH: 77
+        FREEZE: True
+        LAYER: hidden
+        LAYER_IDX: 11
+        USE_FINAL_LAYER_NORM: False
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["prompt"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: FrozenOpenCLIPEmbedder2
+        ARCH: ViT-bigG-14
+        MAX_LENGTH: 77
+        FREEZE: True
+        ALWAYS_RETURN_POOLED: True
+        LEGACY: False
+        LAYER: penultimate
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["prompt"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["original_size_as_tuple"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["crop_coords_top_left"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["target_size_as_tuple"]
+        LEGACY_UCG_VALUE:
+#
+MODEL_HF:
+  PRETRAINED_MODEL: hf://stabilityai/stable-diffusion-xl-base-1.0@sd_xl_base_1.0.safetensors
+  SCHEDULE:
+    PARAMETERIZATION: "eps"
+    TIMESTEPS: 1000
+    ZERO_TERMINAL_SNR: False
+    SCHEDULE_ARGS:
+      NAME: "scaled_linear"
+      BETA_MIN: 0.00085
+      BETA_MAX: 0.0120
+  DIFFUSION_MODEL:
+    NAME: DiffusionUNetXL
+    PRETRAINED_MODEL:
+    IN_CHANNELS: 4
+    OUT_CHANNELS: 4
+    NUM_RES_BLOCKS: 2
+    MODEL_CHANNELS: 320
+    ATTENTION_RESOLUTIONS: [4, 2]
+    DROPOUT: 0
+    CHANNEL_MULT: [1, 2, 4]
+    CONV_RESAMPLE: True
+    DIMS: 2
+    NUM_CLASSES: sequential
+    USE_CHECKPOINT: False
+    NUM_HEADS: -1
+    NUM_HEADS_CHANNELS: 64
+    USE_SCALE_SHIFT_NORM: False
+    RESBLOCK_UPDOWN: False
+    USE_NEW_ATTENTION_ORDER: True
+    USE_SPATIAL_TRANSFORMER: True
+    TRANSFORMER_DEPTH: [1, 2, 10]
+    CONTEXT_DIM: 2048
+    DISABLE_MIDDLE_SELF_ATTN: False
+    USE_LINEAR_IN_TRANSFORMER: True
+    ADM_IN_CHANNELS: 2816
+    USE_SENTENCE_EMB: False
+    USE_WORD_MAPPING: False
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    EMBED_DIM: 4
+    IGNORE_KEYS: [ ]
+    BATCH_SIZE: 1
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: GeneralConditioner
+    USE_GRAD: False
+    EMBEDDERS:
+      -
+        NAME: FrozenCLIPEmbedder
+        PRETRAINED_MODEL: hf://openai/clip-vit-large-patch14
+        TOKENIZER_PATH: hf://openai/clip-vit-large-patch14
+        MAX_LENGTH: 77
+        FREEZE: True
+        LAYER: hidden
+        LAYER_IDX: 11
+        USE_FINAL_LAYER_NORM: False
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["prompt"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: FrozenOpenCLIPEmbedder2
+        ARCH: ViT-bigG-14
+        MAX_LENGTH: 77
+        FREEZE: True
+        ALWAYS_RETURN_POOLED: True
+        LEGACY: False
+        LAYER: penultimate
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["prompt"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["original_size_as_tuple"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["crop_coords_top_left"]
+        LEGACY_UCG_VALUE:
+      -
+        NAME: ConcatTimestepEmbedderND
+        OUT_DIM: 256
+        UCG_RATE: 0.0
+        INPUT_KEYS: ["target_size_as_tuple"]
+        LEGACY_UCG_VALUE:

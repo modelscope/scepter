@@ -1,0 +1,127 @@
+FILE_SYSTEMS:
+  -
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "models/scepter"
+    ENABLE_MD5_PATH: False
+  -
+    NAME: "HttpFs"
+    TEMP_DIR: "models/scepter"
+    ENABLE_MD5_PATH: False
+  -
+    NAME: "HuggingfaceFs"
+    TEMP_DIR: "models/scepter"
+    ENABLE_MD5_PATH: False
+  -
+    NAME: "LocalFs"
+    TEMP_DIR: "models/scepter"
+    ENABLE_MD5_PATH: False
+
+BASE_MODELS:
+    -
+      NAME: SD_XL1.0
+      DIFFUSION_MODEL: SD_XL1.0_DiffusionUNetXL
+      FIRST_STAGE_MODEL: SD_XL1.0_AutoencoderKL
+      COND_STAGE_MODEL: SD_XL1.0_GeneralConditioner
+      CONFIG: config/sdxl1.0_pro.yaml
+    -
+      NAME: SD1.5
+      DIFFUSION_MODEL: SD1.5_DiffusionUNet
+      FIRST_STAGE_MODEL: SD1.5_AutoencoderKL
+      COND_STAGE_MODEL: SD1.5_FrozenCLIPEmbedder
+      CONFIG: config/sd15_pro.yaml
+    -
+      NAME: PIXART
+      DIFFUSION_MODEL: PIXART_ALPHA_PixArt
+      FIRST_STAGE_MODEL: PIXART_ALPHA_AutoencoderKL
+      COND_STAGE_MODEL: PIXART_ALPHA_T5EmbedderHF
+      CONFIG: config/pixart_aplha_pro.yaml
+    -
+      NAME: SD3
+      DIFFUSION_MODEL: SD3_MMDiT
+      FIRST_STAGE_MODEL: SD3_AutoencoderKL
+      COND_STAGE_MODEL: SD3_SD3TextEmbedder
+      CONFIG: config/sd3_pro.yaml
+    -
+      NAME: FLUX1.0_DEV
+      DIFFUSION_MODEL: FLUX1.0_DEV_Flux
+      FIRST_STAGE_MODEL: FLUX1.0_DEV_AutoencoderKLFlux
+      COND_STAGE_MODEL: FLUX1.0_DEV_T5PlusClipFluxEmbedder
+      CONFIG: config/flux1.0_dev_pro.yaml
+    -
+      NAME: FLUX1.0_SCHNELL
+      DIFFUSION_MODEL: FLUX1.0_SCHNELL_Flux
+      FIRST_STAGE_MODEL: FLUX1.0_SCHNELL_AutoencoderKLFlux
+      COND_STAGE_MODEL: FLUX1.0_SCHNELL_T5PlusClipFluxEmbedder
+      CONFIG: config/flux1.0_schnell_pro.yaml
+
+MODEL_SOURCE:
+  - "ModelScope"
+  - "HuggingFace"
+  - "Local"
+
+BASE_PARAMETERS:
+    SAMPLER:
+      - "ddim"
+      - "euler"
+      - "euler_ancestral"
+      - "henu"
+      - "dpm2"
+      - "dpm2_ancestral"
+      - "dpmpp_2m"
+      - "dpmpp_sde"
+      - "dpmpp_2m_sde"
+      - "dpmpp_2s_ancestral"
+      - "dpm2_karras"
+      - "dpm2_ancestral_karras"
+      - "dpmpp_2s_ancestral_karras"
+      - "dpmpp_2m_karras"
+      - "dpmpp_sde_karras"
+      - "dpmpp_2m_sde_karras"
+      - "flow_eluer"
+
+    DISCRETIZATION:
+      - "trailing"
+      - "leading"
+      - "linspace"
+
+    OUTPUT_HEIGHT:
+      - 1024
+      - 512
+      - 704
+      - 720
+      - 768
+      - 832
+      - 896
+      - 960
+      - 1088
+      - 1152
+      - 1216
+      - 1280
+      - 1344
+      - 1408
+      - 1472
+      - 1536
+      - 1600
+      - 1664
+      - 1728
+
+    OUTPUT_WIDTH:
+      - 1024
+      - 512
+      - 704
+      - 720
+      - 768
+      - 832
+      - 896
+      - 960
+      - 1088
+      - 1152
+      - 1216
+      - 1280
+      - 1344
+      - 1408
+      - 1472
+      - 1536
+      - 1600
+      - 1664
+      - 1728

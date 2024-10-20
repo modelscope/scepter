@@ -1,0 +1,1921 @@
+MANTRAS:
+  -
+    NAME: cinematic-diva
+    NAME_ZH: 电影歌星画风
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: UHD, 8K, ultra detailed, a cinematic photograph of {prompt}, beautiful lighting, great composition
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, NSFW
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/967b1852ea26dcf41360fc5542a0df6b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Abstract Expressionism
+    NAME_ZH: 抽象表现主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Abstract Expressionism Art, {prompt}, High contrast, minimalistic, colorful, stark, dramatic, expressionism
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/11667c7a085b53a6ffbb76b83788f8b5.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Academia
+    NAME_ZH: 学院风
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Academia, {prompt}, preppy Ivy League style, stark, dramatic, chic boarding school, academia
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, grunge, sloppy, unkempt
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/c95197ef78312e2bbd45883bfbfa095a.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Action Figure
+    NAME_ZH: 动作人偶
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Action Figure, {prompt}, plastic collectable action figure, collectable toy action figure
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/24ac67fe21833fc1300fba09d5de6090.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Adorable 3D Character
+    NAME_ZH: 可爱的3D角色
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Adorable 3D Character, {prompt}, 3D render, adorable character, 3D art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, grunge, sloppy, unkempt, photograph, photo, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/31a0ffbfc93b5b336a3bedc0a9985a02.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Adorable Kawaii
+    NAME_ZH: 可爱卡哇伊风格
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Adorable Kawaii, {prompt}, pretty, cute, adorable, kawaii
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, gothic, dark, moody, monochromatic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/82624c429d504c8290d4c9147be64029.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Art Deco
+    NAME_ZH: 艺术装饰风格
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Art Deco, {prompt}, sleek, geometric forms, art deco style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/c60ef3e7ada8774c92bb6e73c570f819.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Art Nouveau
+    NAME_ZH: 新艺术风格
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Art Nouveau, beautiful art, {prompt}, sleek, organic forms, long, sinuous, art nouveau style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, industrial, mechanical
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/153d83e71fbf145d0aa5c41ecab0a505.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Astral Aura
+    NAME_ZH: 星体光环
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Astral Aura, {prompt}, astral, colorful aura, vibrant energy
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/e093c9d0f81037002e88f2a6c3f38a55.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Avant-garde
+    NAME_ZH: 先锋派
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Avant-garde, {prompt}, unusual, experimental, avant-garde art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9921d1944893466edfc6a060faf4070e.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Baroque
+    NAME_ZH: 巴洛克风格
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Baroque, {prompt}, dramatic, exuberant, grandeur, baroque art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d8279be4bb34e5cb00a95919412154a4.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Bauhaus-Style Poster
+    NAME_ZH: 包豪斯风格海报
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Bauhaus-Style Poster, {prompt}, simple geometric shapes, clean lines, primary colors, Bauhaus-Style Poster
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/4bd18b32c23e13b9e4fc7f65a1916eab.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Blueprint Schematic Drawing
+    NAME_ZH: 蓝图原理图绘制
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Blueprint Schematic Drawing, {prompt}, technical drawing, blueprint, schematic
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/62392c3715267f7162a37a8ff1caa3a1.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Caricature
+    NAME_ZH: 漫画
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Caricature, {prompt}, exaggerated, comical, caricature
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/894f40ed44b37c3372e6a22b8ae577a4.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Cel Shaded Art
+    NAME_ZH: 单色阴影艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Cel Shaded Art, {prompt}, 2D, flat color, toon shading, cel shaded style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/71c2e8a2cd1031b2bfae1640f7b72c88.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Character Design Sheet
+    NAME_ZH: 角色设计图
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Character Design Sheet, {prompt}, character reference sheet, character turn around
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/eacf2134aa51d4b4a6f2f35cc170f315.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Classicism Art
+    NAME_ZH: 古典主义艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Classicism Art, {prompt}, inspired by Roman and Greek culture, clarity, harmonious, classicism art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/10025b4f3a09e6134086e3cdec4ef2c8.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Color Field Painting
+    NAME_ZH: 色域绘画
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Color Field Painting, {prompt}, abstract, simple, geometic, color field painting style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/80e5b4075c572c04cbb4e48c37b8366b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Colored Pencil Art
+    NAME_ZH: 彩色铅笔艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Colored Pencil Art, {prompt}, colored pencil strokes, light color, visible paper texture, colored pencil art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9ae235d7f1a7c2a4edab52a5e9f9cbae.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Conceptual Art
+    NAME_ZH: 概念艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Conceptual Art, {prompt}, concept art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/cf2e6781997c6842a16155fdff911ef8.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Constructivism
+    NAME_ZH: 结构主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Constructivism Art, {prompt}, minimalistic, geometric forms, constructivism art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d07feccabcadfd3310464bedba858bd1.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Cubism
+    NAME_ZH: 立体主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Cubism Art, {prompt}, flat geometric forms, cubism art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/aa8313f6c3cb9cafb9a7ec07db78df1c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dadaism
+    NAME_ZH: 达达主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Dadaism Art, {prompt}, satirical, nonsensical, dadaism art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/db27030369cb3ccb042b8aea6bf635e2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dark Fantasy
+    NAME_ZH: 黑暗幻想
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Dark Fantasy Art, {prompt}, dark, moody, dark fantasy style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, bright, sunny
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/c88b6e641c707afc0c8d278ba7e1ac19.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dark Moody Atmosphere
+    NAME_ZH: 暗色忧郁氛围
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Dark Moody Atmosphere, {prompt}, dramatic, mysterious, dark moody atmosphere
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, vibrant, colorful, bright
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/3da915da2f5cedaf243e57e08163f35b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: DMT Art Style
+    NAME_ZH: DMT艺术风格
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: DMT Art Style, {prompt}, bright colors, surreal visuals, swirling patterns, DMT art style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d4a823d2bfa912ca4bb56d96f722f08f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Doodle Art
+    NAME_ZH: 涂鸦艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Doodle Art Style, {prompt}, drawing, freeform, swirling patterns, doodle art style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8e1e21745c149b9634d3ce96fc7d505f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Double Exposure
+    NAME_ZH: 双重曝光
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Double Exposure Style, {prompt}, double image ghost effect, image combination, double exposure style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/efd7aea4af1c4ede99fdfac17350e264.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Dripping Paint Splatter Art
+    NAME_ZH: 滴漆溅画艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Dripping Paint Splatter Art, {prompt}, dramatic, paint drips, splatters, dripping paint
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/69fd81f5983107acc3d334af62915851.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Expressionism
+    NAME_ZH: 表现主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Expressionism Art Style, {prompt}, movement, contrast, emotional, exaggerated forms, expressionism art style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/3dfa862bd1c80cec237e4a5717cea2bd.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Faded Polaroid Photo
+    NAME_ZH: 褪色的宝丽来照片
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Faded Polaroid Photo, {prompt}, analog, old faded photo, old polaroid
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, vibrant, colorful
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/f152edb4b3ca6248758b48115258ddfa.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Fauvism
+    NAME_ZH: 野兽派
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Fauvism Art, {prompt}, painterly, bold colors, textured brushwork, fauvism art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0506b350cadcf8fca42da764cd6fd5bf.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Flat 2D Art
+    NAME_ZH: 扁平2D艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Flat 2D Art, {prompt}, simple flat color, 2-dimensional, Flat 2D Art Style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, 3D, photo, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/940cfd34155634cf051e1b2942cca426.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Fortnite Art Style
+    NAME_ZH: 堡垒之夜艺术风格
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Fortnite Art Style, {prompt}, 3D cartoon, colorful, Fortnite Art Style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, photo, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/156f8d943ff6d283f7a34f265daaa46c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Futurism
+    NAME_ZH: 未来主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Futurism Art Style, {prompt}, dynamic, dramatic, Futurism Art Style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/855283cc2ab6283b627ef32d06a1ae0f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Glitchcore
+    NAME_ZH: 故障核心
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Glitchcore Art Style, {prompt}, dynamic, dramatic, distorted, vibrant colors, glitchcore art style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9af62376402a85774179e82cf7e0dc59.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Glo-fi
+    NAME_ZH: 光环音乐风格
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Glo-fi Art Style, {prompt}, dynamic, dramatic, vibrant colors, glo-fi art style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/275a6e2a3297cec57f9b5a4a17b0f749.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Googie Art Style
+    NAME_ZH: 古奇艺术风格
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Googie Art Style, {prompt}, dynamic, dramatic, 1950's futurism, bold boomerang angles, Googie art style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/08ee77586d7bec3f6bad7d60cee3c540.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Graffiti Art
+    NAME_ZH: 涂鸦艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Graffiti Art Style, {prompt}, dynamic, dramatic, vibrant colors, graffiti art style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/57b751b11564cb22cd49ef21f2004a5f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Harlem Renaissance Art
+    NAME_ZH: 哈莱姆文艺复兴艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Harlem Renaissance Art Style, {prompt}, dynamic, dramatic, 1920s African American culture, Harlem Renaissance art style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d09ea3dadcd0a15d8fa247ee74a75e6b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: High Fashion
+    NAME_ZH: 高级时装
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: High Fashion, {prompt}, dynamic, dramatic, haute couture, elegant, ornate clothing, High Fashion
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/868f752bbb5ef992a0be36d7d13de3be.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Idyllic
+    NAME_ZH: 田园诗般的
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Idyllic, {prompt}, peaceful, happy, pleasant, happy, harmonious, picturesque, charming
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/55bab29eeb628e7a9ae018e45e7e24db.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Impressionism
+    NAME_ZH: 印象主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Impressionism, {prompt}, painterly, small brushstrokes, visible brushstrokes, impressionistic style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0312b673dc6858a9864d7f45f0c5c1fc.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Infographic Drawing
+    NAME_ZH: 信息图表绘制
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Infographic Drawing, {prompt}, diagram, infographic
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/b09151f6e0883d26056b80fcc9d398bb.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Ink Dripping Drawing
+    NAME_ZH: 墨水滴画
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Ink Dripping Drawing, {prompt}, ink drawing, dripping ink
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, colorful, vibrant
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/5f09912a07e915250a96b2023db15821.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Japanese Ink Drawing
+    NAME_ZH: 日本墨画
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Japanese Ink Drawing, {prompt}, ink drawing, inkwash, Japanese Ink Drawing
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, colorful, vibrant
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/633ad971ff30fe4717782fc6b5f92fda.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Knolling Photography
+    NAME_ZH: 秩序拍摄
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Knolling Photography, {prompt}, flat lay photography, object arrangment, knolling photography
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/89a205be3a276349ecddf0eeca43ed80.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Light Cheery Atmosphere
+    NAME_ZH: 轻快愉快的氛围
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Light Cheery Atmosphere, {prompt}, happy, joyful, cheerful, carefree, gleeful, lighthearted, pleasant atmosphere
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, monochromatic, dark, moody
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0913ac9815f892411f8327a630f51ae4.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Logo Design
+    NAME_ZH: 标志设计
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Logo Design, {prompt}, dynamic graphic art, vector art, minimalist, professional logo design
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9aa040b0c60d289da9610c91ad9b7c7e.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Luxurious Elegance
+    NAME_ZH: 奢华优雅
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Luxurious Elegance, {prompt}, extravagant, ornate, designer, opulent, picturesque, lavish
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/e796e84ed745150f0d4e28e0ac99b4cf.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Macro Photography
+    NAME_ZH: 微距摄影
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Macro Photography, {prompt}, close-up, macro 100mm, macro photography
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/92e8b84379828f38e3d01c7272f41b0b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Mandola Art
+    NAME_ZH: 曼陀罗艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Mandola art style, {prompt}, complex, circular design, mandola
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/dbf5ca944d9213c3181348666cf337ac.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Marker Drawing
+    NAME_ZH: 马克笔绘图
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Marker Drawing, {prompt}, bold marker lines, visibile paper texture, marker drawing
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, photograph, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/c558745f7a4b77d7ca9a428d8874efe4.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Medievalism
+    NAME_ZH: 中世纪主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Medievalism, {prompt}, inspired by The Middle Ages, medieval art, elaborate patterns and decoration, Medievalism
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/26aa6244359a4fd87f6438a341057901.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Minimalism
+    NAME_ZH: 极简主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Minimalism, {prompt}, abstract, simple geometic shapes, hard edges, sleek contours, Minimalism
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/dce92a90da6299339cf8e9ebc6596ea2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Neo-Baroque
+    NAME_ZH: 新巴洛克
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Neo-Baroque, {prompt}, ornate and elaborate, dynaimc, Neo-Baroque
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9b6cd8751b18c65b259769b44cfac351.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Neo-Byzantine
+    NAME_ZH: 新拜占庭
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Neo-Byzantine, {prompt}, grand decorative religious style, Orthodox Christian inspired, Neo-Byzantine
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/99c67768869b546bf527ef0b1735c0d5.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Neo-Futurism
+    NAME_ZH: 新未来主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Neo-Futurism, {prompt}, high-tech, curves, spirals, flowing lines, idealistic future, Neo-Futurism
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/bada1534f7a60187f584febcc92f40d1.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Neo-Impressionism
+    NAME_ZH: 新印象主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Neo-Impressionism, {prompt}, tiny dabs of color, Pointillism, painterly, Neo-Impressionism
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, photograph, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/6bafeac67ce2679b64a86ee1023b53c9.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Neo-Rococo
+    NAME_ZH: 新洛可可
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Neo-Rococo, {prompt}, curved forms, naturalistic ornamentation, elaborate, decorative, gaudy, Neo-Rococo
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9ab0ad2b88e03933ea479357ff1e4435.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Neoclassicism
+    NAME_ZH: 新古典主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Neoclassicism, {prompt}, ancient Rome and Greece inspired, idealic, sober colors, Neoclassicism
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/83a4e3a2ca577400b05a81b5b2b8650e.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Op Art
+    NAME_ZH: 视觉艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Op Art, {prompt}, optical illusion, abstract, geometric pattern, impression of movement, Op Art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/5f11132803dff2de5213293b91d407d7.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Ornate and Intricate
+    NAME_ZH: 华丽复杂
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Ornate and Intricate, {prompt}, decorative, highly detailed, elaborate, ornate, intricate
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/24b895dca946c8765ad9fa38f720f671.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Pencil Sketch Drawing
+    NAME_ZH: 铅笔素描
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Pencil Sketch Drawing, {prompt}, black and white drawing, graphite drawing
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a9056e1eac85e5e4fe96a93917d4cce4.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Pop Art 2
+    NAME_ZH: 流行艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Pop Art, {prompt}, vivid colors, flat color, 2D, strong lines, Pop Art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, photo, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/83c4c06c70a48da6558ff970ece247b6.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Rococo
+    NAME_ZH: 洛可可
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Rococo, {prompt}, flamboyant, pastel colors, curved lines, elaborate detail, Rococo
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/4850170f410e10bc833b7d00324dff18.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Silhouette Art
+    NAME_ZH: 剪影艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Silhouette Art, {prompt}, high contrast, well defined, Silhouette Art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/568777f447fc02510b618152726d5002.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Simple Vector Art
+    NAME_ZH: 简单矢量艺术
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Simple Vector Art, {prompt}, 2D flat, simple shapes, minimalistic, professional graphic, flat color, high contrast, Simple Vector Art
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, 3D, photo, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/24d2ab1fd175bf4e9ef3a8327651dd4b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Sketchup
+    NAME_ZH: 草图大师
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Sketchup, {prompt}, CAD, professional design, Sketchup
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, photo, photograph
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/337dca7ac49cf7820c85ede096ebde9c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Steampunk 2
+    NAME_ZH: 蒸汽朋克
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Steampunk, {prompt}, retrofuturistic science fantasy, steam-powered tech, vintage industry, gears, neo-victorian, steampunk
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/07d7b27cd73f2d43684003563511c15b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Surrealism
+    NAME_ZH: 超现实主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Surrealism, {prompt}, expressive, dramatic, organic lines and forms, dreamlike and mysterious, Surrealism
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/38bae70377b323d1a5f5756d7e04886d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Suprematism
+    NAME_ZH: 至上主义
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Suprematism, {prompt}, abstract, limited color palette, geometric forms, Suprematism
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/c48fbd8cedee84d06b4d875d566f1bb8.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Terragen
+    NAME_ZH: 地形生成
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Terragen, {prompt}, beautiful massive landscape, epic scenery, Terragen
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8974cd8e0f38fb7aac117cf0983fc36d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Tranquil Relaxing Atmosphere
+    NAME_ZH: 宁静放松的氛围
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Tranquil Relaxing Atmosphere, {prompt}, calming style, soothing colors, peaceful, idealic, Tranquil Relaxing Atmosphere
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, oversaturated
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/69170d8443a67be4210af8d5558779c2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Sticker Designs
+    NAME_ZH: 贴纸设计
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Vector Art Stickers, {prompt}, professional vector design, sticker designs, Sticker Sheet
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2d1e9867058db2c57f2fe47530de3243.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Vibrant Rim Light
+    NAME_ZH: 生动的边缘光
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Vibrant Rim Light, {prompt}, bright rim light, high contrast, bold edge light
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/bb08936ca184daba2b30b4a9efb308f2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Volumetric Lighting
+    NAME_ZH: 体积光照明
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Volumetric Lighting, {prompt}, light depth, dramatic atmospheric lighting, Volumetric Lighting
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/bbad7964a2ae70b66c72804273f11e74.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Watercolor 2
+    NAME_ZH: 水彩
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Watercolor style painting, {prompt}, visible paper texture, colorwash, watercolor
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, photo, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8859d532ae5901cc8457d6118fb9b7da.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Whimsical and Playful
+    NAME_ZH: 异想天开和俏皮
+    DESCRIPTION:
+    SOURCE: diva
+    PROMPT: Whimsical and Playful, {prompt}, imaginative, fantastical, bight colors, stylized, happy, Whimsical and Playful
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, drab, boring, moody
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/af2267f1942e870be957c37cd73d4359.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Fooocus Enhance
+    NAME_ZH: 焦点增强
+    DESCRIPTION:
+    SOURCE: fooocus
+    PROMPT: {
+  "prompt": null
+}
+
+    NEGATIVE_PROMPT: (worst quality, low quality, normal quality, lowres, low details, oversaturated, undersaturated, overexposed, underexposed, grayscale, bw, bad photo, bad photography, bad art:1.4), (watermark, signature, text font, username, error, logo, words, letters, digits, autograph, trademark, name:1.2), (blur, blurry, grainy), morbid, ugly, asymmetrical, mutated malformed, mutilated, poorly lit, bad shadow, draft, cropped, out of frame, cut off, censored, jpeg artifacts, out of focus, glitch, duplicate, (airbrushed, cartoon, anime, semi-realistic, cgi, render, blender, digital art, manga, amateur:1.3), (3D ,3D Game, 3D Game Scene, 3D Character:1.1), (bad hands, bad anatomy, bad body, bad face, bad teeth, bad arms, bad legs, deformities:1.3)
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/e501823a21bbda56592055c9613c1dbb.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Fooocus Sharp
+    NAME_ZH: 焦点锐化
+    DESCRIPTION:
+    SOURCE: fooocus
+    PROMPT: cinematic still {prompt} . emotional, harmonious, vignette, 4k epic detailed, shot on kodak, 35mm photo, sharp focus, high budget, cinemascope, moody, epic, gorgeous, film grain, grainy
+    NEGATIVE_PROMPT: anime, cartoon, graphic, (blur, blurry, bokeh), text, painting, crayon, graphite, abstract, glitch, deformed, mutated, ugly, disfigured
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/393fb7aab57992a1c3af7cbad01c1001.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Fooocus Masterpiece
+    NAME_ZH: 焦点杰作
+    DESCRIPTION:
+    SOURCE: fooocus
+    PROMPT: (masterpiece), (best quality), (ultra-detailed), {prompt}, illustration, disheveled hair, detailed eyes, perfect composition, moist skin, intricate details, earrings, by wlop
+    NEGATIVE_PROMPT: longbody, lowres, bad anatomy, bad hands, missing fingers, pubic hair,extra digit, fewer digits, cropped, worst quality, low quality
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9e27c3d1475dacae0ee45cea783aaaf5.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Fooocus Photograph
+    NAME_ZH: 焦点摄影
+    DESCRIPTION:
+    SOURCE: fooocus
+    PROMPT: photograph {prompt}, 50mm . cinematic 4k epic detailed 4k epic detailed photograph shot on kodak detailed cinematic hbo dark moody, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage
+    NEGATIVE_PROMPT: Brad Pitt, bokeh, depth of field, blurry, cropped, regular face, saturated, contrast, deformed iris, deformed pupils, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime, text, cropped, out of frame, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8b2ea41ec15bf1a16d6a837d46dbc2ac.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Fooocus Negative
+    NAME_ZH: 焦点底片
+    DESCRIPTION:
+    SOURCE: fooocus
+    PROMPT:
+    NEGATIVE_PROMPT: deformed, bad anatomy, disfigured, poorly drawn face, mutated, extra limb, ugly, poorly drawn hands, missing limb, floating limbs, disconnected limbs, disconnected head, malformed hands, long neck, mutated hands and fingers, bad hands, missing fingers, cropped, worst quality, low quality, mutation, poorly drawn, huge calf, bad hands, fused hand, missing hand, disappearing arms, disappearing thigh, disappearing calf, disappearing legs, missing fingers, fused fingers, abnormal eye proportion, Abnormal hands, abnormal legs, abnormal feet, abnormal fingers, drawing, painting, crayon, sketch, graphite, impressionist, noisy, blurry, soft, deformed, ugly, anime, cartoon, graphic, text, painting, crayon, graphite, abstract, glitch
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/daaec2962291137532189b8a31012532.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: Fooocus Cinematic
+    NAME_ZH: 焦点电影
+    DESCRIPTION:
+    SOURCE: fooocus
+    PROMPT: cinematic still {prompt} . emotional, harmonious, vignette, highly detailed, high budget, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy
+    NEGATIVE_PROMPT: anime, cartoon, graphic, text, painting, crayon, graphite, abstract, glitch, deformed, mutated, ugly, disfigured
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/adc4d52aa5b0afca0593a475ddc9d055.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-cinematic-dynamic
+    NAME_ZH: MRE电影动态
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: epic cinematic shot of dynamic {prompt} in motion. main subject of high budget action movie. raw photo, motion blur. best quality, high resolution
+    NEGATIVE_PROMPT: static, still, motionless, sluggish. drawing, painting, illustration, rendered. low budget. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/bd2470068e09d9f1b7d0a690c879b3ce.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-spontaneous-picture
+    NAME_ZH: MRE自发图片
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: spontaneous picture of {prompt}, taken by talented amateur. best quality, high resolution. magical moment, natural look. simple but good looking
+    NEGATIVE_PROMPT: overthinked. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/19ad6082cee5516ce330641b515467ef.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-artistic-vision
+    NAME_ZH: MRE艺术视觉
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: powerful artistic vision of {prompt}. breathtaking masterpiece made by great artist. best quality, high resolution
+    NEGATIVE_PROMPT: insignificant, flawed, made by bad artist. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/95af94e50bcb91ae8fd2914a3bf13f1e.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-dark-dream
+    NAME_ZH: MRE黑暗梦境
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: dark and unsettling dream showing {prompt}. best quality, high resolution. created by genius but depressed mad artist. grim beauty
+    NEGATIVE_PROMPT: naive, cheerful. comfortable, casual, boring, cliche. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/572c8c26cc20ac0ee66684e3c5ee4e8c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-gloomy-art
+    NAME_ZH: MRE忧郁艺术
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: astonishing gloomy art made mainly of shadows and lighting, forming {prompt}. masterful usage of lighting, shadows and chiaroscuro. made by black-hearted artist, drawing from darkness. best quality, high resolution
+    NEGATIVE_PROMPT: low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/66cbdf819e930f7580bd66a41bde7dfe.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-bad-dream
+    NAME_ZH: MRE恶梦
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: picture from really bad dream about terrifying {prompt}, true horror. bone-chilling vision. mad world that shouldn't exist. best quality, high resolution
+    NEGATIVE_PROMPT: nice dream, pleasant experience. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/b92b2bbfc400db9204fe8249354132b4.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-underground
+    NAME_ZH: MRE地下
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: uncanny caliginous vision of {prompt}, created by remarkable underground artist. best quality, high resolution. raw and brutal art, careless but impressive style. inspired by darkness and chaos
+    NEGATIVE_PROMPT: photography, mainstream, civilized. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8d46eca558d791a1f2b41b0ed7bba4d2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-surreal-painting
+    NAME_ZH: MRE超现实绘画
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: surreal painting representing strange vision of {prompt}. harmonious madness, synergy with chance. unique artstyle, mindbending art, magical surrealism. best quality, high resolution
+    NEGATIVE_PROMPT: photography, illustration, drawing. realistic, possible. logical, sane. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/58858425832b10d233f7887af4a2022f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-dynamic-illustration
+    NAME_ZH: MRE动态插画
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: insanely dynamic illustration of {prompt}. best quality, high resolution. crazy artstyle, careless brushstrokes, emotional and fun
+    NEGATIVE_PROMPT: photography, realistic. static, still, slow, boring. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8bf9861d4d3fadcdb98ceec88a941582.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-undead-art
+    NAME_ZH: MRE不死艺术
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: long forgotten art created by undead artist illustrating {prompt}, tribute to the death and decay. miserable art of the damned. wretched and decaying world. best quality, high resolution
+    NEGATIVE_PROMPT: alive, playful, living. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/fada50979ca180006eba9a45a00f3675.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-elemental-art
+    NAME_ZH: MRE元素艺术
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: art illustrating insane amounts of raging elemental energy turning into {prompt}, avatar of elements. magical surrealism, wizardry. best quality, high resolution
+    NEGATIVE_PROMPT: photography, realistic, real. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/5895d78cf58c1ca05178991f37cc48ff.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-space-art
+    NAME_ZH: MRE太空艺术
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: winner of inter-galactic art contest illustrating {prompt}, symbol of the interstellar singularity. best quality, high resolution. artstyle previously unseen in the whole galaxy
+    NEGATIVE_PROMPT: created by human race, low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/e9815495587895a21d970728474c8be6.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-ancient-illustration
+    NAME_ZH: MRE古代插画
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: sublime ancient illustration of {prompt}, predating human civilization. crude and simple, but also surprisingly beautiful artwork, made by genius primeval artist. best quality, high resolution
+    NEGATIVE_PROMPT: low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/151e07c17a89ebaf7688905ea0199862.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-brave-art
+    NAME_ZH: MRE勇敢艺术
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: brave, shocking, and brutally true art showing {prompt}. inspired by courage and unlimited creativity. truth found in chaos. best quality, high resolution
+    NEGATIVE_PROMPT: low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/1a068f2728327d21ebb99285c2ce1370.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-heroic-fantasy
+    NAME_ZH: MRE英雄幻想
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: heroic fantasy painting of {prompt}, in the dangerous fantasy world. airbrush over oil on canvas. best quality, high resolution
+    NEGATIVE_PROMPT: low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/78d05472067e0b86c8270fa5476fcb8e.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-dark-cyberpunk
+    NAME_ZH: MRE黑暗赛博朋克
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: dark cyberpunk illustration of brutal {prompt} in a world without hope, ruled by ruthless criminal corporations. best quality, high resolution
+    NEGATIVE_PROMPT: low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a9f50e3162958fd783872d6955ad7d0b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-lyrical-geometry
+    NAME_ZH: MRE抒情几何
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: geometric and lyrical abstraction painting presenting {prompt}. oil on metal. best quality, high resolution
+    NEGATIVE_PROMPT: photography, realistic, drawing, rendered. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/dfabd41d3042ced804bc97ae35e3a7cb.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-sumi-e-symbolic
+    NAME_ZH: MRE墨绘象征
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: big long brushstrokes of deep black sumi-e turning into symbolic painting of {prompt}. master level raw art. best quality, high resolution
+    NEGATIVE_PROMPT: photography, rendered. low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/695b1ba687544eaeec9fb5f871917aeb.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-sumi-e-detailed
+    NAME_ZH: MRE墨绘精细
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: highly detailed black sumi-e painting of {prompt}. in-depth study of perfection, created by a master. best quality, high resolution
+    NEGATIVE_PROMPT: low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/16eb95e180385b88794e368b28da1812.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-manga
+    NAME_ZH: MRE漫画
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: manga artwork presenting {prompt}. created by japanese manga artist. highly emotional. best quality, high resolution
+    NEGATIVE_PROMPT: low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/ebec631bf467937f82d05958ae59f9dc.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-anime
+    NAME_ZH: MRE动漫
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: anime artwork illustrating {prompt}. created by japanese anime studio. highly emotional. best quality, high resolution
+    NEGATIVE_PROMPT: low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a08149bc8e50f6bc65c0010d4cd416f8.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: mre-comic
+    NAME_ZH: MRE漫画书
+    DESCRIPTION:
+    SOURCE: mre
+    PROMPT: breathtaking illustration from adult comic book presenting {prompt}. fabulous artwork. best quality, high resolution
+    NEGATIVE_PROMPT: deformed, ugly, low quality, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/48c65cebf1fa4284d7b8feb619412e65.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-3d-model
+    NAME_ZH: SAI三维模型
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: professional 3d model {prompt} . octane render, highly detailed, volumetric, dramatic lighting
+    NEGATIVE_PROMPT: ugly, deformed, noisy, low poly, blurry, painting
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/c1a765ac089fdfb3c1d11b33c75d2afd.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-analog film
+    NAME_ZH: SAI模拟胶片
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: analog film photo {prompt} . faded film, desaturated, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage
+    NEGATIVE_PROMPT: painting, drawing, illustration, glitch, deformed, mutated, cross-eyed, ugly, disfigured
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/3c46d19957efd7fb78f4ab2bdada5468.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-anime
+    NAME_ZH: SAI动漫
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: anime artwork {prompt} . anime style, key visual, vibrant, studio anime, highly detailed
+    NEGATIVE_PROMPT: photo, deformed, black and white, realism, disfigured, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/c030e72561eda96abcf738f1370d36ff.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-cinematic
+    NAME_ZH: SAI电影
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: cinematic film still {prompt} . shallow depth of field, vignette, highly detailed, high budget, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy
+    NEGATIVE_PROMPT: anime, cartoon, graphic, text, painting, crayon, graphite, abstract, glitch, deformed, mutated, ugly, disfigured
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d9161c0d5cbf2133b2bfc1021c0c5e2a.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-comic book
+    NAME_ZH: SAI漫画书
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: comic {prompt} . graphic illustration, comic art, graphic novel art, vibrant, highly detailed
+    NEGATIVE_PROMPT: photograph, deformed, glitch, noisy, realistic, stock photo
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/6759ecb831037367e64c4b36d802be87.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-craft clay
+    NAME_ZH: SAI手工粘土
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: play-doh style {prompt} . sculpture, clay art, centered composition, Claymation
+    NEGATIVE_PROMPT: sloppy, messy, grainy, highly detailed, ultra textured, photo
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8fc51113f725f27326c4398a7457cd6d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-digital art
+    NAME_ZH: SAI数字艺术
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: concept art {prompt} . digital artwork, illustrative, painterly, matte painting, highly detailed
+    NEGATIVE_PROMPT: photo, photorealistic, realism, ugly
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d29adb44458700c4a45ee6edaa04bfb6.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-enhance
+    NAME_ZH: SAI增强
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: breathtaking {prompt} . award-winning, professional, highly detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, distorted, grainy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2be0de541ff65f8da80ddc24a65c98d8.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-fantasy art
+    NAME_ZH: SAI幻想艺术
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: ethereal fantasy concept art of  {prompt} . magnificent, celestial, ethereal, painterly, epic, majestic, magical, fantasy art, cover art, dreamy
+    NEGATIVE_PROMPT: photographic, realistic, realism, 35mm film, dslr, cropped, frame, text, deformed, glitch, noise, noisy, off-center, deformed, cross-eyed, closed eyes, bad anatomy, ugly, disfigured, sloppy, duplicate, mutated, black and white
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a6f8d92afcd5803dfb2ebecbc92091b6.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-isometric
+    NAME_ZH: SAI等距
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: isometric style {prompt} . vibrant, beautiful, crisp, detailed, ultra detailed, intricate
+    NEGATIVE_PROMPT: deformed, mutated, ugly, disfigured, blur, blurry, noise, noisy, realistic, photographic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d4e3fcbbfd7b1323bd89decf5d7b0006.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-line art
+    NAME_ZH: SAI线条艺术
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: line art drawing {prompt} . professional, sleek, modern, minimalist, graphic, line art, vector graphics
+    NEGATIVE_PROMPT: anime, photorealistic, 35mm film, deformed, glitch, blurry, noisy, off-center, deformed, cross-eyed, closed eyes, bad anatomy, ugly, disfigured, mutated, realism, realistic, impressionism, expressionism, oil, acrylic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/034a51b0dd34b018be8859bf45b4f7ed.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-lowpoly
+    NAME_ZH: SAI低多边形
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: low-poly style {prompt} . low-poly game art, polygon mesh, jagged, blocky, wireframe edges, centered composition
+    NEGATIVE_PROMPT: noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/76b9913e9fa5704b6d30adbde9e1f70f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-neonpunk
+    NAME_ZH: SAI霓虹朋克
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: neonpunk style {prompt} . cyberpunk, vaporwave, neon, vibes, vibrant, stunningly beautiful, crisp, detailed, sleek, ultramodern, magenta highlights, dark purple shadows, high contrast, cinematic, ultra detailed, intricate, professional
+    NEGATIVE_PROMPT: painting, drawing, illustration, glitch, deformed, mutated, cross-eyed, ugly, disfigured
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/7e9ed25bb34008beb5f417df63c4b2fe.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-origami
+    NAME_ZH: SAI折纸
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: origami style {prompt} . paper art, pleated paper, folded, origami art, pleats, cut and fold, centered composition
+    NEGATIVE_PROMPT: noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/924f46a8f276011a0953d7988e90ee25.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-photographic
+    NAME_ZH: SAI摄影
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: cinematic photo {prompt} . 35mm photograph, film, bokeh, professional, 4k, highly detailed
+    NEGATIVE_PROMPT: drawing, painting, crayon, sketch, graphite, impressionist, noisy, blurry, soft, deformed, ugly
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d6a2d8f3d37cc21c20c5dfc13d000b67.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-pixel art
+    NAME_ZH: SAI像素艺术
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: pixel-art {prompt} . low-res, blocky, pixel art style, 8-bit graphics
+    NEGATIVE_PROMPT: sloppy, messy, blurry, noisy, highly detailed, ultra textured, photo, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/a5ab89c0960be8c1216e65c98d92ae4a.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: sai-texture
+    NAME_ZH: SAI质地
+    DESCRIPTION:
+    SOURCE: sai
+    PROMPT: texture {prompt} top down close-up
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/ebfeab574283fff2ac096e348a585e6d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-advertising
+    NAME_ZH: 广告
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: advertising poster style {prompt} . Professional, modern, product-focused, commercial, eye-catching, highly detailed
+    NEGATIVE_PROMPT: noisy, blurry, amateurish, sloppy, unattractive
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/1aa26a16126e2756bf4bf3fda29baa12.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-automotive
+    NAME_ZH: 汽车广告
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: automotive advertisement style {prompt} . sleek, dynamic, professional, commercial, vehicle-focused, high-resolution, highly detailed
+    NEGATIVE_PROMPT: noisy, blurry, unattractive, sloppy, unprofessional
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/ddc833b36ca23c85a4f6e7bf0088d081.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-corporate
+    NAME_ZH: 企业广告
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: corporate branding style {prompt} . professional, clean, modern, sleek, minimalist, business-oriented, highly detailed
+    NEGATIVE_PROMPT: noisy, blurry, grungy, sloppy, cluttered, disorganized
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/df97fa45c7842296c138aca4057db272.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-fashion editorial
+    NAME_ZH: 时尚编辑
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: fashion editorial style {prompt} . high fashion, trendy, stylish, editorial, magazine style, professional, highly detailed
+    NEGATIVE_PROMPT: outdated, blurry, noisy, unattractive, sloppy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/89259be723479cd0b81546b715bea04d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-food photography
+    NAME_ZH: 食品摄影
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: food photography style {prompt} . appetizing, professional, culinary, high-resolution, commercial, highly detailed
+    NEGATIVE_PROMPT: unappetizing, sloppy, unprofessional, noisy, blurry
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/33acc98f8615940c8cebbac8ce5297b2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-gourmet food photography
+    NAME_ZH: 美食摄影
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: gourmet food photo of {prompt} . soft natural lighting, macro details, vibrant colors, fresh ingredients, glistening textures, bokeh background, styled plating, wooden tabletop, garnished, tantalizing, editorial quality
+    NEGATIVE_PROMPT: cartoon, anime, sketch, grayscale, dull, overexposed, cluttered, messy plate, deformed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/897bbd3f1d232de122796266f3845b50.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-luxury
+    NAME_ZH: 奢华广告
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: luxury product style {prompt} . elegant, sophisticated, high-end, luxurious, professional, highly detailed
+    NEGATIVE_PROMPT: cheap, noisy, blurry, unattractive, amateurish
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/5b33ecc84dc5ff285a0f2e69f43162cb.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-real estate
+    NAME_ZH: 房地产广告
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: real estate photography style {prompt} . professional, inviting, well-lit, high-resolution, property-focused, commercial, highly detailed
+    NEGATIVE_PROMPT: dark, blurry, unappealing, noisy, unprofessional
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/1b99b7bcd0476144d80d066e747d8dfc.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: ads-retail
+    NAME_ZH: 零售广告
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: retail packaging style {prompt} . vibrant, enticing, commercial, product-focused, eye-catching, professional, highly detailed
+    NEGATIVE_PROMPT: noisy, blurry, amateurish, sloppy, unattractive
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0029e46ef36380dde2084257108f8a6f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-abstract
+    NAME_ZH: 抽象艺术风格
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: abstract style {prompt} . non-representational, colors and shapes, expression of feelings, imaginative, highly detailed
+    NEGATIVE_PROMPT: realistic, photographic, figurative, concrete
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8c401cb0a6ea288230222c4985e78667.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-abstract expressionism
+    NAME_ZH: 抽象表现主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: abstract expressionist painting {prompt} . energetic brushwork, bold colors, abstract forms, expressive, emotional
+    NEGATIVE_PROMPT: realistic, photorealistic, low contrast, plain, simple, monochrome
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9df6635149c576b65d911c2e4cc6a86b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-art deco
+    NAME_ZH: 艺术装饰风格
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: art deco style {prompt} . geometric shapes, bold colors, luxurious, elegant, decorative, symmetrical, ornate, detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, modernist, minimalist
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/82fff8a25de8075777caf14cb3eb5650.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-art nouveau
+    NAME_ZH: 新艺术风格
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: art nouveau style {prompt} . elegant, decorative, curvilinear forms, nature-inspired, ornate, detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, modernist, minimalist
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/84075c5c0cb4b7a2541c6fbca9835cfd.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-constructivist
+    NAME_ZH: 构成主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: constructivist style {prompt} . geometric shapes, bold colors, dynamic composition, propaganda art style
+    NEGATIVE_PROMPT: realistic, photorealistic, low contrast, plain, simple, abstract expressionism
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2a634ad0c89ecefbbea4ce5bcab3d5e5.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-cubist
+    NAME_ZH: 立体主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: cubist artwork {prompt} . geometric shapes, abstract, innovative, revolutionary
+    NEGATIVE_PROMPT: anime, photorealistic, 35mm film, deformed, glitch, low contrast, noisy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2a3d797008c08e12b485d61624741ea6.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-expressionist
+    NAME_ZH: 表现主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: expressionist {prompt} . raw, emotional, dynamic, distortion for emotional effect, vibrant, use of unusual colors, detailed
+    NEGATIVE_PROMPT: realism, symmetry, quiet, calm, photo
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/83914655659001716a1acede295289d0.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-graffiti
+    NAME_ZH: 涂鸦
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: graffiti style {prompt} . street art, vibrant, urban, detailed, tag, mural
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/f72a23c7623eb480737eb73c08bf8423.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-hyperrealism
+    NAME_ZH: 超现实主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: hyperrealistic art {prompt} . extremely high-resolution details, photographic, realism pushed to extreme, fine texture, incredibly lifelike
+    NEGATIVE_PROMPT: simplified, abstract, unrealistic, impressionistic, low resolution
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/db378d5a64a8e7ad1e29a4389bda5d1c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-impressionist
+    NAME_ZH: 印象主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: impressionist painting {prompt} . loose brushwork, vibrant color, light and shadow play, captures feeling over form
+    NEGATIVE_PROMPT: anime, photorealistic, 35mm film, deformed, glitch, low contrast, noisy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/53b151aec4d5685dfc24511b6705b90e.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-pointillism
+    NAME_ZH: 点彩主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: pointillism style {prompt} . composed entirely of small, distinct dots of color, vibrant, highly detailed
+    NEGATIVE_PROMPT: line drawing, smooth shading, large color fields, simplistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/23b137a409ee8a8c6ee160c1ddf0659f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-pop art
+    NAME_ZH: 波普艺术
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: pop Art style {prompt} . bright colors, bold outlines, popular culture themes, ironic or kitsch
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, minimalist
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/bd4faf0e2b7dbc2d0eb21f3ebee97d3d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-psychedelic
+    NAME_ZH: 迷幻艺术
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: psychedelic style {prompt} . vibrant colors, swirling patterns, abstract forms, surreal, trippy
+    NEGATIVE_PROMPT: monochrome, black and white, low contrast, realistic, photorealistic, plain, simple
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/7dc0131817f4c31517581dd4a811067b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-renaissance
+    NAME_ZH: 文艺复兴
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: renaissance style {prompt} . realistic, perspective, light and shadow, religious or mythological themes, highly detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, modernist, minimalist, abstract
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/69796484f61dc2e94d5853f5bbe27c05.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-steampunk
+    NAME_ZH: 蒸汽朋克
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: steampunk style {prompt} . antique, mechanical, brass and copper tones, gears, intricate, detailed
+    NEGATIVE_PROMPT: deformed, glitch, noisy, low contrast, anime, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/985005e28858b03c9500a6eb5bd9e201.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-surrealist
+    NAME_ZH: 超现实主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: surrealist art {prompt} . dreamlike, mysterious, provocative, symbolic, intricate, detailed
+    NEGATIVE_PROMPT: anime, photorealistic, realistic, deformed, glitch, noisy, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/892d19ec3c429b7148562796df0024db.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-typography
+    NAME_ZH: 排版艺术
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: typographic art {prompt} . stylized, intricate, detailed, artistic, text-based
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9adafe1bb169e1ee3f78ba2c1b1cf8d3.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: artstyle-watercolor
+    NAME_ZH: 水彩艺术
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: watercolor painting {prompt} . vibrant, beautiful, painterly, detailed, textural, artistic
+    NEGATIVE_PROMPT: anime, photorealistic, 35mm film, deformed, glitch, low contrast, noisy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/29ca23d7a0397e9beaa72e3b63d17551.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-biomechanical
+    NAME_ZH: 未来生物力学
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: biomechanical style {prompt} . blend of organic and mechanical elements, futuristic, cybernetic, detailed, intricate
+    NEGATIVE_PROMPT: natural, rustic, primitive, organic, simplistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/5987795487a3fa74469499ae53963d5d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-biomechanical cyberpunk
+    NAME_ZH: 未来生物力学赛博朋克
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: biomechanical cyberpunk {prompt} . cybernetics, human-machine fusion, dystopian, organic meets artificial, dark, intricate, highly detailed
+    NEGATIVE_PROMPT: natural, colorful, deformed, sketch, low contrast, watercolor
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/75b56d7cff9b3f011248b3092ae3b8d2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-cybernetic
+    NAME_ZH: 未来赛博
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: cybernetic style {prompt} . futuristic, technological, cybernetic enhancements, robotics, artificial intelligence themes
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, historical, medieval
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/47df6db04290f01aeee7381aaf12ec07.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-cybernetic robot
+    NAME_ZH: 未来机器人
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: cybernetic robot {prompt} . android, AI, machine, metal, wires, tech, futuristic, highly detailed
+    NEGATIVE_PROMPT: organic, natural, human, sketch, watercolor, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/6f18121b4ba22c8ba7834f404501fa4c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-cyberpunk cityscape
+    NAME_ZH: 未来赛博朋克城市景观
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: cyberpunk cityscape {prompt} . neon lights, dark alleys, skyscrapers, futuristic, vibrant colors, high contrast, highly detailed
+    NEGATIVE_PROMPT: natural, rural, deformed, low contrast, black and white, sketch, watercolor
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/5e4107dace2c9dd0217a9d1b18ae28f6.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-futuristic
+    NAME_ZH: 未来主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: futuristic style {prompt} . sleek, modern, ultramodern, high tech, detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, vintage, antique
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8a61c0853ee4079bae96ad502a6ae840.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-retro cyberpunk
+    NAME_ZH: 未来复古赛博朋克
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: retro cyberpunk {prompt} . 80's inspired, synthwave, neon, vibrant, detailed, retro futurism
+    NEGATIVE_PROMPT: modern, desaturated, black and white, realism, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/460957bf9a07a58ddec08bf22d5b3698.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-retro futurism
+    NAME_ZH: 未来复古主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: retro-futuristic {prompt} . vintage sci-fi, 50s and 60s style, atomic age, vibrant, highly detailed
+    NEGATIVE_PROMPT: contemporary, realistic, rustic, primitive
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0434a7b23a0f936db615d7a9b8e805f1.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-sci-fi
+    NAME_ZH: 科幻未来主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: sci-fi style {prompt} . futuristic, technological, alien worlds, space themes, advanced civilizations
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, historical, medieval
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/7c3bde651f426273758b68a2805d0c8a.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: futuristic-vaporwave
+    NAME_ZH: 未来波
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: vaporwave style {prompt} . retro aesthetic, cyberpunk, vibrant, neon colors, vintage 80s and 90s style, highly detailed
+    NEGATIVE_PROMPT: monochrome, muted colors, realism, rustic, minimalist, dark
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/1ebb0bf67ee3ef76288b4c0a2a65d557.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-bubble bobble
+    NAME_ZH: 游戏-泡泡龙
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: Bubble Bobble style {prompt} . 8-bit, cute, pixelated, fantasy, vibrant, reminiscent of Bubble Bobble game
+    NEGATIVE_PROMPT: realistic, modern, photorealistic, violent, horror
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/19257352df33228555cb350963d9432a.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-cyberpunk game
+    NAME_ZH: 赛博朋克游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: cyberpunk game style {prompt} . neon, dystopian, futuristic, digital, vibrant, detailed, high contrast, reminiscent of cyberpunk genre video games
+    NEGATIVE_PROMPT: historical, natural, rustic, low detailed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/6165ef47bc859e3dd0e3399ba2264c2b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-fighting game
+    NAME_ZH: 格斗游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: fighting game style {prompt} . dynamic, vibrant, action-packed, detailed character design, reminiscent of fighting video games
+    NEGATIVE_PROMPT: peaceful, calm, minimalist, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/aebda69ec1097dc61966995956ae34cc.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-gta
+    NAME_ZH: 侠盗猎车手游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: GTA-style artwork {prompt} . satirical, exaggerated, pop art style, vibrant colors, iconic characters, action-packed
+    NEGATIVE_PROMPT: realistic, black and white, low contrast, impressionist, cubist, noisy, blurry, deformed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/edff7ba5fc983468e79e64beb838b829.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-mario
+    NAME_ZH: 马里奥游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: Super Mario style {prompt} . vibrant, cute, cartoony, fantasy, playful, reminiscent of Super Mario series
+    NEGATIVE_PROMPT: realistic, modern, horror, dystopian, violent
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2a229f623ce89160d1f67620599dfc7c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-minecraft
+    NAME_ZH: 我的世界游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: Minecraft style {prompt} . blocky, pixelated, vibrant colors, recognizable characters and objects, game assets
+    NEGATIVE_PROMPT: smooth, realistic, detailed, photorealistic, noise, blurry, deformed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/83e77332a9f234fd8c9cddd29e2ec3c7.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-pokemon
+    NAME_ZH: 宝可梦游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: Pokémon style {prompt} . vibrant, cute, anime, fantasy, reminiscent of Pokémon series
+    NEGATIVE_PROMPT: realistic, modern, horror, dystopian, violent
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/9bfe2805e6578875a8dfe2a0ea96c281.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-retro arcade
+    NAME_ZH: 复古街机
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: retro arcade style {prompt} . 8-bit, pixelated, vibrant, classic video game, old school gaming, reminiscent of 80s and 90s arcade games
+    NEGATIVE_PROMPT: modern, ultra-high resolution, photorealistic, 3D
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/76885e0b110f1fdf3eaee52fbaf27abf.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-retro game
+    NAME_ZH: 复古游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: retro game art {prompt} . 16-bit, vibrant colors, pixelated, nostalgic, charming, fun
+    NEGATIVE_PROMPT: realistic, photorealistic, 35mm film, deformed, glitch, low contrast, noisy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/61fbae41c50f56e24dcf20fe3612d456.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-rpg fantasy game
+    NAME_ZH: 角色扮演幻想游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: role-playing game (RPG) style fantasy {prompt} . detailed, vibrant, immersive, reminiscent of high fantasy RPG games
+    NEGATIVE_PROMPT: sci-fi, modern, urban, futuristic, low detailed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/34797baf58e32b4e1a37753fe9dcff5c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-strategy game
+    NAME_ZH: 策略游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: strategy game style {prompt} . overhead view, detailed map, units, reminiscent of real-time strategy video games
+    NEGATIVE_PROMPT: first-person view, modern, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0d276527d22510a1b5f8f74eac2790df.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-streetfighter
+    NAME_ZH: 街头霸王游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: Street Fighter style {prompt} . vibrant, dynamic, arcade, 2D fighting game, highly detailed, reminiscent of Street Fighter series
+    NEGATIVE_PROMPT: 3D, realistic, modern, photorealistic, turn-based strategy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/f5927fc2b8d4a8212242bd97adcbdfa1.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: game-zelda
+    NAME_ZH: 塞尔达传说游戏
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: Legend of Zelda style {prompt} . vibrant, fantasy, detailed, epic, heroic, reminiscent of The Legend of Zelda series
+    NEGATIVE_PROMPT: sci-fi, modern, realistic, horror
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/4f9eadddbc196268258089b8cc4e5c5c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-architectural
+    NAME_ZH: 建筑
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: architectural style {prompt} . clean lines, geometric shapes, minimalist, modern, architectural drawing, highly detailed
+    NEGATIVE_PROMPT: curved lines, ornate, baroque, abstract, grunge
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/488545e9fc9417d62961f42d578547d2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-disco
+    NAME_ZH: 迪斯科
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: disco-themed {prompt} . vibrant, groovy, retro 70s style, shiny disco balls, neon lights, dance floor, highly detailed
+    NEGATIVE_PROMPT: minimalist, rustic, monochrome, contemporary, simplistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/784b0ac35e0c0fdb2df21a95d5ca1c55.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-dreamscape
+    NAME_ZH: 梦境
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: dreamscape {prompt} . surreal, ethereal, dreamy, mysterious, fantasy, highly detailed
+    NEGATIVE_PROMPT: realistic, concrete, ordinary, mundane
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2bf77804b5bf352c4e97475b1e8eb29e.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-dystopian
+    NAME_ZH: 反乌托邦
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: dystopian style {prompt} . bleak, post-apocalyptic, somber, dramatic, highly detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, cheerful, optimistic, vibrant, colorful
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/065db0385e126192cbd27e22ca4f154c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-fairy tale
+    NAME_ZH: 童话故事
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: fairy tale {prompt} . magical, fantastical, enchanting, storybook style, highly detailed
+    NEGATIVE_PROMPT: realistic, modern, ordinary, mundane
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/578dfe65d9f03e83c95820d4c45cd396.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-gothic
+    NAME_ZH: 哥特
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: gothic style {prompt} . dark, mysterious, haunting, dramatic, ornate, detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, cheerful, optimistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/332a1f8cd655b724cb48bc5c91b764fc.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-grunge
+    NAME_ZH: 垃圾摇滚
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: grunge style {prompt} . textured, distressed, vintage, edgy, punk rock vibe, dirty, noisy
+    NEGATIVE_PROMPT: smooth, clean, minimalist, sleek, modern, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0ccb4c03c6d983b9f6d05ba383f9d690.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-horror
+    NAME_ZH: 恐怖
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: horror-themed {prompt} . eerie, unsettling, dark, spooky, suspenseful, grim, highly detailed
+    NEGATIVE_PROMPT: cheerful, bright, vibrant, light-hearted, cute
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/fdca4780d099a39dc50e4553622fba72.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-kawaii
+    NAME_ZH: 卡哇伊
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: kawaii style {prompt} . cute, adorable, brightly colored, cheerful, anime influence, highly detailed
+    NEGATIVE_PROMPT: dark, scary, realistic, monochrome, abstract
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/99dab4185e7337189d8959878bfa308b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-lovecraftian
+    NAME_ZH: 克苏鲁神话
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: lovecraftian horror {prompt} . eldritch, cosmic horror, unknown, mysterious, surreal, highly detailed
+    NEGATIVE_PROMPT: light-hearted, mundane, familiar, simplistic, realistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/b7c9d084ed62c1c2e1ea080ad95af61e.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-macabre
+    NAME_ZH: 恐怖的
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: macabre style {prompt} . dark, gothic, grim, haunting, highly detailed
+    NEGATIVE_PROMPT: bright, cheerful, light-hearted, cartoonish, cute
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/fd7cf2315b27b0434b909020414e1173.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-manga
+    NAME_ZH: 漫画
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: manga style {prompt} . vibrant, high-energy, detailed, iconic, Japanese comic style
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, Western comic style
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/531aac90b321d39221ba7cf70a97b232.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-metropolis
+    NAME_ZH: 大都市
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: metropolis-themed {prompt} . urban, cityscape, skyscrapers, modern, futuristic, highly detailed
+    NEGATIVE_PROMPT: rural, natural, rustic, historical, simple
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/eaad79fe3d7160cec6e0656fc3b02d3c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-minimalist
+    NAME_ZH: 极简主义
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: minimalist style {prompt} . simple, clean, uncluttered, modern, elegant
+    NEGATIVE_PROMPT: ornate, complicated, highly detailed, cluttered, disordered, messy, noisy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/e85dd1ccc7f22bdac054d74ba58521b2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-monochrome
+    NAME_ZH: 单色
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: monochrome {prompt} . black and white, contrast, tone, texture, detailed
+    NEGATIVE_PROMPT: colorful, vibrant, noisy, blurry, deformed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/cc793ada6b47561f4b63aa66dcd282ac.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-nautical
+    NAME_ZH: 航海
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: nautical-themed {prompt} . sea, ocean, ships, maritime, beach, marine life, highly detailed
+    NEGATIVE_PROMPT: landlocked, desert, mountains, urban, rustic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/3d9f6528180670804a2c5e85c7665c42.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-space
+    NAME_ZH: 太空
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: space-themed {prompt} . cosmic, celestial, stars, galaxies, nebulas, planets, science fiction, highly detailed
+    NEGATIVE_PROMPT: earthly, mundane, ground-based, realism
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/6f5742d23b43fc99cc01c8b68518df7c.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-stained glass
+    NAME_ZH: 彩色玻璃
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: stained glass style {prompt} . vibrant, beautiful, translucent, intricate, detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/ab0512ced9ed572075c49ad4f9f9a45d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-techwear fashion
+    NAME_ZH: 科技服饰
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: techwear fashion {prompt} . futuristic, cyberpunk, urban, tactical, sleek, dark, highly detailed
+    NEGATIVE_PROMPT: vintage, rural, colorful, low contrast, realism, sketch, watercolor
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/652a6bdb1b36860041222a458c7915d0.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-tribal
+    NAME_ZH: 部落
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: tribal style {prompt} . indigenous, ethnic, traditional patterns, bold, natural colors, highly detailed
+    NEGATIVE_PROMPT: modern, futuristic, minimalist, pastel
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/1ecdaf153ece5e16250b87020b7a209b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: misc-zentangle
+    NAME_ZH: 禅绕画
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: zentangle {prompt} . intricate, abstract, monochrome, patterns, meditative, highly detailed
+    NEGATIVE_PROMPT: colorful, representative, simplistic, large fields of color
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/80f3488cdb69f0ff13d83a4feac4499d.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-collage
+    NAME_ZH: 纸艺拼贴
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: collage style {prompt} . mixed media, layered, textural, detailed, artistic
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/c9bbdaba28358faf1a8c1df44b3de950.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-flat papercut
+    NAME_ZH: 平面剪纸
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: flat papercut style {prompt} . silhouette, clean cuts, paper, sharp edges, minimalist, color block
+    NEGATIVE_PROMPT: 3D, high detail, noise, grainy, blurry, painting, drawing, photo, disfigured
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/1bffcd9a4086b29c367b8301f26eed3b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-kirigami
+    NAME_ZH: 剪纸
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: kirigami representation of {prompt} . 3D, paper folding, paper cutting, Japanese, intricate, symmetrical, precision, clean lines
+    NEGATIVE_PROMPT: painting, drawing, 2D, noisy, blurry, deformed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2e5f95977b97b2a6248924e118a23076.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-paper mache
+    NAME_ZH: 纸浆塑型
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: paper mache representation of {prompt} . 3D, sculptural, textured, handmade, vibrant, fun
+    NEGATIVE_PROMPT: 2D, flat, photo, sketch, digital art, deformed, noisy, blurry
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/68441f668fcf7a51db5fc9b9d4d45ce7.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-paper quilling
+    NAME_ZH: 纸卷艺术
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: paper quilling art of {prompt} . intricate, delicate, curling, rolling, shaping, coiling, loops, 3D, dimensional, ornamental
+    NEGATIVE_PROMPT: photo, painting, drawing, 2D, flat, deformed, noisy, blurry
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8c0504eb14341b66796612c46bb3748b.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-papercut collage
+    NAME_ZH: 剪纸拼贴
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: papercut collage of {prompt} . mixed media, textured paper, overlapping, asymmetrical, abstract, vibrant
+    NEGATIVE_PROMPT: photo, 3D, realistic, drawing, painting, high detail, disfigured
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/217e7c8b905b63c63c94bd6ff8fe3477.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-papercut shadow box
+    NAME_ZH: 剪纸影箱
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: 3D papercut shadow box of {prompt} . layered, dimensional, depth, silhouette, shadow, papercut, handmade, high contrast
+    NEGATIVE_PROMPT: painting, drawing, photo, 2D, flat, high detail, blurry, noisy, disfigured
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/2af0d61de1b17a5a5257f512549f9616.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-stacked papercut
+    NAME_ZH: 堆叠剪纸
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: stacked papercut art of {prompt} . 3D, layered, dimensional, depth, precision cut, stacked layers, papercut, high contrast
+    NEGATIVE_PROMPT: 2D, flat, noisy, blurry, painting, drawing, photo, deformed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/62618e32e90539827e0eb279a6ea170a.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: papercraft-thick layered papercut
+    NAME_ZH: 厚层剪纸
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: thick layered papercut art of {prompt} . deep 3D, volumetric, dimensional, depth, thick paper, high stack, heavy texture, tangible layers
+    NEGATIVE_PROMPT: 2D, flat, thin paper, low stack, smooth texture, painting, drawing, photo, deformed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/17008c40a6be8d41d3921ee88bac27ad.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-alien
+    NAME_ZH: 异形
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: alien-themed {prompt} . extraterrestrial, cosmic, otherworldly, mysterious, sci-fi, highly detailed
+    NEGATIVE_PROMPT: earthly, mundane, common, realistic, simple
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/eae6043dee2b2d94cd9a22cb044db8b3.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-film noir
+    NAME_ZH: 黑色电影
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: film noir style {prompt} . monochrome, high contrast, dramatic shadows, 1940s style, mysterious, cinematic
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, realism, photorealistic, vibrant, colorful
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/0b3629be5ebb7cda463877a1993a0298.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-glamour
+    NAME_ZH: 魅力
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: glamorous photo {prompt} . high fashion, luxurious, extravagant, stylish, sensual, opulent, elegance, stunning beauty, professional, high contrast, detailed
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, distorted, grainy, sketch, low contrast, dull, plain, modest
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/f85dc6aa5d7f7d6d3663f2270e276796.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-hdr
+    NAME_ZH: 高动态范围
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: HDR photo of {prompt} . High dynamic range, vivid, rich details, clear shadows and highlights, realistic, intense, enhanced contrast, highly detailed
+    NEGATIVE_PROMPT: flat, low contrast, oversaturated, underexposed, overexposed, blurred, noisy
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/269a98b284ae1345b0e5ac1f85c33179.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-iphone photographic
+    NAME_ZH: iPhone摄影
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: iphone photo {prompt} . large depth of field, deep depth of field, highly detailed
+    NEGATIVE_PROMPT: drawing, painting, crayon, sketch, graphite, impressionist, noisy, blurry, soft, deformed, ugly, shallow depth of field, bokeh
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/48c556a6b3c3a533847b80b031cd4962.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-long exposure
+    NAME_ZH: 长曝光
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: long exposure photo of {prompt} . Blurred motion, streaks of light, surreal, dreamy, ghosting effect, highly detailed
+    NEGATIVE_PROMPT: static, noisy, deformed, shaky, abrupt, flat, low contrast
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/fda88c3fc43ea8cc04ce9b5c0261627f.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-neon noir
+    NAME_ZH: 霓虹黑色
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: neon noir {prompt} . cyberpunk, dark, rainy streets, neon signs, high contrast, low light, vibrant, highly detailed
+    NEGATIVE_PROMPT: bright, sunny, daytime, low contrast, black and white, sketch, watercolor
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/8a5b71434592771e064af4b9017b59d6.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-silhouette
+    NAME_ZH: 剪影
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: silhouette style {prompt} . high contrast, minimalistic, black and white, stark, dramatic
+    NEGATIVE_PROMPT: ugly, deformed, noisy, blurry, low contrast, color, realism, photorealistic
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/1892a37e66d33cdd9b713aaab6b8c597.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket
+  -
+    NAME: photo-tilt-shift
+    NAME_ZH: 倾斜移位
+    DESCRIPTION:
+    SOURCE: twri
+    PROMPT: tilt-shift photo of {prompt} . selective focus, miniature effect, blurred background, highly detailed, vibrant, perspective control
+    NEGATIVE_PROMPT: blurry, noisy, deformed, flat, low contrast, unrealistic, oversaturated, underexposed
+    IMAGE_PATH: ms://iic/scepter@mantra_images_jpg/SD_XL1.0/d058a157de848a5c03d9a3e1e0e560a2.jpg
+    PROMPT_EXAMPLE: a boy wearing green jacket

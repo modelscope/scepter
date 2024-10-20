@@ -8,6 +8,7 @@ from itertools import repeat as iter_repeat
 from typing import Iterable
 
 import numpy as np
+
 import torch
 
 
@@ -117,7 +118,6 @@ def apply_2d_rope(xq,
     # xq_.shape = [b, seq_len, dim // 2, 2]
     xq_ = xq.float().reshape(*xq.shape[:-1], -1, 2)
     xk_ = xk.float().reshape(*xk.shape[:-1], -1, 2)
-    # 转为复数域
     xq_ = torch.view_as_complex(
         xq_)  # [b, seq_len, dim // 2, 2]=>xq.shape = [b, seq_len, dim]
     xk_ = torch.view_as_complex(xk_)

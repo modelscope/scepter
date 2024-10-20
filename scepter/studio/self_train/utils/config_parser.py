@@ -21,7 +21,7 @@ def build_meta_index(meta_cfg, config_file):
             for key in paras_keys:
                 if key not in para:
                     print(
-                        f'Para key {key} not defined in {config_file} META/RARAS[{idx}]'
+                        f'Para key {key} not defined in {config_file} META/RARAS[{idx}]'  # noqa
                     )
                 assert key in para
             tuner_type[para['TUNER']] = para
@@ -47,7 +47,7 @@ def build_meta_index_control(meta_cfg, config_file):
             for key in control_paras_keys:
                 if key not in para:
                     print(
-                        f'Para key {key} not defined in {config_file} META/RARAS[{idx}]'
+                        f'Para key {key} not defined in {config_file} META/RARAS[{idx}]'  # noqa
                     )
                 assert key in para
             control_type[para['CONTROL_MODE']] = para
@@ -137,11 +137,10 @@ def get_all_config(config_root, global_meta):
 
 def get_default(config_dict):
     ret_data = {}
-    # 默认的模型
     ret_data['model_choices'] = config_dict['choices']
     ret_data['model_default'] = config_dict['default']
     default_version_cfg = config_dict.get(config_dict['default'], None)
-    # 默认的版本
+
     if default_version_cfg is None:
         return ret_data
     ret_data['version_choices'] = default_version_cfg['choices']
@@ -288,11 +287,10 @@ def get_control_para_by_model_version(config_dict, model_name, version):
 
 def get_control_default(config_dict):
     ret_data = {}
-    # 默认的模型
     ret_data['model_choices'] = config_dict['choices']
     ret_data['model_default'] = config_dict['default']
     default_version_cfg = config_dict.get(config_dict['default'], None)
-    # 默认的版本
+
     if default_version_cfg is None:
         return ret_data
     ret_data['version_choices'] = default_version_cfg['choices']

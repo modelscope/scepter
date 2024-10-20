@@ -1,0 +1,29 @@
+ANNOTATORS:
+  -
+    NAME: "CannyAnnotator"
+    TYPE: Canny
+    IS_DEFAULT: True
+  -
+    NAME: "HedAnnotator"
+    PRETRAINED_MODEL: "ms://iic/scepter_scedit@annotator/ckpts/ControlNetHED.pth"
+    TYPE: Hed
+    IS_DEFAULT: False
+  -
+    NAME: "OpenposeAnnotator"
+    BODY_MODEL_PATH: "ms://iic/scepter_scedit@annotator/ckpts/body_pose_model.pth"
+    HAND_MODEL_PATH: "ms://iic/scepter_scedit@annotator/ckpts/hand_pose_model.pth"
+    TYPE: Openpose
+    IS_DEFAULT: False
+  -
+    NAME: "MidasDetector"
+    PRETRAINED_MODEL: "ms://iic/scepter_scedit@annotator/ckpts/dpt_hybrid-midas-501f0c75.pth"
+    TYPE: Midas
+    IS_DEFAULT: False
+  -
+    NAME: "ColorAnnotator"
+    TYPE: Color
+    IS_DEFAULT: False
+  -
+    NAME: "InvertAnnotator"
+    TYPE: Invert-Preprocess
+    IS_DEFAULT: False

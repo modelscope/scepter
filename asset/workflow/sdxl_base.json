@@ -1,0 +1,163 @@
+{
+  "last_node_id": 4,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 2,
+      "type": "PreviewImage",
+      "pos": {
+        "0": 937,
+        "1": 243
+      },
+      "size": {
+        "0": 284.03680419921875,
+        "1": 246
+      },
+      "flags": {
+        "collapsed": false
+      },
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 4,
+      "type": "ParameterNode",
+      "pos": {
+        "0": 0,
+        "1": 244
+      },
+      "size": {
+        "0": 311.9849853515625,
+        "1": 236.4765625
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "Result",
+          "type": "CONDITIONING",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ParameterNode"
+      },
+      "widgets_values": [
+        "ddim",
+        50,
+        5,
+        0.5,
+        "trailing",
+        1024,
+        1024,
+        2024
+      ]
+    },
+    {
+      "id": 1,
+      "type": "ModelNode",
+      "pos": {
+        "0": 430,
+        "1": 243
+      },
+      "size": {
+        "0": 400,
+        "1": 234
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "parameters",
+          "type": "CONDITIONING",
+          "link": 3,
+          "shape": 7
+        },
+        {
+          "name": "mantras",
+          "type": "CONDITIONING",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "tuners",
+          "type": "CONDITIONING",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "controls",
+          "type": "CONDITIONING",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelNode"
+      },
+      "widgets_values": [
+        "SD_XL1.0",
+        "ModelScope",
+        "a cat",
+        ""
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      4,
+      0,
+      1,
+      0,
+      "CONDITIONING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.9229599817706423,
+      "offset": [
+        128.91466506592707,
+        43.07074577975898
+      ]
+    }
+  },
+  "version": 0.4
+}

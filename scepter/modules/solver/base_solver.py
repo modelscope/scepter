@@ -18,7 +18,10 @@ from scepter.modules.solver.hooks import HOOKS
 from scepter.modules.utils.config import Config, dict_to_yaml
 from scepter.modules.utils.data import transfer_data_to_cuda
 from scepter.modules.utils.directory import get_relative_folder, osp_path
-from scepter.modules.utils.distribute import dist, gather_data, we
+from scepter.modules.utils.distribute import (
+    dist, gather_data, we, all_reduce,
+    _serialize_to_tensor, broadcast, _unserialize_from_tensor,
+    all_reduce, barrier)
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger, init_logger
 from scepter.modules.utils.probe import (ProbeData, merge_gathered_probe,
@@ -184,6 +187,20 @@ try:
 except Exception as e:
     warnings.warn(f'{e}')
 
+def async_str(text):
+    broadcast_size = torch.zeros(1, dtype=torch.long).to(we.device_id)
+    if we.rank == 0:
+        text_tensor = _serialize_to_tensor(text).to(we.device_id)
+        broadcast_size[0] = len(text_tensor)
+        broadcast(broadcast_size, src=0)
+        broadcast(text_tensor, src=0)
+    else:
+        broadcast(broadcast_size, src=0)
+        text_tensor = torch.empty((broadcast_size[0],), dtype=torch.uint8).to(we.device_id)
+        broadcast(text_tensor, src=0)
+        text = _unserialize_from_tensor(text_tensor)
+    return text
+
 
 class BaseSolver(object, metaclass=ABCMeta):
     """ Base Solver.
@@ -198,18 +215,12 @@ class BaseSolver(object, metaclass=ABCMeta):
             'description': 'The precision for train process.'
         },
         'FILE_SYSTEM': {},
-        'ACCU_STEP': {
-            'value':
-            1,
-            'description':
-            'When use ddp, the grad accumulate steps for each process.'
-        },
         'RESUME_FROM': {
             'value': '',
             'description': 'Resume from some state of training!'
         },
         'MAX_EPOCHS': {
-            'value': 10,
+            'value': -1,
             'description': 'Max epochs for training.'
         },
         'NUM_FOLDS': {
@@ -252,31 +263,31 @@ class BaseSolver(object, metaclass=ABCMeta):
 
     def __init__(self, cfg, logger=None):
         # initialize some hyperparameters
+        self.cfg = cfg
+        self.logger = logger
         self.file_system = cfg.get('FILE_SYSTEM', None)
-        self.work_dir: str = cfg.WORK_DIR
+        self.work_dir: str = async_str(cfg.WORK_DIR)
+        barrier()
         self.pl_dir = self.work_dir
         self.log_file = osp_path(self.work_dir, cfg.LOG_FILE)
         self.optimizer, self.lr_scheduler = None, None
-        self.cfg = cfg
-        self.logger = logger
-        self.resume_from: str = cfg.RESUME_FROM
-        self.max_epochs: int = cfg.MAX_EPOCHS
+        self.resume_from: str = cfg.get("RESUME_FROM", None)
+        self.max_epochs: int = cfg.get("MAX_EPOCHS", -1)
         self.use_pl = we.use_pl
         self.train_precision = self.cfg.get('TRAIN_PRECISION', 32)
         self._mode_set = set()
         self._mode = 'train'
         self.probe_ins = {}
+        self.collect_probe_ins = {}
         self.clear_probe_ins = {}
         self._num_folds: int = 1
         if not self.use_pl:
             world_size = we.world_size
             if world_size > 1:
-                self._num_folds: int = cfg.NUM_FOLDS
+                self._num_folds: int = cfg.get("NUM_FOLDS", 1)
             if cfg.have('MODE'):
                 self._mode_set.add(cfg.MODE)
                 self._mode = cfg.MODE
-            if we.is_distributed:
-                self.accu_step = cfg.get('ACCU_STEP', 1)
 
         self.do_step = True
         self.hooks_dict = {'train': [], 'eval': [], 'test': []}
@@ -305,6 +316,8 @@ class BaseSolver(object, metaclass=ABCMeta):
         self._prefix = FS.get_fs_client(self.work_dir).get_prefix()
         if not FS.exists(self.work_dir):
             FS.make_dir(self.work_dir)
+        assert self.cfg.have('MODEL')
+        self.cfg.MODEL.WORK_DIR = self.work_dir
         self.logger.info(
             f"Parse work dir {self.work_dir}'s prefix is {self._prefix}")
 
@@ -325,6 +338,7 @@ class BaseSolver(object, metaclass=ABCMeta):
     def __setattr__(self, key, value):
         if isinstance(value, BaseModel):
             self.probe_ins[key] = value.probe_data
+            self.collect_probe_ins[key] = value.collect_probe
             self.clear_probe_ins[key] = value.clear_probe
         super().__setattr__(key, value)
 
@@ -666,7 +680,7 @@ class BaseSolver(object, metaclass=ABCMeta):
         return self._iter[self._mode]
 
     @property
-    def probe_data(self):
+    def probe_data_dict(self):
         return self._probe_data[self._mode]
 
     @property
@@ -737,7 +751,31 @@ class BaseSolver(object, metaclass=ABCMeta):
                         self._dist_data[self.mode][key][k] = v
 
     @property
+    def collect_probe(self):
+        probe_data_dict = self._probe_data[self.mode]
+        for k, func in self.collect_probe_ins.items():
+            for kk, vv in func().items():
+                probe_data_dict[f'{k}/{kk}'] = vv
+        return probe_data_dict
+
+    @property
     def probe_data(self):  # noqa
+        if hasattr(self, f'{self.mode}_pre_save_paras'):
+            pre_save_paras = getattr(self, f'{self.mode}_pre_save_paras')
+            save_folder = pre_save_paras['save_folder']
+            save_probe_prefix = pre_save_paras['save_probe_prefix']
+            step = pre_save_paras['step']
+            save_image_postfix = pre_save_paras.get('save_image_postfix', 'jpg')
+            save_video_postfix = pre_save_paras.get('save_video_postfix', 'mp4')
+            for k, v in self.collect_probe.items():
+                if save_probe_prefix is not None:
+                    ret_prefix = os.path.join(save_folder, save_probe_prefix)
+                else:
+                    ret_prefix = os.path.join(save_folder, k.replace('/', '_') + f'_step_{step}')
+                v.presave(prefix = ret_prefix,
+                          image_postfix = save_image_postfix,
+                          video_postfix = save_video_postfix,
+                          rank = we.rank)
         gather_probe_data = gather_data(self._probe_data[self.mode])
         _dist_data_list = gather_data([self._dist_data[self.mode] or {}])
         if not we.rank == 0:
@@ -836,9 +874,10 @@ class BaseSolver(object, metaclass=ABCMeta):
         for key in keys:
             value = data_dict[key]
             if isinstance(value, torch.Tensor) and value.ndim == 0:
-                if dist.is_available() and dist.is_initialized():
+                if we.is_distributed:
                     value = value.data.clone()
-                    dist.all_reduce(value.div_(dist.get_world_size()))
+                    all_reduce(value, group=we.data_parallel_group)
+                    value = value/we.data_group_world_size
                 ret[key] = value
             else:
                 ret[key] = value
@@ -911,7 +950,7 @@ class BaseSolver(object, metaclass=ABCMeta):
         }
         :return:
         '''
-        return dict_to_yaml('solvername',
+        return dict_to_yaml('SOLVER',
                             __class__.__name__,
                             BaseSolver.para_dict,
                             set_name=True)

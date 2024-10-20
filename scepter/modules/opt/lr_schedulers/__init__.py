@@ -3,4 +3,5 @@
 
 from scepter.modules.opt.lr_schedulers.define_schedulers import LinoPolyLR
 from scepter.modules.opt.lr_schedulers.official_schedulers import *  # noqa
-from scepter.modules.opt.lr_schedulers.warmup import WarmupToConstantLR
+from scepter.modules.opt.lr_schedulers.warmup import (StepAnnealingLR,
+                                                      WarmupToConstantLR)

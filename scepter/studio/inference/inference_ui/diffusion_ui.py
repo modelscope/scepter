@@ -4,6 +4,8 @@ import copy
 import random
 
 import gradio as gr
+
+from scepter.modules.utils.config import Config
 from scepter.studio.inference.inference_ui.component_names import \
     DiffusionUIName
 from scepter.studio.utils.uibase import UIBase
@@ -53,11 +55,18 @@ class DiffusionUI(UIBase):
         diffusion_paras = copy.deepcopy(ori_diffusion_paras)
         for key in diffusion_paras:
             if key.lower() in cur_default:
-                diffusion_paras.get(key).DEFAULT = cur_default.get(key.lower())
-                value = diffusion_paras.get(key).get('VALUES')
-                if value is not None and cur_default.get(
-                        key.lower()) not in value:
-                    value.VALUES.append(cur_default.get(key.lower()))
+                cur_pa = cur_default.get(key.lower())
+                if isinstance(cur_pa, (dict, Config)):
+                    diffusion_paras.get(key).DEFAULT = cur_pa.get("DEFAULT")
+                    diffusion_paras.get(key).VALUES = cur_pa.get("VALUES", [])
+                    diffusion_paras.get(key).VISIBLE = cur_pa.get("VISIBLE", True)
+                else:
+                    diffusion_paras.get(key).DEFAULT = cur_pa
+                    value = diffusion_paras.get(key).get('VALUES')
+                    if value is not None and cur_default.get(
+                            key.lower()) not in value:
+                        value.append(cur_default.get(key.lower()))
+
         return diffusion_paras
 
     def load_all_paras(self):
@@ -75,18 +84,21 @@ class DiffusionUI(UIBase):
                 placeholder=self.component_names.negative_prompt_placeholder,
                 info=self.component_names.negative_prompt_description,
                 value=self.cur_paras.NEGATIVE_PROMPT.get('DEFAULT', ''),
+                visible=self.cur_paras.NEGATIVE_PROMPT.get('VISIBLE', True),
                 lines=2)
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 self.prompt_prefix = gr.Textbox(
                     label=self.component_names.prompt_prefix,
                     value=self.cur_paras.PROMPT_PREFIX.get('DEFAULT', ''),
+                    visible=self.cur_paras.PROMPT_PREFIX.get('VISIBLE', True),
                     interactive=True)
             with gr.Column(scale=2):
                 self.sampler = gr.Dropdown(
                     label=self.component_names.sample,
                     choices=self.cur_paras.SAMPLE.get('VALUES', []),
                     value=self.cur_paras.SAMPLE.get('DEFAULT', ''),
+                    visible=self.cur_paras.SAMPLE.get('VISIBLE', True),
                     interactive=True)
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
@@ -94,6 +106,7 @@ class DiffusionUI(UIBase):
                     label=self.component_names.discretization,
                     choices=self.cur_paras.DISCRETIZATION.get('VALUES', []),
                     value=self.cur_paras.DISCRETIZATION.get('DEFAULT', ''),
+                    visible=self.cur_paras.DISCRETIZATION.get('VISIBLE', True),
                     interactive=True)
             self.cur_h_level_dict, default_res = self.merge_resolutions(
                 self.h_level_dict, self.default_resolutions)
@@ -116,6 +129,7 @@ class DiffusionUI(UIBase):
                 maximum=self.cur_paras.SAMPLES.get('MAX', 4),
                 step=1,
                 value=self.cur_paras.SAMPLES.get('DEFAULT', 1),
+                visible=self.cur_paras.SAMPLES.get('VISIBLE', True),
                 interactive=True)
         with gr.Row(equal_height=True):
             self.sample_steps = gr.Slider(
@@ -132,6 +146,7 @@ class DiffusionUI(UIBase):
                 maximum=self.cur_paras.GUIDE_SCALE.get('MAX', 10),
                 step=0.5,
                 value=self.cur_paras.GUIDE_SCALE.get('DEFAULT', 7.5),
+                visible=self.cur_paras.GUIDE_SCALE.get('VISIBLE', True),
                 interactive=True)
             self.guide_rescale = gr.Slider(
                 label=self.component_names.guide_rescale,
@@ -139,6 +154,7 @@ class DiffusionUI(UIBase):
                 maximum=self.cur_paras.GUIDE_RESCALE.get('MAX', 1.0),
                 step=0.1,
                 value=self.cur_paras.GUIDE_RESCALE.get('DEFAULT', 0.5),
+                visible=self.cur_paras.GUIDE_RESCALE.get('VISIBLE', True),
                 interactive=True)
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):

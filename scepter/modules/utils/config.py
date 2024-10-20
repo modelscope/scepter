@@ -20,7 +20,7 @@ _SECURE_KEYWORDS = [
 _SECURE_VALUEWORDS = ['oss://', 'oss-']  # -> "#####"
 
 
-def dict_to_yaml(module_name, name, json_config, set_name=False):
+def dict_to_yaml(module_name, name, json_config, set_name=False, exclude_keys=[]):
     '''
     { "ENV" :
         { "description" : "",
@@ -70,6 +70,9 @@ def dict_to_yaml(module_name, name, json_config, set_name=False):
         yaml_str = ''
         # print(level_num, json_config)
         if isinstance(json_config, dict):
+            for key in exclude_keys:
+                if key in json_config:
+                    json_config.pop(key)
             if 'value' in json_config:
                 value = json_config['value']
                 if isinstance(value, dict):
@@ -322,39 +325,39 @@ class Config(object):
                     'CUDNN_DETERMINISTIC': True,
                     'CUDNN_BENCHMARK': False
                 }
-                self.logger.info(
-                    f"ENV is not set and will use default ENV as {self.cfg_dict['ENV']}; "
-                    f'If want to change this value, please set them in your config.'
-                )
+                # self.logger.info(
+                #     f"ENV is not set and will use default ENV as {self.cfg_dict['ENV']}; "
+                #     f'If want to change this value, please set them in your config.'
+                # )
             else:
                 if 'SEED' not in self.cfg_dict['ENV']:
                     self.cfg_dict['ENV']['SEED'] = 2023
-                    self.logger.info(
-                        f"SEED is not set and will use default SEED as {self.cfg_dict['ENV']['SEED']}; "
-                        f'If want to change this value, please set it in your config.'
-                    )
+                    # self.logger.info(
+                    #     f"SEED is not set and will use default SEED as {self.cfg_dict['ENV']['SEED']}; "
+                    #     f'If want to change this value, please set it in your config.'
+                    # )
             os.environ['ES_SEED'] = str(self.cfg_dict['ENV']['SEED'])
         self._update_dict(self.cfg_dict)
-        if load:
-            self.logger.info(f'Parse cfg file as \n {self.dump()}')
+        # if load:
+        #     self.logger.info(f'Parse cfg file as \n {self.dump()}')
 
     def load_from_file(self, file_name):
-        self.logger.info(f'Loading config from {file_name}')
+        # self.logger.info(f'Loading config from {file_name}')
         if file_name is None or not os.path.exists(file_name):
             self.logger.info(f'File {file_name} does not exist!')
             self.logger.warning(
-                f"Cfg file is None or doesn't exist, Skip loading config from {file_name}."
+                f"Cfg file is None or doesn't exist, Skip loading config from [{file_name}]."
             )
             return
         if file_name.endswith('.json'):
             self.cfg_dict = self._load_json(file_name)
             self.logger.info(
-                f'System take {file_name} as json, because we find json in this file'
+                f'Loading config from [{file_name}] as json file.'
             )
         elif file_name.endswith('.yaml'):
             self.cfg_dict = self._load_yaml(file_name)
             self.logger.info(
-                f'System take {file_name} as yaml, because we find yaml in this file'
+                f'Loading config from [{file_name}] as yaml file.'
             )
         else:
             self.logger.info(
@@ -612,6 +615,20 @@ class Config(object):
                     config_new[key.lower()] = self.get_lowercase_dict(val)
                 else:
                     config_new[key.lower()] = val
+            else:
+                config_new[key] = val
+        return config_new
+
+    def get_uppercase_dict(self, cfg_dict=None):
+        if cfg_dict is None:
+            cfg_dict = self.get_dict()
+        config_new = {}
+        for key, val in cfg_dict.items():
+            if isinstance(key, str):
+                if isinstance(val, dict):
+                    config_new[key.upper()] = self.get_uppercase_dict(val)
+                else:
+                    config_new[key.upper()] = val
             else:
                 config_new[key] = val
         return config_new

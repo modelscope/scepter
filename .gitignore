@@ -18,3 +18,4 @@ scepter.egg-info
 #MANIFEST.in
 *resources
 *.ipynb_checkpoints*
+*.vscode

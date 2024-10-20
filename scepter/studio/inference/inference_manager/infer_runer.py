@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 from scepter.modules.inference.diffusion_inference import DiffusionInference
+from scepter.modules.inference.flux_inference import FluxInference
 from scepter.modules.inference.largen_inference import LargenInference
 from scepter.modules.inference.pixart_inference import PixArtInference
 from scepter.modules.inference.sd3_inference import SD3Inference
@@ -108,6 +109,8 @@ class PipelineManager():
             PipelineBuilder = PixArtInference
         elif pipeline_name.startswith('SD3'):
             PipelineBuilder = SD3Inference
+        elif pipeline_name.startswith('FLUX'):
+            PipelineBuilder = FluxInference
         else:
             PipelineBuilder = DiffusionInference
         new_inference = PipelineBuilder(logger=self.logger)

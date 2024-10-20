@@ -9,7 +9,6 @@ import math
 import torch
 import torch.nn as nn
 from einops import rearrange
-
 from scepter.modules.model.backbone.transformer.attention import drop_path
 
 
@@ -152,7 +151,6 @@ class SizeEmbedder(TimestepEmbedder):
 
     @property
     def dtype(self):
-        # 返回模型参数的数据类型
         return next(self.parameters()).dtype
 
 

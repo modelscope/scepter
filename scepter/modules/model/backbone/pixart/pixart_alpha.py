@@ -60,8 +60,8 @@ class FinalLayer(nn.Module):
         self.linear = nn.Linear(hidden_size,
                                 patch_size * patch_size * out_channels,
                                 bias=True)
-        self.adaLN_modulation = nn.Sequential(
-            nn.SiLU(), nn.Linear(hidden_size, 2 * hidden_size, bias=True))
+        self.adaLN_modulation = nn.Sequential(nn.SiLU(),
+                                              nn.Linear(hidden_size, 2 * hidden_size, bias=True))
 
     def forward(self, x, c):
         shift, scale = self.adaLN_modulation(c).chunk(2, dim=1)

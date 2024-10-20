@@ -242,6 +242,8 @@ class BaseDataCard(object):
                     illegal_tup.append(f'{range_tup} is illegal, start number '
                                        f'or end number should >= 1. ')
                     continue
+                start_num = max(0, start_num)
+                end_num = min(len(self), end_num)
                 if start_num > len(self) or end_num > len(self):
                     illegal_tup.append(
                         f'{range_tup} is illegal, start number '

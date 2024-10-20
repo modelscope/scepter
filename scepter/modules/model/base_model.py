@@ -43,7 +43,13 @@ class BaseModel(nn.Module):
                         self._dist_data[key][k] += v
                     else:
                         self._dist_data[key][k] = v
-
+    def collect_probe(self):
+        probe_data_dict = self._probe_data
+        for k, v in self._modules.items():
+            if isinstance(getattr(self, k), BaseModel):
+                for kk, vv in getattr(self, k).collect_probe().items():
+                     probe_data_dict[f'{k}/{kk}'] = vv
+        return probe_data_dict
     def probe_data(self):
         gather_probe_data = gather_data(self._probe_data)
         _dist_data_list = gather_data([self._dist_data])

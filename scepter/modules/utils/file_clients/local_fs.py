@@ -41,9 +41,7 @@ class LocalFs(BaseFs):
         if target_path.startswith(self.get_prefix()):
             return target_path
         if target_path.startswith('./') or target_path.startswith('../'):
-            return os.path.join(self.get_prefix(),
-                                target_path).replace('/./',
-                                                     '/').replace('/../', '/')
+            return os.path.abspath(os.path.join(self.get_prefix(), target_path))
         if target_path.startswith('/'):
             return target_path
         if target_path.startswith('file://'):
@@ -236,8 +234,17 @@ class LocalFs(BaseFs):
 
     def put_object(self, local_data, target_path) -> bool:
         target_path = self.reconstruct_path(target_path)
-        with open(target_path, 'w') as f:
-            f.write(local_data)
+        dirname = os.path.dirname(target_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname, exist_ok=True)
+        if isinstance(local_data, str):
+            with open(target_path, 'w') as f:
+                f.write(local_data)
+        elif isinstance(local_data, bytes):
+            with open(target_path, 'wb') as f:
+                f.write(local_data)
+        else:
+            raise NotImplementedError
         return True
 
     def walk_dir(self, file_dir, recurse=True):
@@ -249,6 +256,9 @@ class LocalFs(BaseFs):
     def put_object_from_local_file(self, local_path, target_path) -> bool:
         target_path = self.reconstruct_path(target_path)
         local_path = self.reconstruct_path(local_path)
+        dirname = os.path.dirname(target_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname, exist_ok=True)
         if local_path != target_path:
             try:
                 shutil.copy(local_path, target_path)
@@ -271,7 +281,7 @@ class LocalFs(BaseFs):
                 return False
             return True
         try:
-            os.makedirs(target_dir)
+            os.makedirs(target_dir, exist_ok=True)
         except Exception as e:
             self.logger.error(e)
             return False
@@ -309,6 +319,9 @@ class LocalFs(BaseFs):
                                multi_thread=False) -> bool:
         local_dir = self.reconstruct_path(local_dir)
         target_dir = self.reconstruct_path(target_dir)
+        dirname = os.path.dirname(target_dir)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname, exist_ok=True)
         if local_dir == target_dir:
             return True
         # # cp -f local_dir/* target_dir/*

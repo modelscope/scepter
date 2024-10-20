@@ -1,0 +1,212 @@
+NAME: FLUX1.0_SCHNELL
+IS_DEFAULT: False
+DEFAULT_PARAS:
+  PARAS:
+    RESOLUTIONS: [[1024, 1024]]
+  INPUT:
+    IMAGE:
+    ORIGINAL_SIZE_AS_TUPLE: [1024, 1024]
+    TARGET_SIZE_AS_TUPLE: [1024, 1024]
+    PROMPT: ""
+    NEGATIVE_PROMPT:
+      DEFAULT: ""
+      VISIBLE: False
+    PROMPT_PREFIX: ""
+    SAMPLE:
+      VALUES: ["flow_eluer"]
+      DEFAULT: "flow_eluer"
+    SAMPLE_STEPS: 4
+    GUIDE_SCALE: 3.5
+    GUIDE_RESCALE:
+      DEFAULT: 0.0
+      VISIBLE: False
+    DISCRETIZATION:
+      VALUES: []
+      DEFAULT:
+      VISIBLE: False
+  OUTPUT:
+    LATENT:
+    IMAGES:
+    SEED:
+  MODULES_PARAS:
+    FIRST_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: bfloat16
+          INPUT: ["IMAGE"]
+        -
+          NAME: decode
+          DTYPE: bfloat16
+          INPUT: ["LATENT"]
+      PARAS:
+        SCALE_FACTOR: 1.5305
+        SHIFT_FACTOR: 0.0609
+        SIZE_FACTOR: 8
+    DIFFUSION_MODEL:
+      FUNCTION:
+        -
+          NAME: forward
+          DTYPE: bfloat16
+          INPUT: ["SAMPLE_STEPS", "SAMPLE", "GUIDE_SCALE"]
+    COND_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: bfloat16
+          INPUT: ["PROMPT"]
+#
+MODEL:
+  NAME: LatentDiffusionFlux
+  PARAMETERIZATION: rf
+  TIMESTEPS: 1000
+  MIN_SNR_GAMMA:
+  ZERO_TERMINAL_SNR: False
+  PRETRAINED_MODEL:
+  IGNORE_KEYS: [ ]
+  DEFAULT_N_PROMPT:
+  USE_EMA: False
+  EVAL_EMA: False
+  DIFFUSION:
+    # NAME DESCRIPTION:  TYPE:  default: 'DiffusionFluxRF'
+    NAME: DiffusionFluxRF
+    PREDICTION_TYPE: raw
+    # NOISE_SCHEDULER DESCRIPTION:  TYPE:  default: ''
+    NOISE_SCHEDULER:
+      # NAME DESCRIPTION:  TYPE:  default: 'FlowMatchSigmaScheduler'
+      NAME: FlowMatchSigmaScheduler
+      # WEIGHTING_SCHEME DESCRIPTION: The weighting scheme for sampling timesteps, choose from ['sigma_sqrt', 'logit_normal', 'mode', 'cosmap', 'none']. TYPE: str default: 'logit_normal'
+      WEIGHTING_SCHEME: logit_normal
+      SHIFT: 3.0
+      # LOGIT_MEAN DESCRIPTION: The mean of the logit distribution for sampling timesteps. TYPE: float default: 0.0
+      LOGIT_MEAN: 0.0
+      # LOGIT_STD DESCRIPTION: The standard deviation of the logit distribution for sampling timesteps. TYPE: float default: 1.0
+      LOGIT_STD: 1.0
+      # MODE_SCALE DESCRIPTION: The scale factor for the mode of the logit distribution for sampling timesteps. TYPE: float default: 1.29
+      MODE_SCALE: 1.29
+    SAMPLER_SCHEDULER:
+      # NAME DESCRIPTION:  TYPE:  default: 'FlowMatchFluxShiftScheduler'
+      NAME: FlowMatchFluxShiftScheduler
+      # SHIFT DESCRIPTION: Use timestamp shift or not, default is True. TYPE: bool default: True
+      SHIFT: False
+      # SIGMOID_SCALE DESCRIPTION: The scale of sigmoid function for sampling timesteps. TYPE: int default: 1
+      SIGMOID_SCALE: 1
+      # BASE_SHIFT DESCRIPTION: The base shift factor for the timestamp. TYPE: float default: 0.5
+      BASE_SHIFT: 0.5
+      # MAX_SHIFT DESCRIPTION: The max shift factor for the timestamp. TYPE: float default: 1.15
+      MAX_SHIFT: 1.15
+      #
+  DIFFUSION_MODEL:
+    # NAME DESCRIPTION:  TYPE:  default: 'Flux'
+    NAME: Flux
+    PRETRAINED_MODEL: ms://AI-ModelScope/FLUX.1-schnell@flux1-schnell.safetensors
+    # IN_CHANNELS DESCRIPTION: model's input channels. TYPE: int default: 64
+    IN_CHANNELS: 64
+    # HIDDEN_SIZE DESCRIPTION: model's hidden size. TYPE: int default: 1024
+    HIDDEN_SIZE: 3072
+    # NUM_HEADS DESCRIPTION: number of heads in the transformer. TYPE: int default: 16
+    NUM_HEADS: 24
+    # AXES_DIM DESCRIPTION: dimensions of the axes of the positional encoding. TYPE: list default: [16, 56, 56]
+    AXES_DIM: [ 16, 56, 56 ]
+    # THETA DESCRIPTION: theta for positional encoding. TYPE: int default: 10000
+    THETA: 10000
+    # VEC_IN_DIM DESCRIPTION: dimension of the vector input. TYPE: int default: 768
+    VEC_IN_DIM: 768
+    # GUIDANCE_EMBED DESCRIPTION: whether to use guidance embedding. TYPE: bool default: False
+    GUIDANCE_EMBED: False
+    # CONTEXT_IN_DIM DESCRIPTION: dimension of the context input. TYPE: int default: 4096
+    CONTEXT_IN_DIM: 4096
+    # MLP_RATIO DESCRIPTION: ratio of mlp hidden size to hidden size. TYPE: float default: 4.0
+    MLP_RATIO: 4.0
+    # QKV_BIAS DESCRIPTION: whether to use bias in qkv projection. TYPE: bool default: True
+    QKV_BIAS: True
+    # DEPTH DESCRIPTION: number of transformer blocks. TYPE: int default: 19
+    DEPTH: 19
+    # DEPTH_SINGLE_BLOCKS DESCRIPTION: number of transformer blocks in the single stream block. TYPE: int default: 38
+    DEPTH_SINGLE_BLOCKS: 38
+
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKLFlux
+    EMBED_DIM: 16
+    PRETRAINED_MODEL: ms://AI-ModelScope/FLUX.1-schnell@ae.safetensors
+    IGNORE_KEYS: [ ]
+    BATCH_SIZE: 8
+    USE_CONV: False
+    SCALE_FACTOR: 0.3611
+    SHIFT_FACTOR: 0.1159
+    #
+    ENCODER:
+      NAME: Encoder
+      USE_CHECKPOINT: True
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 16
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      USE_CHECKPOINT: True
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 16
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    # NAME DESCRIPTION:  TYPE:  default: 'T5PlusClipFluxEmbedder'
+    NAME: T5PlusClipFluxEmbedder
+    # T5_MODEL DESCRIPTION:  TYPE:  default: ''
+    T5_MODEL:
+      # NAME DESCRIPTION:  TYPE:  default: 'HFEmbedder'
+      NAME: HFEmbedder
+      # HF_MODEL_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
+      HF_MODEL_CLS: T5EncoderModel
+      # MODEL_PATH DESCRIPTION: model folder path TYPE: NoneType default: None
+      MODEL_PATH: ms://AI-ModelScope/FLUX.1-schnell@text_encoder_2/
+      # HF_TOKENIZER_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
+      HF_TOKENIZER_CLS: T5Tokenizer
+      # TOKENIZER_PATH DESCRIPTION: tokenizer folder path TYPE: NoneType default: None
+      TOKENIZER_PATH: ms://AI-ModelScope/FLUX.1-schnell@tokenizer_2/
+      # MAX_LENGTH DESCRIPTION: max length of input TYPE: int default: 77
+      MAX_LENGTH: 256
+      # OUTPUT_KEY DESCRIPTION: output key TYPE: str default: 'last_hidden_state'
+      OUTPUT_KEY: last_hidden_state
+      # D_TYPE DESCRIPTION: dtype TYPE: str default: 'bfloat16'
+      D_TYPE: bfloat16
+      # BATCH_INFER DESCRIPTION: batch infer TYPE: bool default: False
+      BATCH_INFER: False
+      CLEAN: whitespace
+    # CLIP_MODEL DESCRIPTION:  TYPE:  default: ''
+    CLIP_MODEL:
+      # NAME DESCRIPTION:  TYPE:  default: 'HFEmbedder'
+      NAME: HFEmbedder
+      # HF_MODEL_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
+      HF_MODEL_CLS: CLIPTextModel
+      # MODEL_PATH DESCRIPTION: model folder path TYPE: NoneType default: None
+      MODEL_PATH: ms://AI-ModelScope/FLUX.1-schnell@text_encoder/
+      # HF_TOKENIZER_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
+      HF_TOKENIZER_CLS: CLIPTokenizer
+      # TOKENIZER_PATH DESCRIPTION: tokenizer folder path TYPE: NoneType default: None
+      TOKENIZER_PATH: ms://AI-ModelScope/FLUX.1-schnell@tokenizer/
+      # MAX_LENGTH DESCRIPTION: max length of input TYPE: int default: 77
+      MAX_LENGTH: 77
+      # OUTPUT_KEY DESCRIPTION: output key TYPE: str default: 'last_hidden_state'
+      OUTPUT_KEY: pooler_output
+      # D_TYPE DESCRIPTION: dtype TYPE: str default: 'bfloat16'
+      D_TYPE: bfloat16
+      # BATCH_INFER DESCRIPTION: batch infer TYPE: bool default: False
+      BATCH_INFER: True
+      CLEAN: whitespace

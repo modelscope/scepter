@@ -205,19 +205,26 @@ class ModelManageUI(UIBase):
                             value=[]),
                 gr.Textbox(elem_classes=cur_paras.NEGATIVE_PROMPT.get(
                     'VALUES', []),
-                           value=cur_paras.NEGATIVE_PROMPT.get('DEFAULT', '')),
+                           value=cur_paras.NEGATIVE_PROMPT.get('DEFAULT', ''),
+                           visible=cur_paras.NEGATIVE_PROMPT.get('VISIBLE', True)),
                 gr.Textbox(elem_classes=cur_paras.PROMPT_PREFIX.get(
                     'VALUES', []),
-                           value=cur_paras.PROMPT_PREFIX.get('DEFAULT', '')),
+                           value=cur_paras.PROMPT_PREFIX.get('DEFAULT', ''),
+                           visible=cur_paras.PROMPT_PREFIX.get('VISIBLE', True)),
                 gr.Dropdown(choices=[key for key in h_level_dict.keys()],
                             value=default_res[0]),
                 gr.Dropdown(choices=cur_paras.SAMPLE.get('VALUES', []),
-                            value=cur_paras.SAMPLE.get('DEFAULT', '')),
+                            value=cur_paras.SAMPLE.get('DEFAULT', ''),
+                            visible=cur_paras.SAMPLE.get('VISIBLE', True)),
                 gr.Dropdown(choices=cur_paras.DISCRETIZATION.get('VALUES', []),
-                            value=cur_paras.DISCRETIZATION.get('DEFAULT', '')),
-                gr.Slider(value=cur_paras.SAMPLE_STEPS.get('DEFAULT', 30)),
-                gr.Slider(value=cur_paras.GUIDE_SCALE.get('DEFAULT', 7.5)),
-                gr.Slider(value=cur_paras.GUIDE_RESCALE.get('DEFAULT', 0.5)))
+                            value=cur_paras.DISCRETIZATION.get('DEFAULT', ''),
+                            visible=cur_paras.DISCRETIZATION.get('VISIBLE', True)),
+                gr.Slider(value=cur_paras.SAMPLE_STEPS.get('DEFAULT', 30),
+                          visible=cur_paras.SAMPLE_STEPS.get('VISIBLE', True)),
+                gr.Slider(value=cur_paras.GUIDE_SCALE.get('DEFAULT', 7.5),
+                          visible=cur_paras.GUIDE_SCALE.get('VISIBLE', True)),
+                gr.Slider(value=cur_paras.GUIDE_RESCALE.get('DEFAULT', 0.5),
+                          visible=cur_paras.GUIDE_RESCALE.get('VISIBLE', True)))
 
         self.diffusion_model.change(
             diffusion_model_change,

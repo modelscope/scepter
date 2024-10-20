@@ -83,7 +83,13 @@ def transfer_data_to_cuda(data_map: dict) -> dict:
         elif isinstance(value, dict):
             ret[key] = transfer_data_to_cuda(value)
         elif isinstance(value, (list, tuple)):
-            ret[key] = type(value)([transfer_data_to_cuda(t) for t in value])
+            ret_data = []
+            for t in value:
+                if not isinstance(t, dict):
+                    ret_data.append(transfer_data_to_cuda({'data': t})['data'])
+                else:
+                    ret_data.append(transfer_data_to_cuda(t))
+            ret[key] = type(value)(ret_data)
         else:
             ret[key] = value
     return ret
