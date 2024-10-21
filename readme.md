@@ -39,9 +39,7 @@ ACE is a unified foundational model framework that supports a wide range of visu
 context CU, we introduce historical contextual information into visual generation tasks, paving
 the way for ChatGPT-like dialog systems in visual generation.
 
-<video controls width="500">
-  <source src="https://github.com/ali-vilab/ace-page/raw/main/static/videos/teaser_final.webm" type="video/webm">
-</video>
+[![Watch the demo](https://github.com/ali-vilab/ace-page/raw/main/static/images/teaser.jpg)](https://ali-vilab.github.io/ace-page/)
 
 ### FLUX Tuners
 
@@ -80,6 +78,12 @@ the way for ChatGPT-like dialog systems in visual generation.
 <table><tbody>
   <tr>
     <th align="center" colspan="4">Example Workflow Case</th>
+  </tr>
+  <tr>
+    <th align="center" colspan="1">Base</th>
+    <th align="center" colspan="1">+Mantra</th>
+    <th align="center" colspan="1">+Tuner</th>
+    <th align="center" colspan="1">+Control</th>
   </tr>
   <tr>
     <td>
@@ -139,17 +143,18 @@ pip install scepter
 
 ### Currently supported approaches
 
-|            Tasks             |                   Methods                   | Links                                                                                                                                                                                                                                                       |
-|:----------------------------:|:-------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|   Text-to-image Generation   |                   SD v1.5                   | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/runwayml/stable-diffusion-v1-5)                                                                                                         |
-|   Text-to-image Generation   |                   SD v2.1                   | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/runwayml/stable-diffusion-v1-5)                                                                                                         |
-|   Text-to-image Generation   |                    SD-XL                    | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)                                                                                               |
-|       Efficient Tuning       |                    LoRA                     | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=LoRA&color=red&logo=arxiv)](https://arxiv.org/abs/2106.09685)                                                                                                                         |
-|       Efficient Tuning       |            Res-Tuning(NeurIPS23)            | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=Res-Tuing&color=red&logo=arxiv)](https://arxiv.org/abs/2310.19859) [![Page link](https://img.shields.io/badge/Page-ResTuning-Gree)](https://res-tuning.github.io/)                    |
-| Controllable Image Synthesis | [🌟SCEdit(CVPR24)](docs/en/tasks/scedit.md) | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=SCEdit&color=red&logo=arxiv)](https://arxiv.org/abs/2312.11392)   [![Page link](https://img.shields.io/badge/Page-SCEdit-Gree)](https://scedit.github.io/)                            |
-|        Image Editing         |    [🌟LAR-Gen](docs/en/tasks/largen.md)     | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=LARGen&color=red&logo=arxiv)](https://arxiv.org/abs/2403.19534)   [![Page link](https://img.shields.io/badge/Page-LARGen-Gree)](https://ali-vilab.github.io/largen-page/)             |
-|        Image Editing         | [🌟StyleBooth](docs/en/tasks/stylebooth.md) | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=StyleBooth&color=red&logo=arxiv)](https://arxiv.org/abs/2404.12154)   [![Page link](https://img.shields.io/badge/Page-StyleBooth-Gree)](https://ali-vilab.github.io/stylebooth-page/) |
-| Image Generation and Editing |    [🌟ACE](https://ali-vilab.github.io/ace-page/)     | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=ACE&color=red&logo=arxiv)](https://arxiv.org/abs/2410.00086)   [![Page link](https://img.shields.io/badge/Page-ACE-Gree)](https://ali-vilab.github.io/ace-page/)                      |
+|            Tasks             |                    Methods                     | Links                                                                                                                                                                                                                                                       |
+|:----------------------------:|:----------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|   Text-to-image Generation   |                    SD v1.5                     | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/runwayml/stable-diffusion-v1-5)                                                                                                         |
+|   Text-to-image Generation   |                    SD v2.1                     | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/runwayml/stable-diffusion-v1-5)                                                                                                         |
+|   Text-to-image Generation   |                     SD-XL                      | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)                                                                                               |
+|   Text-to-image Generation   |                      FLUX                      | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/black-forest-labs/FLUX.1-dev)                                                                                               |
+|       Efficient Tuning       |                      LoRA                      | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=LoRA&color=red&logo=arxiv)](https://arxiv.org/abs/2106.09685)                                                                                                                         |
+|       Efficient Tuning       |             Res-Tuning(NeurIPS23)              | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=Res-Tuing&color=red&logo=arxiv)](https://arxiv.org/abs/2310.19859) [![Page link](https://img.shields.io/badge/Page-ResTuning-Gree)](https://res-tuning.github.io/)                    |
+| Controllable Image Synthesis |  [🌟SCEdit(CVPR24)](docs/en/tasks/scedit.md)   | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=SCEdit&color=red&logo=arxiv)](https://arxiv.org/abs/2312.11392)   [![Page link](https://img.shields.io/badge/Page-SCEdit-Gree)](https://scedit.github.io/)                            |
+|        Image Editing         |      [🌟LAR-Gen](docs/en/tasks/largen.md)      | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=LARGen&color=red&logo=arxiv)](https://arxiv.org/abs/2403.19534)   [![Page link](https://img.shields.io/badge/Page-LARGen-Gree)](https://ali-vilab.github.io/largen-page/)             |
+|        Image Editing         |  [🌟StyleBooth](docs/en/tasks/stylebooth.md)   | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=StyleBooth&color=red&logo=arxiv)](https://arxiv.org/abs/2404.12154)   [![Page link](https://img.shields.io/badge/Page-StyleBooth-Gree)](https://ali-vilab.github.io/stylebooth-page/) |
+| Image Generation and Editing | [🌟ACE](https://ali-vilab.github.io/ace-page/) | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=ACE&color=red&logo=arxiv)](https://arxiv.org/abs/2410.00086)   [![Page link](https://img.shields.io/badge/Page-ACE-Gree)](https://ali-vilab.github.io/ace-page/)                      |
 
 
 ## 🖥️ SCEPTER Studio

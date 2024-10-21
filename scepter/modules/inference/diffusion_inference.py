@@ -90,7 +90,10 @@ class DiffusionInference():
                     from safetensors.torch import load_file as load_safetensors
                     sd = load_safetensors(local_path)
                 else:
-                    sd = torch.load(local_path, map_location='cpu', weights_only=True)
+                    if 'weights_only' in torch.load.__code__.co_varnames:
+                        sd = torch.load(local_path, map_location='cpu', weights_only=True)
+                    else:
+                        sd = torch.load(local_path, map_location='cpu')
                 first_stage_model_path = os.path.join(
                     os.path.dirname(local_path), 'first_stage_model.pth')
                 cond_stage_model_path = os.path.join(
