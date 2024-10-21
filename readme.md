@@ -87,7 +87,7 @@ the way for ChatGPT-like dialog systems in visual generation.
   </tr>
   <tr>
     <td>
-      <a href="https://github.com/modelscope/scepter/raw/main/asset/workflow/sdxl_base.json" target="_blank">
+      <a href="asset/workflow/sdxl_base.json" target="_blank">
         <img src="asset/workflow/sdxl_base.jpg" width="200">
       </a>
     </td>
