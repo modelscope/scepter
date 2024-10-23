@@ -145,12 +145,12 @@ class DDIMSampler(BaseDiffusionSampler):
         return output
 
     def step(self, sampler_output):
-        step = sampler_output.step
         x_t = sampler_output.x_t
+        step = sampler_output.step
         t = sampler_output.ts[step]
         sigmas_vp = sampler_output.sigmas_vp.to(x_t.device)
-        alpha_init = _i(sampler_output.alphas_init, step, x_t)
-        sigma_init = _i(sampler_output.sigmas_init, step, x_t)
+        alpha_init = _i(sampler_output.alphas_init, step, x_t[:1])
+        sigma_init = _i(sampler_output.sigmas_init, step, x_t[:1])
 
         x = sampler_output.callback_fn(x_t, t, sigma_init, alpha_init)
         noise_factor = self.eta * (sigmas_vp[step + 1] ** 2 / sigmas_vp[step] ** 2 *

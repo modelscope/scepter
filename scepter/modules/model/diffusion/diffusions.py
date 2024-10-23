@@ -46,19 +46,23 @@ class BaseDiffusion(object):
 
 
     def sample(self, noise, model, model_kwargs={}, steps=20, sampler=None, use_dynamic_cfg=False, guide_scale=None, guide_rescale=None,
-               show_progress=False, return_intermediate=None, intermediate_callback=None):
+               show_progress=False, return_intermediate=None, intermediate_callback=None, **kwargs):
         assert isinstance(steps, (int, torch.LongTensor))
         assert return_intermediate in (None, 'x0', 'xt')
         assert isinstance(sampler, (str, dict, Config))
         intermediates = []
 
         def callback_fn(x_t, t, sigma=None, alpha=None):
+            timestamp = t
             t = t.repeat(len(x_t)).round().long().to(x_t.device)
+            sigma = sigma.repeat(len(x_t), *([1] * (len(sigma.shape) - 1)))
+            alpha = alpha.repeat(len(x_t), *([1] * (len(alpha.shape) - 1)))
+
             if guide_scale is None or guide_scale == 1.0:
                 out = model(x=x_t, t=t, **model_kwargs)
             else:
                 if use_dynamic_cfg:
-                    guidance_scale = 1 + guide_scale * ((1 - math.cos(math.pi * ((steps - t.item()) / steps) ** 5.0)) / 2)
+                    guidance_scale = 1 + guide_scale * ((1 - math.cos(math.pi * ((steps - timestamp.item()) / steps) ** 5.0)) / 2)
                 else:
                     guidance_scale = guide_scale
                 y_out = model(x=x_t, t=t, **model_kwargs[0])

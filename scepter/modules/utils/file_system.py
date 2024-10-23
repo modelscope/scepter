@@ -293,7 +293,7 @@ class FileSystem(object):
                                                wait_finish=wait_finish)
                 else:
                     local_path = None
-                R.acquire(timeout = 2)
+                R.acquire(timeout=60)
                 try:
                     data_quene.put_nowait([target_path, local_path])
                 except Exception:
@@ -355,7 +355,7 @@ class FileSystem(object):
                         pass
                 else:
                     flg = False
-                R.acquire(timeout=2)
+                R.acquire(timeout=60)
                 try:
                     data_quene.put_nowait([local_path, target_path, flg])
                 except Exception:

@@ -23,6 +23,29 @@ class SwiftFull(BaseTuner):
                             SwiftFull.para_dict,
                             set_name=True)
 
+@TUNERS.register_class()
+class SwiftPart():
+    para_dict = {
+        'TARGET_MODULES': {
+            'value': '',
+            'description': 'The norm expression of target modules.'
+        }
+    }
+
+    def __init__(self, cfg, logger=None):
+        from swift.tuners.part import PartConfig
+        self.logger = logger
+        self.init_config = PartConfig(target_modules=cfg.TARGET_MODULES)
+
+    def __call__(self, *args, **kwargs):
+        return self.init_config
+
+    @staticmethod
+    def get_config_template():
+        return dict_to_yaml('TUNERS',
+                            __class__.__name__,
+                            SwiftPart.para_dict,
+                            set_name=True)
 
 @TUNERS.register_class()
 class SwiftLoRA():
