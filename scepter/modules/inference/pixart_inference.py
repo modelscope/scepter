@@ -84,9 +84,11 @@ class PixArtInference(DiffusionInference):
                                       function_name)(value_input['prompt'],
                                                      return_mask=True)
             context['crossattn'] = cont.float()
+            self.dynamic_load(self.diffusion_model, 'diffusion_model')
             null_context['crossattn'] = get_model(
                 self.diffusion_model).y_embedder.y_embedding[None].repeat(
                     num_samples, 1, 1)
+            self.dynamic_unload(self.diffusion_model, 'diffusion_model')
         self.dynamic_unload(self.cond_stage_model,
                             'cond_stage_model',
                             skip_loaded=True)

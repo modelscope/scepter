@@ -134,6 +134,7 @@ class LatentDiffusionPixart(LatentDiffusion):
 
     @torch.no_grad()
     def forward_test(self,
+                     image=None,
                      prompt=None,
                      label=None,
                      sampler='ddim',

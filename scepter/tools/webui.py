@@ -94,6 +94,7 @@ if __name__ == '__main__':
                                is_debug=args.debug,
                                language=args.language,
                                root_work_dir=config.WORK_DIR)
+            print('init home page success!')
         if ifid == 'preprocess':
             from scepter.studio.preprocess.preprocess import PreprocessUI
 
@@ -101,6 +102,7 @@ if __name__ == '__main__':
                                      is_debug=args.debug,
                                      language=args.language,
                                      root_work_dir=config.WORK_DIR)
+            print('init preprocess success!')
         if ifid == 'self_train':
             from scepter.studio.self_train.self_train import SelfTrainUI
 
@@ -108,12 +110,14 @@ if __name__ == '__main__':
                                     is_debug=args.debug,
                                     language=args.language,
                                     root_work_dir=config.WORK_DIR)
+            print('init self-train success!')
         if ifid == 'tuner_manager':
             from scepter.studio.tuner_manager.tuner_manager import TunerManagerUI
             interface = TunerManagerUI(info['CONFIG'],
                                        is_debug=args.debug,
                                        language=args.language,
                                        root_work_dir=config.WORK_DIR)
+            print('init tuner-manager success!')
         if ifid == 'inference':
             from scepter.studio.inference.inference import InferenceUI
 
@@ -121,6 +125,7 @@ if __name__ == '__main__':
                                     is_debug=args.debug,
                                     language=args.language,
                                     root_work_dir=config.WORK_DIR)
+            print('init inference success!')
         if ifid == '':
             pass  # TODO: Add New Features
         if interface:

@@ -281,7 +281,7 @@ class FileSystem(object):
             else:
                 return False
 
-    def get_batch_objects_from(self, target_path_list, wait_finish=False):
+    def get_batch_objects_from(self, target_path_list, wait_finish=False, return_target_path=False):
         data_quene = Queue()
         batch_size = 20
         R = threading.Lock()
@@ -293,7 +293,7 @@ class FileSystem(object):
                                                wait_finish=wait_finish)
                 else:
                     local_path = None
-                R.acquire()
+                R.acquire(timeout=60)
                 try:
                     data_quene.put_nowait([target_path, local_path])
                 except Exception:
@@ -320,7 +320,10 @@ class FileSystem(object):
 
             for target_path in batch_list:
                 local_path = file_dict.get(target_path, None)
-                yield local_path
+                if return_target_path:
+                    yield target_path, local_path
+                else:
+                    yield local_path
 
     def put_batch_objects_to(self,
                              local_path_list,
@@ -352,7 +355,7 @@ class FileSystem(object):
                         pass
                 else:
                     flg = False
-                R.acquire()
+                R.acquire(timeout=60)
                 try:
                     data_quene.put_nowait([local_path, target_path, flg])
                 except Exception:

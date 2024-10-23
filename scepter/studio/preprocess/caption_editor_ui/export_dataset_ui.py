@@ -66,14 +66,14 @@ class ExportDatasetUI(UIBase):
                     gr.Textbox(
                         value=os.path.abspath(dataset_ins.local_work_dir)),
                     gr.Textbox(value=dataset_name))
-
-        self.go_to_train.click(
-            go_to_train,
-            inputs=[create_dataset.dataset_type, create_dataset.dataset_name],
-            outputs=[
-                manager.tabs, manager.self_train.trainer_ui.data_source,
-                manager.self_train.trainer_ui.data_type,
-                manager.self_train.trainer_ui.ms_data_name,
-                manager.self_train.trainer_ui.ori_data_name
-            ],
-            queue=False)
+        if hasattr(manager, 'self_train'):
+            self.go_to_train.click(
+                go_to_train,
+                inputs=[create_dataset.dataset_type, create_dataset.dataset_name],
+                outputs=[
+                    manager.tabs, manager.self_train.trainer_ui.data_source,
+                    manager.self_train.trainer_ui.data_type,
+                    manager.self_train.trainer_ui.ms_data_name,
+                    manager.self_train.trainer_ui.ori_data_name
+                ],
+                queue=False)

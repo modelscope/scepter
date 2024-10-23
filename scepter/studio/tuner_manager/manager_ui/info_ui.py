@@ -2,11 +2,11 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import copy
 import os
-
-import yaml
+from collections import OrderedDict
 
 import gradio as gr
 import torch
+import yaml
 from safetensors.torch import save_file
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.directory import get_md5
@@ -146,8 +146,9 @@ class InfoUI(UIBase):
     def set_callbacks(self, manager, browser_ui):
         # def set_callbacks(self, manager):
         def go_to_inferece(new_name, tuner_desc, tuner_prompt_example,
-                           tuner_type, base_model):
-            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category
+                           tuner_type, base_model, login_user_name):
+            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category.get(
+                login_user_name, OrderedDict())
             sub_dir = f'{base_model}-{tuner_type}'
             current_model = all_tuners.get(sub_dir, {}).get(new_name, None)
             if current_model is None:
@@ -241,7 +242,7 @@ class InfoUI(UIBase):
             go_to_inferece,
             inputs=[
                 self.new_name, self.tuner_desc, self.tuner_prompt_example,
-                self.tuner_type, self.base_model
+                self.tuner_type, self.base_model, manager.user_name
             ],
             outputs=[
                 manager.tabs, manager.inference.infer_info,
@@ -252,8 +253,9 @@ class InfoUI(UIBase):
             ],
             queue=True)
 
-        def export_zip(tuner_name, base_model, tuner_type):
-            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category
+        def export_zip(tuner_name, base_model, tuner_type, login_user_name):
+            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category.get(
+                login_user_name, OrderedDict())
             sub_dir = f'{base_model}-{tuner_type}'
             current_model = all_tuners.get(sub_dir, {}).get(tuner_name, None)
             if current_model is None:
@@ -276,9 +278,11 @@ class InfoUI(UIBase):
             gr.Info(self.component_names.save_end)
             return gr.File(value=local_zip, visible=True)
 
-        def export_safetensors(tuner_name, base_model, tuner_type):
+        def export_safetensors(tuner_name, base_model, tuner_type,
+                               login_user_name):
             # only support sd1.5
-            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category
+            all_tuners = manager.tuner_manager.browser_ui.saved_tuners_category.get(
+                login_user_name, OrderedDict())
             sub_dir = f'{base_model}-{tuner_type}'
             current_model = all_tuners.get(sub_dir, {}).get(tuner_name, None)
             if current_model is None:
@@ -325,12 +329,15 @@ class InfoUI(UIBase):
             gr.Info(self.component_names.save_end)
             return gr.File(value=local_zip, visible=True)
 
-        def export_file(tuner_name, base_model, tuner_type, download_type):
+        def export_file(tuner_name, base_model, tuner_type, download_type,
+                        login_user_name):
             gr.Info(self.component_names.save_start)
             if download_type == '.zip':
-                return export_zip(tuner_name, base_model, tuner_type)
+                return export_zip(tuner_name, base_model, tuner_type,
+                                  login_user_name)
             elif download_type == '.safetensors':
-                return export_safetensors(tuner_name, base_model, tuner_type)
+                return export_safetensors(tuner_name, base_model, tuner_type,
+                                          login_user_name)
 
         def change_visible():
             return gr.update(visible=True)
@@ -343,24 +350,26 @@ class InfoUI(UIBase):
         self.download_confirm.click(export_file,
                                     inputs=[
                                         self.tuner_name, self.base_model,
-                                        self.tuner_type, self.download_select
+                                        self.tuner_type, self.download_select,
+                                        manager.user_name
                                     ],
                                     outputs=[self.export_url],
                                     queue=True)
 
         def save_tuner_func(tuner_name, new_name, tuner_desc, tuner_example,
-                            tuner_prompt_example, base_model, tuner_type):
+                            tuner_prompt_example, base_model, tuner_type,
+                            login_user_name):
             return browser_ui.save_tuner(manager, tuner_name, new_name,
                                          tuner_desc, tuner_example,
                                          tuner_prompt_example, base_model,
-                                         tuner_type)
+                                         tuner_type, login_user_name)
 
         self.save_bt2.click(save_tuner_func,
                             inputs=[
                                 self.tuner_name, self.new_name,
                                 self.tuner_desc, self.tuner_example,
                                 self.tuner_prompt_example, self.base_model,
-                                self.tuner_type
+                                self.tuner_type, manager.user_name
                             ],
                             outputs=[
                                 browser_ui.diffusion_models,

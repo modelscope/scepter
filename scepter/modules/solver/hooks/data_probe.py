@@ -23,6 +23,26 @@ class ProbeDataHook(Hook):
         'PROB_INTERVAL': {
             'value': 1000,
             'description': 'the interval for log print!'
+        },
+        'SAVE_NAME_PREFIX': {
+            'value': 'step',
+            'description': 'the prefix for save name!'
+        },
+        'SAVE_PROBE_PREFIX': {
+            'value': None,
+            'description': 'the prefix for save probe!'
+        },
+        'SAVE_LAST': {
+            'value': False,
+            'description': 'whether to save last!'
+        },
+        'SAVE_IMAGE_POSTFIX': {
+            'value': 'jpg',
+            'description': 'the postfix for save image!'
+        },
+        'SAVE_VIDEO_POSTFIX': {
+            'value': 'mp4',
+            'description': 'the postfix for save video!'
         }
     }]
 
@@ -34,31 +54,46 @@ class ProbeDataHook(Hook):
         self.save_probe_prefix = cfg.get('SAVE_PROBE_PREFIX', None)
         self.save_last = cfg.get('SAVE_LAST', False)
         self.save_image_postfix = cfg.get('SAVE_IMAGE_POSTFIX', 'jpg')
+        self.save_video_postfix = cfg.get('SAVE_VIDEO_POSTFIX', 'mp4')
 
     def before_all_iter(self, solver):
-        pass
-
+        if not solver.mode == 'train' and hasattr(solver, 'eval_interval'):
+            solver.eval_interval = self.prob_interval
     def before_iter(self, solver):
         pass
 
+    def get_key_level_prefix(self, key, save_folder, total_iter):
+        if self.save_probe_prefix is not None:
+            ret_prefix = os.path.join(save_folder,
+                                      self.save_probe_prefix)
+        else:
+            ret_prefix = os.path.join(
+                save_folder,
+                key.replace('/', '_') + f'_step_{total_iter}')
+        return ret_prefix
     def after_iter(self, solver):
         if solver.mode == 'train' and solver.total_iter % self.prob_interval == 0:
-            probe_dict = solver.probe_data
-            if we.rank == 0:
-                save_folder = os.path.join(
-                    solver.work_dir,
-                    f'{solver.mode}_probe/{self.save_name_prefix}-{solver.total_iter}'
+            save_folder = os.path.join(
+                solver.work_dir,
+                f'{solver.mode}_probe/{self.save_name_prefix}-{solver.total_iter}'
+            )
+            setattr(solver,
+                    f'{solver.mode}_pre_save_paras',
+                    {
+                         "save_folder":save_folder,
+                         "save_probe_prefix": self.save_probe_prefix,
+                         "image_postfix": self.save_image_postfix,
+                         "video_postfix": self.save_video_postfix,
+                         "step": solver.total_iter,
+                    }
                 )
+            gather_probe_dict = solver.probe_data
+            if we.rank == 0:
                 ret_data = {}
-                for k, v in probe_dict.items():
-                    if self.save_probe_prefix is not None:
-                        ret_prefix = os.path.join(save_folder,
-                                                  self.save_probe_prefix)
-                    else:
-                        ret_prefix = os.path.join(
-                            save_folder,
-                            k.replace('/', '_') + f'_step_{solver.total_iter}')
-                    ret_one = v.to_log(ret_prefix, self.save_image_postfix)
+                for k, v in gather_probe_dict.items():
+                    ret_prefix = self.get_key_level_prefix(k, save_folder, solver.total_iter)
+                    ret_one = v.to_log(ret_prefix, image_postfix=self.save_image_postfix,
+                                       video_postfix=self.save_video_postfix)
                     if (isinstance(ret_one, list)
                             or isinstance(ret_one, dict)) and len(ret_one) < 1:
                         continue
@@ -74,23 +109,29 @@ class ProbeDataHook(Hook):
 
     def after_all_iter(self, solver):
         if not solver.mode == 'train':
+            step = solver._total_iter[
+                'train'] if 'train' in solver._total_iter else 0
+            save_folder = os.path.join(
+                solver.work_dir,
+                f'{solver.mode}_probe/{self.save_name_prefix}-{step}'
+            )
+            setattr(solver,
+                    f'{solver.mode}_pre_save_paras',
+                    {
+                        "save_folder": save_folder,
+                        "save_probe_prefix": self.save_probe_prefix,
+                        "image_postfix": self.save_image_postfix,
+                        "step": step,
+                        "video_postfix": self.save_video_postfix
+                    }
+                    )
             probe_dict = solver.probe_data
             if we.rank == 0:
-                step = solver._total_iter[
-                    'train'] if 'train' in solver._total_iter else 0
-                save_folder = os.path.join(
-                    solver.work_dir,
-                    f'{solver.mode}_probe/{self.save_name_prefix}-{step}')
                 ret_data = {}
                 for k, v in probe_dict.items():
-                    if self.save_probe_prefix is not None:
-                        ret_prefix = os.path.join(save_folder,
-                                                  self.save_probe_prefix)
-                    else:
-                        ret_prefix = os.path.join(
-                            save_folder,
-                            k.replace('/', '_') + f'_step_{step}')
-                    ret_one = v.to_log(ret_prefix, self.save_image_postfix)
+                    ret_prefix = self.get_key_level_prefix(k, save_folder, step)
+                    ret_one = v.to_log(ret_prefix, image_postfix=self.save_image_postfix,
+                                       video_postfix=self.save_video_postfix)
                     if (isinstance(ret_one, list)
                             or isinstance(ret_one, dict)) and len(ret_one) < 1:
                         continue

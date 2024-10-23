@@ -200,23 +200,23 @@ class TrainerUI(UIBase):
                                 self.lora_alpha = gr.Number(
                                     label='LoRA Alpha',
                                     value=self.para_data.get(
-                                        'lora_alpha', 256),
+                                        'lora_alpha', 4),
                                     interactive=True)
                                 self.lora_rank = gr.Number(
                                     label='LoRA Rank',
-                                    value=self.para_data.get('lora_rank', 256),
+                                    value=self.para_data.get('lora_rank', 4),
                                     interactive=True)
                             with gr.Row(visible=text_lora_visible
                                         ) as self.text_lora_param:
                                 self.text_lora_alpha = gr.Number(
                                     label='Text LoRA Alpha',
                                     value=self.para_data.get(
-                                        'text_lora_alpha', 256),
+                                        'text_lora_alpha', 4),
                                     interactive=True)
                                 self.text_lora_rank = gr.Number(
                                     label='Text LoRA Rank',
                                     value=self.para_data.get(
-                                        'text_lora_rank', 256),
+                                        'text_lora_rank', 4),
                                     interactive=True)
                                 self.sce_ratio = gr.Slider(
                                     label='SCE Ratio',
@@ -613,7 +613,7 @@ class TrainerUI(UIBase):
                       lora_alpha, lora_rank, text_lora_alpha, text_lora_rank,
                       sce_ratio, enable_resolution_bucket,
                       min_bucket_resolution, max_bucket_resolution,
-                      bucket_resolution_steps, bucket_no_upscale):
+                      bucket_resolution_steps, bucket_no_upscale, user_name):
             # Check Cuda
             if not torch.cuda.is_available() and not self.is_debug:
                 raise gr.Error(self.component_names.training_err1)
@@ -621,6 +621,7 @@ class TrainerUI(UIBase):
             if work_name == 'custom' or work_name is None or work_name == '':
                 raise gr.Error(self.component_names.training_err4)
             work_dir = os.path.join(self.work_dir_pre, work_name)
+            login_user_name = user_name
             self.current_train_model = work_name
             if os.path.exists(work_dir) or os.path.exists(
                     f'.flag/{work_name}.tmp'):
@@ -895,11 +896,14 @@ class TrainerUI(UIBase):
             _ = prepare_train_config()
             self.trainer_ins.start_task(work_name)
             message += self.trainer_ins.get_log(work_name)
-            if work_name not in inference_ui.model_list:
-                inference_ui.model_list.append(work_name)
+            if user_name not in inference_ui.user_level_model_list:
+                inference_ui.user_level_model_list[user_name] = []
+            if work_name not in inference_ui.user_level_model_list[user_name]:
+                inference_ui.user_level_model_list[user_name].append(work_name)
             gr.Info('Start Training!' + message)
-            return gr.Dropdown(choices=inference_ui.model_list,
-                               value=work_name)
+            return gr.Dropdown(
+                choices=inference_ui.user_level_model_list[user_name],
+                value=work_name)
 
         self.training_button.click(
             run_train,
@@ -916,7 +920,7 @@ class TrainerUI(UIBase):
                 self.text_lora_alpha, self.text_lora_rank, self.sce_ratio,
                 self.enable_resolution_bucket, self.min_bucket_resolution,
                 self.max_bucket_resolution, self.bucket_resolution_steps,
-                self.bucket_no_upscale
+                self.bucket_no_upscale, manager.user_name
             ],
             outputs=[inference_ui.output_model_name],
             queue=True)

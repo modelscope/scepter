@@ -6,9 +6,8 @@ import os
 import queue
 import time
 
-import yaml
-
 import gradio as gr
+import yaml
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
 from scepter.studio.self_train.self_train_ui.component_names import ModelUIName
@@ -17,6 +16,7 @@ from scepter.studio.utils.uibase import UIBase
 
 refresh_symbol = '\U0001f504'  # 🔄
 delete_symbol = '\U0001f5d1'  # 🗑️
+stop_symbol = '\U000025A0'
 add_symbol = '\U00002795'  # ➕
 confirm_symbol = '\U00002714'  # ✔️
 
@@ -31,32 +31,41 @@ class ModelUI(UIBase):
         self.default_model_name = 'step-last'
         self.old_default_model_name = 'checkpoint.pth'
         self.delete_folder_queue = queue.Queue()
-        self.model_list = []
-        # self.model_list.extend(self.base_model_info.get('model_choices', []))
-        have_model_list = []
+        self.user_level_model_list = {}
         if not self.work_dir.endswith('/'):
             self.work_dir += '/'
+        self.load_history()
+        self.is_debug = is_debug
+        self.component_names = ModelUIName(language)
+
+    def load_history(self, user_name='admin'):
+        have_model_list = []
         for one_dir in FS.walk_dir(self.work_dir):
             if one_dir.startswith(self.work_dir):
                 one_dir = one_dir[len(self.work_dir):]
             if not os.path.isdir(os.path.join(self.work_dir, one_dir)):
                 continue
-            if len(one_dir.split('/')) > 1:
-                continue
-            if ('@' in one_dir
-                    and (os.path.exists(
-                        os.path.join(self.work_dir, one_dir, 'checkpoints',
-                                     self.default_model_name))
-                         or os.path.exists(
-                             os.path.join(self.work_dir, one_dir,
-                                          self.old_default_model_name)))):
-                if len(one_dir.split('@')) > 4:
-                    have_model_list.append([one_dir, one_dir.split('@')[-1]])
-        have_model_list.sort(key=lambda x: -int(x[-1][:-3]))
-        self.model_list.extend([v[0].split('/')[-1]
-                                for v in have_model_list][:50])
-        self.is_debug = is_debug
-        self.component_names = ModelUIName(language)
+            params_file = os.path.join(self.work_dir, one_dir, 'params.json')
+            if FS.exists(params_file):
+                try:
+                    params = json.load(open(params_file, 'r'))
+                except:
+                    continue
+                model_user_name = params.get('user_name', 'example')
+                if model_user_name == user_name or model_user_name in [
+                        'example'
+                ] or user_name == 'admin':
+                    # parse params
+                    status_file = os.path.join(self.work_dir, one_dir,
+                                               'status.json')
+                    if FS.exists(status_file):
+                        status = json.load(open(status_file, 'r'))
+                        status['model_name'] = one_dir
+                        have_model_list.append(status)
+        have_model_list.sort(key=lambda x: x['start_time'])
+        self.user_level_model_list[user_name] = [
+            v['model_name'] for v in have_model_list
+        ][:100]
 
     def get_ckpt_list(self, output_model):
         all_ckpt_list = []
@@ -95,7 +104,7 @@ class ModelUI(UIBase):
                 with gr.Column(scale=7, min_width=0):
                     self.output_model_name = gr.Dropdown(
                         label=self.component_names.output_model_name,
-                        choices=self.model_list,
+                        choices=self.user_level_model_list.get('admin', []),
                         value=None,
                         show_label=False,
                         container=False,
@@ -112,6 +121,8 @@ class ModelUI(UIBase):
                     self.refresh_model_gbtn = gr.Button(value=refresh_symbol)
                 with gr.Column(scale=1, min_width=0):
                     self.add_model_gbtn = gr.Button(value=add_symbol)
+                with gr.Column(scale=1, min_width=0):
+                    self.stop_model_gbtn = gr.Button(value=stop_symbol)
                 with gr.Column(scale=1, min_width=0):
                     self.delete_model_gbtn = gr.Button(value=delete_symbol)
 
@@ -221,23 +232,26 @@ class ModelUI(UIBase):
                                   outputs=[self.extra_model_panel],
                                   queue=False)
 
-        def confirm_add(model_name):
+        def confirm_add(model_name, login_user_name):
             model_folder = os.path.join(self.work_dir, model_name)
             have_model = os.path.exists(model_folder)
             if not have_model:
                 gr.Error(self.component_names.model_err5.format(model_name))
-            if model_name not in self.model_list and have_model:
-                self.model_list.append(model_name)
-            return gr.Row(visible=False), gr.Dropdown(choices=self.model_list,
-                                                      value=model_name)
+            self.load_history(login_user_name)
+            if model_name not in self.user_level_model_list[
+                    login_user_name] and have_model:
+                self.user_level_model_list[login_user_name].append(model_name)
+            return gr.Row(visible=False), gr.Dropdown(
+                choices=self.user_level_model_list[login_user_name],
+                value=model_name)
 
         self.confirm_add.click(
             fn=confirm_add,
-            inputs=[self.extra_model_txt],
+            inputs=[self.extra_model_txt, manager.user_name],
             outputs=[self.extra_model_panel, self.output_model_name],
             queue=False)
 
-        def refresh_model(model_name):
+        def refresh_model(model_name, login_user_name):
             if not self.delete_folder_queue.empty():
                 try:
                     del_folder = self.delete_folder_queue.get_nowait()
@@ -252,29 +266,33 @@ class ModelUI(UIBase):
             ckpt_list = self.get_ckpt_list(model_name)
             ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else ''
             ret_gallery = ckpt_name_change(model_name, ckpt_value)
+            self.load_history(login_user_name)
             return (message, gr.Column(visible=status in ('running',
                                                           'success')),
-                    gr.Dropdown(choices=self.model_list, value=model_name),
+                    gr.Dropdown(choices=self.user_level_model_list.get(
+                        login_user_name, []),
+                                value=model_name),
                     gr.Dropdown(choices=ckpt_list,
                                 value=ckpt_value), ret_gallery)
 
-        self.refresh_model_gbtn.click(fn=refresh_model,
-                                      inputs=[self.output_model_name],
-                                      outputs=[
-                                          self.log_message,
-                                          self.export_log_panel,
-                                          self.output_model_name,
-                                          self.output_ckpt_name,
-                                          self.eval_gallery
-                                      ],
-                                      queue=False)
+        self.refresh_model_gbtn.click(
+            fn=refresh_model,
+            inputs=[self.output_model_name, manager.user_name],
+            outputs=[
+                self.log_message, self.export_log_panel,
+                self.output_model_name, self.output_ckpt_name,
+                self.eval_gallery
+            ],
+            queue=False)
 
-        def delete_model(model_name):
+        def delete_model(model_name, login_user_name):
             index = 0
             trainer_ui.trainer_ins.stop_task(model_name)
-            if model_name in self.model_list:
-                index = self.model_list.index(model_name)
-                self.model_list.remove(model_name)
+            self.load_history(login_user_name)
+            model_list = self.user_level_model_list.get(login_user_name, [])
+            if model_name in model_list:
+                index = model_list.index(model_name)
+                model_list.remove(model_name)
                 folder = os.path.join(self.work_dir, model_name)
                 for _ in range(1):
                     if os.path.exists(folder):
@@ -285,20 +303,56 @@ class ModelUI(UIBase):
                     else:
                         break
                 self.delete_folder_queue.put_nowait(folder)
-            if index <= len(self.model_list) - 1:
-                model_name = self.model_list[index]
-            elif len(self.model_list) > 0:
-                model_name = self.model_list[0]
+            if index <= len(model_list) - 1:
+                model_name = model_list[index]
+            elif len(model_list) > 0:
+                model_name = model_list[-1]
             else:
                 model_name = None
+            self.user_level_model_list[login_user_name] = model_list
+            return gr.Dropdown(choices=model_list, value=model_name)
 
-            return gr.Dropdown(choices=self.model_list, value=model_name)
+        self.delete_model_gbtn.click(
+            fn=delete_model,
+            inputs=[self.output_model_name, manager.user_name],
+            outputs=[self.output_model_name])
 
-        self.delete_model_gbtn.click(fn=delete_model,
-                                     inputs=[self.output_model_name],
-                                     outputs=[self.output_model_name])
+        def stop_model(model_name, login_user_name):
+            trainer_ui.trainer_ins.stop_task(model_name)
+            if not self.delete_folder_queue.empty():
+                try:
+                    del_folder = self.delete_folder_queue.get_nowait()
+                    if os.path.exists(del_folder):
+                        os.system(f'rm -rf {del_folder}')
+                        self.delete_folder_queue.put_nowait(del_folder)
+                except Exception:
+                    pass
+            message = trainer_ui.trainer_ins.get_log(model_name)
+            status = trainer_ui.trainer_ins.get_status(model_name)
+            ckpt_list = self.get_ckpt_list(model_name)
+            ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else ''
+            ret_gallery = ckpt_name_change(model_name, ckpt_value)
+            self.load_history(login_user_name)
+            return (message, gr.Column(visible=status in ('running',
+                                                          'success')),
+                    gr.Dropdown(choices=self.user_level_model_list.get(
+                        login_user_name, []),
+                                value=model_name),
+                    gr.Dropdown(choices=ckpt_list,
+                                value=ckpt_value), ret_gallery)
+
+        self.stop_model_gbtn.click(
+            fn=stop_model,
+            inputs=[self.output_model_name, manager.user_name],
+            outputs=[
+                self.log_message, self.export_log_panel,
+                self.output_model_name, self.output_ckpt_name,
+                self.eval_gallery
+            ])
 
         def go_to_inferece(output_model, output_ckpt_name):
+            if output_ckpt_name is None or output_ckpt_name.strip() == '':
+                raise gr.Error(message="The model file doesn't exist.")
             params_path = os.path.join(self.work_dir, output_model,
                                        'params.json')
             if os.path.exists(params_path):
@@ -492,3 +546,17 @@ class ModelUI(UIBase):
                               inputs=[self.output_model_name],
                               outputs=[self.export_url],
                               queue=False)
+
+        def model_name_change(login_user_name):
+            self.load_history(login_user_name)
+            model_list = self.user_level_model_list.get(login_user_name, [])
+            if len(model_list) > 0:
+                model_name = model_list[-1]
+            else:
+                model_name = ''
+            return gr.Dropdown(choices=model_list, value=model_name)
+
+        manager.user_name.change(model_name_change,
+                                 inputs=[manager.user_name],
+                                 outputs=[self.output_model_name],
+                                 queue=False)

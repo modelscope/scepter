@@ -24,8 +24,8 @@ class ModelscopeFs(BaseFs):
         super(ModelscopeFs, self).__init__(cfg, logger=logger)
         retry_times = cfg.get('RETRY_TIMES', 10)
         self._retry_times = retry_times
-        self._model_id_loaded = set()
-        self._model_file_loaded = set()
+        self._model_id_loaded = dict()
+        self._model_file_loaded = dict()
 
     def get_prefix(self) -> str:
         return 'ms://'
@@ -69,14 +69,14 @@ class ModelscopeFs(BaseFs):
         if revision is not None:
             local_path = local_path + '_' + str(revision)
 
+        model_file = os.path.join(key, file_path)
         retry = 0
         while retry < self._retry_times:
             try:
-                model_file = os.path.join(key, file_path)
                 if model_file in self._model_file_loaded:
-                    local_path = os.path.join(local_path, model_file)
+                    local_path = self._model_file_loaded[model_file]
                     if not osp.exists(local_path):
-                        self._model_file_loaded.remove(key)
+                        self._model_file_loaded.pop(model_file)
                 else:
                     if token is not None:
                         cookies = self.get_modelscope_cookie(token)
@@ -94,7 +94,7 @@ class ModelscopeFs(BaseFs):
 
         if retry >= self._retry_times:
             return None
-        self._model_file_loaded.add(model_file)
+        self._model_file_loaded[model_file] = local_path
         if is_tmp:
             self.add_temp_file(local_path)
         return local_path
@@ -142,9 +142,9 @@ class ModelscopeFs(BaseFs):
         while retry < self._retry_times:
             try:
                 if key in self._model_id_loaded:
-                    local_path = os.path.join(local_path, key)
+                    local_path = self._model_id_loaded[key]
                     if not osp.exists(local_path):
-                        self._model_id_loaded.remove(key)
+                        self._model_id_loaded.pop(key)
                 else:
                     if token is not None:
                         cookies = self.get_modelscope_cookie(token)
@@ -162,7 +162,7 @@ class ModelscopeFs(BaseFs):
         if retry >= self._retry_times:
             return None
 
-        self._model_id_loaded.add(key)
+        self._model_id_loaded[key] = local_path
         if is_tmp:
             self.add_temp_file(local_path)
         if not ret_folder == '':

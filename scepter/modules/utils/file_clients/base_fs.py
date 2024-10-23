@@ -39,6 +39,7 @@ class BaseFs(object, metaclass=ABCMeta):
         self._temp_files = set()
         self.cfg = cfg
         self.tmp_dir = cfg.get('TEMP_DIR', None)
+        self.enable_md5_path = cfg.get('ENABLE_MD5_PATH', True)
         self.auto_clean = cfg.get('AUTO_CLEAN', False)
         if self.tmp_dir is None:
             self.auto_clean = True
@@ -306,7 +307,10 @@ class BaseFs(object, metaclass=ABCMeta):
                 rand_name += f'{suffix}'
             tmp_file = osp.join(tempfile.gettempdir(), rand_name)
         else:
-            cache_name = '{}{}{}'.format(etag, get_md5(target_path), suffix)
+            if self.enable_md5_path:
+                cache_name = '{}{}{}'.format(etag, get_md5(target_path), suffix)
+            else:
+                cache_name = ''
             tmp_file = osp.join(self.tmp_dir, cache_name)
         return tmp_file
 

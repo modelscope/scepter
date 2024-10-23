@@ -7,7 +7,6 @@ import sys
 
 import numpy as np
 import torch
-import torch.cuda.amp as amp
 import torchvision.transforms as TT
 from PIL import Image
 from scepter.modules.solver.registry import SOLVERS
@@ -26,6 +25,7 @@ if os.path.exists('__init__.py'):
 
 
 def run_task(cfg):
+    import torch.cuda.amp as amp
     std_logger = get_logger(name='scepter')
     solver = SOLVERS.build(cfg.SOLVER, logger=std_logger)
     solver.set_up()

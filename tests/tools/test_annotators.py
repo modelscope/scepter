@@ -4,6 +4,7 @@
 import os
 import unittest
 
+import cv2
 import numpy as np
 from PIL import Image
 from scepter.modules.annotator.registry import ANNOTATORS
@@ -244,6 +245,244 @@ class AnnotatorTest(unittest.TestCase):
         for key, save_image in output_image.items():
             Image.fromarray(save_image).save(
                 os.path.join(self.save_dir, f'sunflower_processor_{key}.png'))
+
+    @unittest.skip('')
+    def test_annotator_doodle(self):
+        doodle_dict = {
+            'NAME': 'DoodleAnnotator', 'PROCESSOR_TYPE': 'pidinet_sketch',
+            'PROCESSOR_CFG': [
+                {'NAME': 'PiDiAnnotator',
+                 'PRETRAINED_MODEL': 'ms://iic/scepter_annotator@annotator/ckpts/table5_pidinet.pth'},
+                {'NAME': 'SketchAnnotator',
+                 'PRETRAINED_MODEL': 'ms://iic/scepter_annotator@annotator/ckpts/sketch_simplification_gan.pth'}
+            ]
+        }
+        doodle_anno = Config(cfg_dict=doodle_dict, load=False)
+        doodle_ins = ANNOTATORS.build(doodle_anno).to(we.device_id)
+        doodle_image = doodle_ins(self.image)
+        print("doodle's shape:", doodle_image.shape)
+        Image.fromarray(doodle_image).save(
+            os.path.join(self.save_dir, 'sunflower_doodle.png'))
+
+    @unittest.skip('')
+    def test_annotator_gray(self):
+        gray_dict = {'NAME': 'GrayAnnotator'}
+        gray_anno = Config(cfg_dict=gray_dict, load=False)
+        gray_ins = ANNOTATORS.build(gray_anno).to(we.device_id)
+        gray_image = gray_ins(self.image)
+        print("gray's shape:", gray_image.shape)
+        Image.fromarray(gray_image).save(
+            os.path.join(self.save_dir, 'sunflower_gray.png'))
+
+    @unittest.skip('')
+    def test_annotator_drawing(self):
+        cont_dict = {'NAME': 'InfoDrawContourAnnotator', 'INPUT_NC': 3, 'OUTPUT_NC': 1, 'N_RESIDUAL_BLOCKS': 3,
+                     'SIGMOID': True,
+                     'PRETRAINED_MODEL': 'ms://iic/scepter_annotator@annotator/ckpts/informative_drawing_contour_style.pth'}
+        cont_anno = Config(cfg_dict=cont_dict, load=False)
+        cont_ins = ANNOTATORS.build(cont_anno).to(we.device_id)
+        cont_image = cont_ins(self.image)
+        print("cont's shape:", cont_image.shape)
+        Image.fromarray(cont_image).save(
+            os.path.join(self.save_dir, 'sunflower_drawing_contour_style.png'))
+
+        cont_dict = {'NAME': 'InfoDrawAnimeAnnotator', 'INPUT_NC': 3, 'OUTPUT_NC': 1, 'N_RESIDUAL_BLOCKS': 3,
+                     'SIGMOID': True,
+                     'PRETRAINED_MODEL': 'ms://iic/scepter_annotator@annotator/ckpts/informative_drawing_anime_style.pth'}
+        cont_anno = Config(cfg_dict=cont_dict, load=False)
+        cont_ins = ANNOTATORS.build(cont_anno).to(we.device_id)
+        cont_image = cont_ins(self.image)
+        print("cont's shape:", cont_image.shape)
+        Image.fromarray(cont_image).save(
+            os.path.join(self.save_dir, 'sunflower_drawing_anime_style.png'))
+
+        cont_dict = {'NAME': 'InfoDrawOpenSketchAnnotator', 'INPUT_NC': 3, 'OUTPUT_NC': 1, 'N_RESIDUAL_BLOCKS': 3,
+                     'SIGMOID': True,
+                     'PRETRAINED_MODEL': 'ms://iic/scepter_annotator@annotator/ckpts/informative_drawing_opensketch_style.pth'}
+        cont_anno = Config(cfg_dict=cont_dict, load=False)
+        cont_ins = ANNOTATORS.build(cont_anno).to(we.device_id)
+        cont_image = cont_ins(self.image)
+        print("cont's shape:", cont_image.shape)
+        Image.fromarray(cont_image).save(
+            os.path.join(self.save_dir, 'sunflower_drawing_opensketch_style.png'))
+
+    @unittest.skip('')
+    def test_annotator_outpainting(self):
+        outpaint_dict = {'NAME': 'OutpaintingAnnotator', 'RETURN_SOURCE': False}
+        outpaint_anno = Config(cfg_dict=outpaint_dict, load=False)
+        outpaint_ins = ANNOTATORS.build(outpaint_anno).to(we.device_id)
+        outpaint_image = outpaint_ins(self.image)
+        print("outpaint's shape:", outpaint_image.shape)
+        Image.fromarray(outpaint_image).save(
+            os.path.join(self.save_dir, 'sunflower_outpaint.png'))
+
+        outpaint_dict = {'NAME': 'OutpaintingAnnotator',
+                         'RANDOM_CFG': {'DIRECTION_RANGE': ['left', 'right', 'up'], 'RATIO_RANGE': [0.2, 0.8]}}
+        outpaint_anno = Config(cfg_dict=outpaint_dict, load=False)
+        outpaint_ins = ANNOTATORS.build(outpaint_anno).to(we.device_id)
+        outpaint_image = outpaint_ins(self.image, return_mask=True)
+        print("outpaint image's shape:", outpaint_image['image'].shape)
+        print("outpaint mask's shape:", outpaint_image['mask'].shape)
+        Image.fromarray(outpaint_image['image']).save(
+            os.path.join(self.save_dir, 'sunflower_outpaint_rand_image.png'))
+        Image.fromarray(outpaint_image['mask']).save(
+            os.path.join(self.save_dir, 'sunflower_outpaint_rand_mask.png'))
+
+    @unittest.skip('')
+    def test_annotator_inpainting(self):
+        inpaint_dict = {'NAME': 'InpaintingAnnotator'}
+        inpaint_anno = Config(cfg_dict=inpaint_dict, load=False)
+        inpaint_ins = ANNOTATORS.build(inpaint_anno).to(we.device_id)
+        mask = np.zeros_like(self.image)
+        mask = cv2.rectangle(mask, (0, 0), (150, 150), (255, 255, 255), -1)
+        mask = mask[:, :, 0]  # one channel format
+        inpaint_image = inpaint_ins(self.image, mask=mask, return_mask=True)
+        print("inpaint image's shape:", inpaint_image['image'].shape)
+        print("inpaint mask's shape:", inpaint_image['mask'].shape)
+        Image.fromarray(inpaint_image['image']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_image.png'))
+        Image.fromarray(inpaint_image['mask']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_mask.png'))
+
+        inpaint_dict = {'NAME': 'InpaintingAnnotator'}
+        inpaint_anno = Config(cfg_dict=inpaint_dict, load=False)
+        inpaint_ins = ANNOTATORS.build(inpaint_anno).to(we.device_id)
+        inpaint_image = inpaint_ins(self.image, return_mask=True)
+        print("inpaint image's shape:", inpaint_image['image'].shape)
+        print("inpaint mask's shape:", inpaint_image['mask'].shape)
+        Image.fromarray(inpaint_image['image']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_image_2.png'))
+        Image.fromarray(inpaint_image['mask']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_mask_2.png'))
+
+        inpaint_dict = {'NAME': 'InpaintingAnnotator',
+                        'MASK_CFG': {"irregular_proba": 0.5,
+                                     "irregular_kwargs": {"min_times": 4,
+                                                          "max_times": 10,
+                                                          "max_width": 150,
+                                                          "max_angle": 4,
+                                                          "max_len": 200},
+                                     "box_proba": 0.5,
+                                     "box_kwargs": {"margin": 0,
+                                                    "bbox_min_size": 50,
+                                                    "bbox_max_size": 150,
+                                                    "max_times": 5,
+                                                    "min_times": 1}
+                                     }
+                        }
+        inpaint_anno = Config(cfg_dict=inpaint_dict, load=False)
+        inpaint_ins = ANNOTATORS.build(inpaint_anno).to(we.device_id)
+        inpaint_image = inpaint_ins(self.image, return_mask=True)
+        print("inpaint image's shape:", inpaint_image['image'].shape)
+        print("inpaint mask's shape:", inpaint_image['mask'].shape)
+        Image.fromarray(inpaint_image['image']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_image_3.png'))
+        Image.fromarray(inpaint_image['mask']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_mask_3.png'))
+
+        inpaint_image = inpaint_ins(self.image, return_mask=True, mask_color=255)
+        print("inpaint image's shape:", inpaint_image['image'].shape)
+        print("inpaint mask's shape:", inpaint_image['mask'].shape)
+        Image.fromarray(inpaint_image['image']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_image_4.png'))
+        Image.fromarray(inpaint_image['mask']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_mask_4.png'))
+
+        inpaint_image = inpaint_ins(self.image, return_mask=True, mask_color=255, return_invert=False)
+        print("inpaint image's shape:", inpaint_image['image'].shape)
+        print("inpaint mask's shape:", inpaint_image['mask'].shape)
+        Image.fromarray(inpaint_image['image']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_image_5.png'))
+        Image.fromarray(inpaint_image['mask']).save(
+            os.path.join(self.save_dir, 'sunflower_inpaint_mask_5.png'))
+
+    @unittest.skip('')
+    def test_annotator_deg(self):
+        deg_dict = {'NAME': 'DegradationAnnotator'}
+        deg_anno = Config(cfg_dict=deg_dict, load=False)
+        deg_ins = ANNOTATORS.build(deg_anno).to(we.device_id)
+        deg_image = deg_ins(self.image)
+        print("deg's shape:", deg_image.shape)
+        Image.fromarray(deg_image).save(
+            os.path.join(self.save_dir, 'sunflower_deg.png'))
+
+        deg_dict = {
+            'NAME': 'DegradationAnnotator',
+            'RANDOM_DEGRADATION': True,
+            'PARAMS': {
+                'gaussian_noise': {},
+                'resize': {'scale': [0.4, 0.8]},
+                'jpeg': {'jpeg_level': [25, 75]},
+                'gaussian_blur': {'kernel_size': [7, 9, 11, 13, 15], 'sigma': [0.9, 1.8]}
+            }
+        }
+        deg_anno = Config(cfg_dict=deg_dict, load=False)
+        deg_ins = ANNOTATORS.build(deg_anno).to(we.device_id)
+        deg_image = deg_ins(self.image)
+        print("deg's shape:", deg_image.shape)
+        Image.fromarray(deg_image).save(
+            os.path.join(self.save_dir, 'sunflower_deg_2.png'))
+
+    @unittest.skip('')
+    def test_annotator_seg(self):
+        seg_dict = {
+            'NAME': 'ESAMAnnotator',
+            'PRETRAINED_MODEL': 'ms://iic/scepter_annotator@annotator/ckpts/efficient_sam_vits.pt',
+            'SAVE_MODE': 'P',
+            'GRID_SIZE': 32,
+        }
+        seg_anno = Config(cfg_dict=seg_dict, load=False)
+        seg_ins = ANNOTATORS.build(seg_anno).to(we.device_id)
+        seg_image = seg_ins(self.image)
+        print("seg's shape:", seg_image.shape)
+        Image.fromarray(seg_image).save(
+            os.path.join(self.save_dir, 'sunflower_esam_seg.png'))
+
+        seg_dict = {
+            'NAME': 'ESAMAnnotator',
+            'PRETRAINED_MODEL': 'ms://iic/scepter_annotator@annotator/ckpts/efficient_sam_vits.pt',
+            'SAVE_MODE': 'P',
+            'GRID_SIZE': 32,
+            'USE_DOMINANT_COLOR': True,
+            'RETURN_MASK': True
+        }
+        seg_anno = Config(cfg_dict=seg_dict, load=False)
+        seg_ins = ANNOTATORS.build(seg_anno).to(we.device_id)
+        seg_image = seg_ins(self.image)
+        print("seg image's shape:", seg_image['image'].shape)
+        Image.fromarray(seg_image['image']).save(
+            os.path.join(self.save_dir, 'sunflower_esam_seg_dominant_image.png'))
+        print("seg mask's shape:", seg_image['mask'].shape)
+        Image.fromarray(seg_image['mask']).save(
+            os.path.join(self.save_dir, 'sunflower_esam_seg_dominant_mask.png'))
+
+    @unittest.skip('')
+    def test_annotator_samdraw(self):
+        sam_dict = {
+            'NAME': 'SAMAnnotatorDraw',
+            'TASK_TYPE': 'input_box',
+            'SAM_MODEL': 'vit_b',
+            'PRETRAINED_MODEL': 'ms://iic/scepter_annotator@annotator/ckpts/sam_vit_b_01ec64.pth'
+        }
+        sam_anno = Config(cfg_dict=sam_dict, load=False)
+        sam_ins = ANNOTATORS.build(sam_anno).to(we.device_id)
+        sam_res = sam_ins(self.image, input_box=[0, 0, 200, 200], task_type='input_box', multimask_output=False)
+        Image.fromarray(sam_res['mask']).save(os.path.join(self.save_dir, f'sunflower_sam_mask.png'))
+
+    @unittest.skip('')
+    def test_annotator_lama(self):
+        lama_dict = {
+            'NAME': 'LamaAnnotator',
+            'PRETRAINED_MODEL': 'ms://iic/cv_fft_inpainting_lama/'
+        }
+        lama_anno = Config(cfg_dict=lama_dict, load=False)
+        lama_ins = ANNOTATORS.build(lama_anno).to(we.device_id)
+        mask = np.zeros_like(self.image)
+        mask = cv2.rectangle(mask, (0, 0), (150, 150), (255, 255, 255), -1)
+        mask = mask[:, :, 0]
+        lama_res = lama_ins(self.image, mask)
+        print("lama's shape:", lama_res.shape)
+        Image.fromarray(lama_res).save(os.path.join(self.save_dir, f'sunflower_lama_mask2.png'))
 
 
 if __name__ == '__main__':

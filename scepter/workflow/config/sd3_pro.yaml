@@ -1,0 +1,348 @@
+NAME: SD3
+IS_DEFAULT: False
+DEFAULT_PARAS:
+  PARAS:
+    RESOLUTIONS: [[1024, 1024]]
+  INPUT:
+    IMAGE:
+    ORIGINAL_SIZE_AS_TUPLE: [1024, 1024]
+    TARGET_SIZE_AS_TUPLE: [1024, 1024]
+    PROMPT: ""
+    NEGATIVE_PROMPT: ""
+    PROMPT_PREFIX: ""
+    SAMPLE: euler
+    SAMPLE_STEPS: 28
+    GUIDE_SCALE: 5.0
+    GUIDE_RESCALE: 0.0
+    DISCRETIZATION: trailing
+  OUTPUT:
+    LATENT:
+    IMAGES:
+    SEED:
+  MODULES_PARAS:
+    FIRST_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: float32
+          INPUT: ["IMAGE"]
+        -
+          NAME: decode
+          DTYPE: float32
+          INPUT: ["LATENT"]
+      PARAS:
+        SCALE_FACTOR: 1.5305
+        SHIFT_FACTOR: 0.0609
+        SIZE_FACTOR: 8
+    DIFFUSION_MODEL:
+      FUNCTION:
+        -
+          NAME: forward
+          DTYPE: float16
+          INPUT: ["SAMPLE_STEPS", "SAMPLE", "GUIDE_SCALE", "GUIDE_RESCALE", "DISCRETIZATION"]
+    COND_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: float32
+          INPUT: ["PROMPT"]
+#
+MODEL:
+  PRETRAINED_MODEL:
+  SCHEDULE:
+    PARAMETERIZATION: rf
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL:
+    IGNORE_KEYS: [ ]
+    SCALE_FACTOR: 1.5305
+    SHIFT_FACTOR: 0.0609
+    DEFAULT_N_PROMPT:
+    SCHEDULE_ARGS:
+      "NAME": "shifted"
+      "SHIFT": 3
+    T_WEIGHT: uniform
+  #
+  DIFFUSION_MODEL:
+    NAME: MMDiT
+    PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium@sd3_medium.safetensors
+    IGNORE_KEYS: '^first_stage_model.'
+    IN_CHANNELS: 16
+    PATCH_SIZE: 2
+    OUT_CHANNELS: 16
+    DEPTH: 24
+    INPUT_SIZE:
+    ADM_IN_CHANNELS: 2048
+    CONTEXT_EMBEDDER_CONFIG: { 'target': 'torch.nn.Linear', 'params': { 'in_features': 4096, 'out_features': 1536 } }
+    NUM_PATCHES: 36864
+    POS_EMBED_MAX_SIZE: 192
+    POS_EMBED_SCALING_FACTOR:
+    USE_CHECKPOINT: True
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium@sd3_medium.safetensors
+    EMBED_DIM: 16
+    IGNORE_KEYS: '^model.diffusion_model.'
+    BATCH_SIZE: 1
+    USE_CONV: False
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 16
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 16
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: SD3TextEmbedder
+    P_ZERO: 0.0
+    CLIP_L:
+      NAME: FrozenCLIPEmbedder2
+      PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@text_encoder
+      TOKENIZER_PATH: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@tokenizer
+      MAX_LENGTH: 77
+      FREEZE: True
+      LAYER: penultimate
+      RETURN_POOLED: True
+      USE_FINAL_LAYER_NORM: False
+      IS_TRAINABLE: False
+    CLIP_G:
+      NAME: FrozenCLIPEmbedder2
+      PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@text_encoder_2
+      TOKENIZER_PATH: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@tokenizer_2
+      MAX_LENGTH: 77
+      FREEZE: True
+      LAYER: penultimate
+      RETURN_POOLED: True
+      USE_FINAL_LAYER_NORM: False
+      IS_TRAINABLE: False
+    T5_XXL:
+      NAME: T5EmbedderHF
+      PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@text_encoder_3
+      TOKENIZER_PATH: ms://AI-ModelScope/stable-diffusion-3-medium-diffusers@tokenizer_3
+      LENGTH: 256
+      CLEAN: whitespace
+      USE_GRAD: False
+      T5_DTYPE: float16
+#
+MODEL_LOCAL:
+  PRETRAINED_MODEL:
+  SCHEDULE:
+    PARAMETERIZATION: rf
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL:
+    IGNORE_KEYS: [ ]
+    SCALE_FACTOR: 1.5305
+    SHIFT_FACTOR: 0.0609
+    DEFAULT_N_PROMPT:
+    SCHEDULE_ARGS:
+      "NAME": "shifted"
+      "SHIFT": 3
+    T_WEIGHT: uniform
+  #
+  DIFFUSION_MODEL:
+    NAME: MMDiT
+    PRETRAINED_MODEL: models/scepter/stable-diffusion-3-medium/sd3_medium.safetensors
+    IGNORE_KEYS: '^first_stage_model.'
+    IN_CHANNELS: 16
+    PATCH_SIZE: 2
+    OUT_CHANNELS: 16
+    DEPTH: 24
+    INPUT_SIZE:
+    ADM_IN_CHANNELS: 2048
+    CONTEXT_EMBEDDER_CONFIG: { 'target': 'torch.nn.Linear', 'params': { 'in_features': 4096, 'out_features': 1536 } }
+    NUM_PATCHES: 36864
+    POS_EMBED_MAX_SIZE: 192
+    POS_EMBED_SCALING_FACTOR:
+    USE_CHECKPOINT: True
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    PRETRAINED_MODEL: models/scepter/stable-diffusion-3-medium/sd3_medium.safetensors
+    EMBED_DIM: 16
+    IGNORE_KEYS: '^model.diffusion_model.'
+    BATCH_SIZE: 1
+    USE_CONV: False
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 16
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 16
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: SD3TextEmbedder
+    P_ZERO: 0.0
+    CLIP_L:
+      NAME: FrozenCLIPEmbedder2
+      PRETRAINED_MODEL: models/scepter/stable-diffusion-3-medium-diffusers/text_encoder
+      TOKENIZER_PATH: models/scepter/stable-diffusion-3-medium-diffusers/tokenizer
+      MAX_LENGTH: 77
+      FREEZE: True
+      LAYER: penultimate
+      RETURN_POOLED: True
+      USE_FINAL_LAYER_NORM: False
+      IS_TRAINABLE: False
+    CLIP_G:
+      NAME: FrozenCLIPEmbedder2
+      PRETRAINED_MODEL: models/scepter/stable-diffusion-3-medium-diffusers/text_encoder_2
+      TOKENIZER_PATH: models/scepter/stable-diffusion-3-medium-diffusers/tokenizer_2
+      MAX_LENGTH: 77
+      FREEZE: True
+      LAYER: penultimate
+      RETURN_POOLED: True
+      USE_FINAL_LAYER_NORM: False
+      IS_TRAINABLE: False
+    T5_XXL:
+      NAME: T5EmbedderHF
+      PRETRAINED_MODEL: models/scepter/stable-diffusion-3-medium-diffusers/text_encoder_3
+      TOKENIZER_PATH: models/scepter/stable-diffusion-3-medium-diffusers/tokenizer_3
+      LENGTH: 256
+      CLEAN: whitespace
+      USE_GRAD: False
+      T5_DTYPE: float16
+#
+MODEL_HF:
+  PRETRAINED_MODEL:
+  SCHEDULE:
+    PARAMETERIZATION: rf
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA:
+    ZERO_TERMINAL_SNR: False
+    PRETRAINED_MODEL:
+    IGNORE_KEYS: [ ]
+    SCALE_FACTOR: 1.5305
+    SHIFT_FACTOR: 0.0609
+    DEFAULT_N_PROMPT:
+    SCHEDULE_ARGS:
+      "NAME": "shifted"
+      "SHIFT": 3
+    T_WEIGHT: uniform
+  #
+  DIFFUSION_MODEL:
+    NAME: MMDiT
+    PRETRAINED_MODEL: hf://stabilityai/stable-diffusion-3-medium@sd3_medium.safetensors
+    IGNORE_KEYS: '^first_stage_model.'
+    IN_CHANNELS: 16
+    PATCH_SIZE: 2
+    OUT_CHANNELS: 16
+    DEPTH: 24
+    INPUT_SIZE:
+    ADM_IN_CHANNELS: 2048
+    CONTEXT_EMBEDDER_CONFIG: { 'target': 'torch.nn.Linear', 'params': { 'in_features': 4096, 'out_features': 1536 } }
+    NUM_PATCHES: 36864
+    POS_EMBED_MAX_SIZE: 192
+    POS_EMBED_SCALING_FACTOR:
+    USE_CHECKPOINT: True
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    PRETRAINED_MODEL: hf://stabilityai/stable-diffusion-3-medium@sd3_medium.safetensors
+    EMBED_DIM: 16
+    IGNORE_KEYS: '^model.diffusion_model.'
+    BATCH_SIZE: 1
+    USE_CONV: False
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 16
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 16
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: SD3TextEmbedder
+    P_ZERO: 0.0
+    CLIP_L:
+      NAME: FrozenCLIPEmbedder2
+      PRETRAINED_MODEL: hf://stabilityai/stable-diffusion-3-medium-diffusers@text_encoder
+      TOKENIZER_PATH: hf://stabilityai/stable-diffusion-3-medium-diffusers@tokenizer
+      MAX_LENGTH: 77
+      FREEZE: True
+      LAYER: penultimate
+      RETURN_POOLED: True
+      USE_FINAL_LAYER_NORM: False
+      IS_TRAINABLE: False
+    CLIP_G:
+      NAME: FrozenCLIPEmbedder2
+      PRETRAINED_MODEL: hf://stabilityai/stable-diffusion-3-medium-diffusers@text_encoder_2
+      TOKENIZER_PATH: hf://stabilityai/stable-diffusion-3-medium-diffusers@tokenizer_2
+      MAX_LENGTH: 77
+      FREEZE: True
+      LAYER: penultimate
+      RETURN_POOLED: True
+      USE_FINAL_LAYER_NORM: False
+      IS_TRAINABLE: False
+    T5_XXL:
+      NAME: T5EmbedderHF
+      PRETRAINED_MODEL: hf://stabilityai/stable-diffusion-3-medium-diffusers@text_encoder_3
+      TOKENIZER_PATH: hf://stabilityai/stable-diffusion-3-medium-diffusers@tokenizer_3
+      LENGTH: 256
+      CLEAN: whitespace
+      USE_GRAD: False
+      T5_DTYPE: float16

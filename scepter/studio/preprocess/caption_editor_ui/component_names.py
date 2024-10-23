@@ -155,6 +155,7 @@ class DatasetGalleryUIName():
             self.delete_blank_dataset = 'Blank dataset is not allowed deleting.'
             self.upload_image = 'Upload Target Image'
             self.upload_src_image = 'Upload Source Image'
+            self.upload_src_mask = 'Mask Image'
             self.upload_image_btn = '\U00002714'  # ✔️
             self.cancel_upload_btn = '\U00002716'  # ✖️
             self.image_caption = 'Image Caption'
@@ -165,10 +166,12 @@ class DatasetGalleryUIName():
             self.ori_caption = 'Original Caption'
             self.dataset_images = f'Original Images，click{self.btn_modify} into editable mode.'
             self.dataset_src_images = f'Source Images to be edited，click{self.btn_modify} into editable mode.'
+            self.dataset_src_mask = 'Source Image Mask'
 
             self.edit_caption = f'Editable Caption，click{self.btn_modify} into editable mode.'
             self.edit_dataset_images = f'Editable Images，click{self.btn_modify} into editable mode.'
-            self.edit_dataset_src_images = 'Editable Source Images to be edited.'
+            self.edit_dataset_src_images = 'Editable Source Images to be edited'
+            self.edit_dataset_src_mask = 'Editable Source Images Mask'
 
             self.ori_dataset = 'Original Data Height({}) * Width({}) and Image Format({})'
             self.edit_dataset = 'Editable Data Height({}) * Width({}) and Image Format({})'
@@ -195,10 +198,18 @@ class DatasetGalleryUIName():
             self.preprocess_choices = [
                 'Image Preprocess', 'Caption Preprocess'
             ]
+
+            self.preview_target_image = 'Preview Target Image'
+            self.preview_src_image = 'Preview Source Image'
+            self.preview_src_mask_image = 'Preview Source Image Mask'
+            self.preview_caption = 'Preview Caption'
+
             self.image_processor_type = 'Image Preprocessors'
             self.caption_processor_type = 'Caption Preprocessors'
-            self.image_preprocess_btn = 'Run'
-            self.caption_preprocess_btn = 'Run'
+            self.image_preprocess_btn = 'apply'
+            self.image_preview_btn = 'preview'
+            self.caption_preprocess_btn = 'apply'
+            self.caption_preview_btn = 'preview'
             self.caption_update_mode = 'Caption Update Mode'
             self.caption_update_choices = ['Append', 'Replace']
 
@@ -209,6 +220,7 @@ class DatasetGalleryUIName():
             self.system_prompt = 'System Prompt'
             self.max_new_tokens = 'Max New Tokens'
             self.min_new_tokens = 'Min New Tokens'
+            self.use_local = 'Regional Caption'
             self.num_beams = 'Beams Num'
             self.repetition_penalty = 'Repetition Penalty'
             self.temperature = 'Temperature'
@@ -223,6 +235,7 @@ class DatasetGalleryUIName():
             self.delete_blank_dataset = '空白数据集不允许删除。'
             self.upload_image = '上传目标图片'
             self.upload_src_image = '上传待编辑图片'
+            self.upload_src_mask = '蒙版区域'
             self.upload_image_btn = '\U00002714'  # ✔️
             self.cancel_upload_btn = '\U00002716'  # ✖️
             self.image_caption = '图片描述'
@@ -230,9 +243,11 @@ class DatasetGalleryUIName():
             self.btn_modify = '\U0001F4DD'  # 📝
             self.dataset_images = f'图片数据，点击{self.btn_modify}进入编辑模式'
             self.dataset_src_images = f'待编辑图片数据，点击{self.btn_modify}进入编辑模式'
+            self.dataset_src_mask = '蒙版区域'
 
             self.edit_dataset_images = '可编辑图片数据'
             self.edit_dataset_src_images = '可编辑待编辑图片数据'
+            self.edit_dataset_src_mask = '可编辑待编辑图片数据蒙版'
 
             self.btn_delete = '\U0001f5d1'  # 🗑️
             self.btn_add = '\U00002795'  # ➕
@@ -262,10 +277,16 @@ class DatasetGalleryUIName():
                                       f'点击{self.btn_reset_edit}重置数据，'
                                       f'修改编辑范围可以批量编辑不同范围的数据。')
             self.preprocess_choices = ['图像预处理', '描述生成']
+            self.preview_target_image = '预览图片'
+            self.preview_src_image = '预览原图'
+            self.preview_src_mask_image = '预览蒙版'
+            self.preview_caption = '预览描述'
             self.image_processor_type = '图像预处理器'
             self.caption_processor_type = '描述生成器'
-            self.image_preprocess_btn = '运行'
-            self.caption_preprocess_btn = '运行'
+            self.image_preprocess_btn = '应用'
+            self.image_preview_btn = '预览'
+            self.caption_preprocess_btn = '应用'
+            self.caption_preview_btn = '预览'
             self.caption_update_mode = '描述更新方式'
             self.caption_update_choices = ['追加', '替换']
             self.used_device = '使用设备'
@@ -275,6 +296,7 @@ class DatasetGalleryUIName():
             self.system_prompt = '系统提示'
             self.max_new_tokens = '描述最大长度'
             self.min_new_tokens = '描述最小长度'
+            self.use_local = '局部描述'
             self.num_beams = 'Beams数'
             self.repetition_penalty = '重复惩罚'
             self.temperature = '温度系数'

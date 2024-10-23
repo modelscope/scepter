@@ -2,11 +2,10 @@ WORK_DIR: datasets
 EXPORT_DIR: export_datasets
 FILE_SYSTEM:
   -
-    # NAME DESCRIPTION:  TYPE:  default: ''
     NAME: LocalFs
     AUTO_CLEAN: False
-
 PROCESSORS:
+  # Caption processor
   - NAME: BlipImageBase
     TYPE: caption
     MODEL_PATH: ms://cubeai/blip-image-captioning-base
@@ -15,6 +14,81 @@ PROCESSORS:
     PARAS:
       - LANGUAGE_NAME: English
         LANGUAGE_ZH_NAME: 英语
+  - NAME: InternVL15
+    TYPE: caption
+    MODEL_PATH: ms://AI-ModelScope/InternVL-Chat-V1-5
+    DEVICE: "gpu"
+    MEMORY: 49968
+    PARAS:
+      - PROMPT: 用中文描述这张图片
+        LANGUAGE_NAME: Chinese
+        LANGUAGE_ZH_NAME: 中文
+      - PROMPT: Generate the caption in English
+        LANGUAGE_NAME: English
+        LANGUAGE_ZH_NAME: 英语
+  - NAME: QWVLQuantize
+    TYPE: caption
+    DEVICE: "gpu"
+    MEMORY: 7885
+    MODEL_PATH: ms://qwen/Qwen-VL:v1.0.3
+    PARAS:
+      - PROMPT: 用中文描述这张图片
+        LANGUAGE_NAME: Chinese
+        LANGUAGE_ZH_NAME: 中文
+        MAX_NEW_TOKENS:
+          VALUE: 1024
+          MAX: 2048
+          STEP: 128
+          MIN: 256
+        MIN_NEW_TOKENS:
+          VALUE: 16
+          MAX: 1024
+          STEP: 16
+          MIN: 0
+        NUM_BEAMS:
+          VALUE: 1
+          MAX: 12
+          STEP: 1
+          MIN: 1
+        REPETITION_PENALTY:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+        TEMPERATURE:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+      - PROMPT: Generate the caption in English
+        LANGUAGE_NAME: English
+        LANGUAGE_ZH_NAME: 英语
+        MAX_NEW_TOKENS:
+          VALUE: 1024
+          MAX: 2048
+          STEP: 128
+          MIN: 256
+        MIN_NEW_TOKENS:
+          VALUE: 16
+          MAX: 1024
+          STEP: 16
+          MIN: 0
+        NUM_BEAMS:
+          VALUE: 1
+          MAX: 12
+          STEP: 1
+          MIN: 1
+        REPETITION_PENALTY:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+        TEMPERATURE:
+          VALUE: 1.0
+          MAX: 100.0
+          STEP: 1.0
+          MIN: 1.0
+
   - NAME: QWVL
     TYPE: caption
     MODEL_PATH: ms://qwen/Qwen-VL:v1.0.3
@@ -77,75 +151,14 @@ PROCESSORS:
           MAX: 100.0
           STEP: 1.0
           MIN: 1.0
-  -
-    NAME: QWVLQuantize
-    TYPE: caption
-    DEVICE: "gpu"
-    MEMORY: 7885
-    MODEL_PATH: ms://qwen/Qwen-VL:v1.0.3
-    PARAS:
-      - PROMPT: 用中文描述这张图片
-        LANGUAGE_NAME: Chinese
-        LANGUAGE_ZH_NAME: 中文
-        MAX_NEW_TOKENS:
-          VALUE: 1024
-          MAX: 2048
-          STEP: 128
-          MIN: 256
-        MIN_NEW_TOKENS:
-          VALUE: 16
-          MAX: 1024
-          STEP: 16
-          MIN: 0
-        NUM_BEAMS:
-          VALUE: 1
-          MAX: 12
-          STEP: 1
-          MIN: 1
-        REPETITION_PENALTY:
-          VALUE: 1.0
-          MAX: 100.0
-          STEP: 1.0
-          MIN: 1.0
-        TEMPERATURE:
-          VALUE: 1.0
-          MAX: 100.0
-          STEP: 1.0
-          MIN: 1.0
-      - PROMPT: Generate the caption in English
-        LANGUAGE_NAME: English
-        LANGUAGE_ZH_NAME: 英语
-        MAX_NEW_TOKENS:
-          VALUE: 1024
-          MAX: 2048
-          STEP: 128
-          MIN: 256
-        MIN_NEW_TOKENS:
-          VALUE: 16
-          MAX: 1024
-          STEP: 16
-          MIN: 0
-        NUM_BEAMS:
-          VALUE: 1
-          MAX: 12
-          STEP: 1
-          MIN: 1
-        REPETITION_PENALTY:
-          VALUE: 1.0
-          MAX: 100.0
-          STEP: 1.0
-          MIN: 1.0
-        TEMPERATURE:
-          VALUE: 1.0
-          MAX: 100.0
-          STEP: 1.0
-          MIN: 1.0
-  -
-    NAME: CenterCrop
+
+  # Simple processor
+  - NAME: CenterCrop
     TYPE: image
     DEVICE: "cpu"
     MEMORY: 10
     PARAS:
+      CAPTION_INTERACTIVE: False
       HEIGHT_RATIO:
         VALUE: 1
         MAX: 20
@@ -156,18 +169,284 @@ PROCESSORS:
         MAX: 20
         STEP: 1
         MIN: 1
-#  - NAME: PaddingCrop
-#    TYPE: image
-#    DEVICE: "cpu"
-#    MEMORY: 10
-#    PARAS:
-#      HEIGHT_RATIO:
-#        VALUE: 3
-#        MAX: 25
-#        STEP: 1
-#        MIN: 1
-#      WIDTH_RATIO:
-#        VALUE: 4
-#        MAX: 20
-#        STEP: 1
-#        MIN: 1
+  - NAME: ChangeSample
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      CAPTION_INTERACTIVE: False
+      SRC_IMAGE_INTERACTIVE: True
+      SRC_IMAGE_MASK_INTERACTIVE: True
+      TARGET_IMAGE_INTERACTIVE: True
+      PREVIEW_BTN_VISIBLE: False
+  - NAME: MaskEditSample
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      SRC_IMAGE_INTERACTIVE: True
+      SRC_IMAGE_TOOL: sketch
+      CAPTION_INTERACTIVE: False
+  - NAME: SourceMaskSample
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      SRC_IMAGE_INTERACTIVE: True
+      SRC_IMAGE_TOOL: sketch
+      CAPTION_INTERACTIVE: False
+  - NAME: MaskSwapEditSample
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      PREVIEW_BTN_VISIBLE: False
+      SRC_IMAGE_INTERACTIVE: True
+      SRC_IMAGE_TOOL: sketch
+      CAPTION_INTERACTIVE: False
+  - NAME: SwapMaskSwapEditSample
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      PREVIEW_BTN_VISIBLE: False
+      SRC_IMAGE_INTERACTIVE: True
+      SRC_IMAGE_TOOL: sketch
+      CAPTION_INTERACTIVE: False
+  - NAME: SwapSample
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      PREVIEW_BTN_VISIBLE: True
+      SRC_IMAGE_INTERACTIVE: True
+      TARGET_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: DefaultMaskSample
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      PREVIEW_BTN_VISIBLE: True
+      SRC_IMAGE_INTERACTIVE: False
+      TARGET_IMAGE_INTERACTIVE: False
+      CAPTION_INTERACTIVE: False
+  #  - NAME: PaddingCrop
+  #    TYPE: image
+  #    DEVICE: "cpu"
+  #    MEMORY: 10
+  #    PARAS:
+  #      HEIGHT_RATIO:
+  #        VALUE: 3
+  #        MAX: 25
+  #        STEP: 1
+  #        MIN: 1
+  #      WIDTH_RATIO:
+  #        VALUE: 4
+  #        MAX: 20
+  #        STEP: 1
+  #        MIN: 1
+  # Annotator processor
+  - NAME: CannyExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "CannyAnnotator"
+      LOW_THRESHOLD: 100
+      HIGH_THRESHOLD: 200
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: ColorExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "ColorAnnotator"
+      RATIO: 64
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: InfoDrawContourExtractor
+    TYPE: image
+    DEVICE: "gpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "InfoDrawContourAnnotator"
+      INPUT_NC: 3
+      OUTPUT_NC: 1
+      N_RESIDUAL_BLOCKS: 3
+      SIGMOID: True
+      PRETRAINED_MODEL: "ms://iic/scepter_annotator@annotator/ckpts/informative_drawing_contour_style.pth"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: DegradationExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "DegradationAnnotator"
+      RANDOM_DEGRADATION: True
+      PARAMS:
+        gaussian_noise: { }
+        resize: { 'scale': [ 0.4, 0.8 ] }
+        jpeg: { 'jpeg_level': [ 25, 75 ] }
+        gaussian_blur: { 'kernel_size': [ 7, 9, 11, 13, 15 ], 'sigma': [ 0.9, 1.8 ] }
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: MidasExtractor
+    TYPE: image
+    DEVICE: "gpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "MidasDetector"
+      PRETRAINED_MODEL: "ms://iic/scepter_annotator@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: DoodleExtractor
+    TYPE: image
+    DEVICE: "gpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "DoodleAnnotator"
+      PROCESSOR_TYPE: "pidinet_sketch"
+      PROCESSOR_CFG:
+        - NAME: "PiDiAnnotator"
+          PRETRAINED_MODEL: "ms://iic/scepter_annotator@annotator/ckpts/table5_pidinet.pth"
+        - NAME: "SketchAnnotator"
+          PRETRAINED_MODEL: "ms://iic/scepter_annotator@annotator/ckpts/sketch_simplification_gan.pth"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: GrayExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "GrayAnnotator"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: InpaintingExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "InpaintingAnnotator"
+      RETURN_MASK: False
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+
+  - NAME: InpaintingSourceExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: OpenposeExtractor
+    TYPE: image
+    DEVICE: "gpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "OpenposeAnnotator"
+      BODY_MODEL_PATH: "ms://iic/scepter_annotator@annotator/ckpts/body_pose_model.pth"
+      HAND_MODEL_PATH: "ms://iic/scepter_annotator@annotator/ckpts/hand_pose_model.pth"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: OutpaintingExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "OutpaintingAnnotator"
+      RETURN_MASK: False
+      KEEP_PADDING_RATIO: 1
+      RANDOM_CFG:
+        DIRECTION_RANGE: [ 'left', 'right', 'up', 'down' ]
+        RATIO_RANGE: [ 0.1, 0.7 ]
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+      USE_MASK_VISIBLE: True
+      PREVIEW_BTN_VISIBLE: False
+  - NAME: OutpaintingResize
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "OutpaintingResize"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+      PREVIEW_BTN_VISIBLE: False
+  - NAME: InfoDrawAnimeAnnotator
+    TYPE: image
+    DEVICE: "gpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "InfoDrawAnimeAnnotator"
+      INPUT_NC: 3
+      OUTPUT_NC: 1
+      N_RESIDUAL_BLOCKS: 3
+      SIGMOID: True
+      PRETRAINED_MODEL: "ms://iic/scepter_annotator@annotator/ckpts/informative_drawing_anime_style.pth"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: ESAMExtractor
+    TYPE: image
+    DEVICE: "gpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "ESAMAnnotator"
+      PRETRAINED_MODEL: "ms://iic/scepter_annotator@annotator/ckpts/efficient_sam_vits.pt"
+      SAVE_MODE: 'P'
+      GRID_SIZE: 32
+      USE_DOMINANT_COLOR: True
+      RETURN_MASK: False
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+  - NAME: InvertExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "InvertAnnotator"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False
+
+  - NAME: LamaExtractor
+    TYPE: image
+    DEVICE: "cpu"
+    MEMORY: 10
+    MODEL:
+      NAME: "LamaAnnotator"
+      PRETRAINED_MODEL: "ms:///iic/cv_fft_inpainting_lama/"
+    PARAS:
+      SRC_IMAGE_TOOL: sketch
+      SRC_IMAGE_INTERACTIVE: True
+      CAPTION_INTERACTIVE: False

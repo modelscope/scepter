@@ -136,6 +136,7 @@ class LatentDiffusionSD3(LatentDiffusion):
 
     @torch.no_grad()
     def forward_test(self,
+                     image=None,
                      prompt=None,
                      sampler='ddim',
                      sample_steps=20,

@@ -40,8 +40,10 @@ class LargenInference(DiffusionInference):
                     from safetensors.torch import load_file as load_safetensors
                     sd = load_safetensors(local_path)
                 else:
-                    sd = torch.load(local_path, map_location='cpu')
-
+                    if 'weights_only' in torch.load.__code__.co_varnames:
+                        sd = torch.load(local_path, map_location='cpu', weights_only=True)
+                    else:
+                        sd = torch.load(local_path, map_location='cpu')
                 if 'model' in sd:
                     sd = sd['model']
 

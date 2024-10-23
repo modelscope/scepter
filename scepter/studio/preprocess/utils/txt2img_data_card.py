@@ -334,7 +334,7 @@ class Text2ImageDataCard(BaseDataCard):
                 relative_file = one_file['relative_path']
                 if relative_file.startswith('/'):
                     relative_file = relative_file[1:]
-                writer.writerow([relative_file, one_file['caption']])
+                writer.writerow([relative_file, one_file['caption'].strip().replace("\n", "")])
         FS.put_object_from_local_file(self.local_train_file, self.train_file)
 
     def write_data_file(self):
@@ -346,7 +346,7 @@ class Text2ImageDataCard(BaseDataCard):
                 f.write('{}#;#{}#;#{}#;#{}\n'.format(file_path,
                                                      one_file['width'],
                                                      one_file['height'],
-                                                     one_file['caption']))
+                                                     one_file['caption'].strip().replace("\n", "")))
         FS.put_object_from_local_file(self.local_save_file_list,
                                       self.save_file_list)
 

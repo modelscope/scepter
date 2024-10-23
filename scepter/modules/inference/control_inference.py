@@ -13,12 +13,6 @@ from scepter.modules.utils.config import Config
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 
-try:
-    from swift import SwiftModel
-except Exception:
-    warnings.warn('Import swift failed, please check it.')
-
-
 class ControlInference():
     def __init__(self, logger=None):
         self.logger = logger
@@ -26,6 +20,11 @@ class ControlInference():
 
     # @classmethod
     def unregister_controllers(self, control_model_ins, diffusion_model):
+        try:
+            from swift import SwiftModel
+        except Exception:
+            warnings.warn('Import swift failed, please check it.')
+
         self.logger.info('Unloading control model')
         if isinstance(diffusion_model['model'], SwiftModel):
             if (hasattr(diffusion_model['model'].base_model, 'control_blocks')
@@ -42,6 +41,11 @@ class ControlInference():
 
     # @classmethod
     def register_controllers(self, control_model_ins, diffusion_model):
+        try:
+            from swift import SwiftModel
+        except Exception:
+            warnings.warn('Import swift failed, please check it.')
+
         self.logger.info('Loading control model')
         if control_model_ins is None or control_model_ins == '':
             self.unregister_controllers(control_model_ins, diffusion_model)

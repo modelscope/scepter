@@ -111,6 +111,7 @@ class LatentDiffusionEdit(LatentDiffusion):
     @torch.no_grad()
     @torch.autocast('cuda', dtype=torch.float16)
     def forward_test(self,
+                     image=None,
                      prompt=None,
                      n_prompt=None,
                      sampler='ddim',

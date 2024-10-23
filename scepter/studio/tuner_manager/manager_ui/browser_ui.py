@@ -20,7 +20,6 @@ from scepter.studio.tuner_manager.utils.path import (
     is_valid_modelscope_filename)
 from scepter.studio.tuner_manager.utils.yaml import save_yaml
 from scepter.studio.utils.uibase import UIBase
-from swift import push_to_hub
 
 
 def wget_file(file_url, save_file):
@@ -63,29 +62,37 @@ class BrowserUI(UIBase):
         for tuner in self.saved_tuners:
             first_level = f"{tuner['BASE_MODEL']}-{tuner['TUNER_TYPE']}"
             second_level = f"{tuner['NAME']}"
+            login_user_name = tuner.get('USER_NAME', 'admin')
+            if login_user_name not in self.saved_tuners_category:
+                self.saved_tuners_category[login_user_name] = OrderedDict()
             local_tuner_work_dir, _ = FS.map_to_local(tuner['MODEL_PATH'])
             if not os.path.exists(local_tuner_work_dir):
                 FS.get_dir_to_local_dir(tuner['MODEL_PATH'])
-            update_2level_dict(self.saved_tuners_category,
+            update_2level_dict(self.saved_tuners_category[login_user_name],
                                {first_level: {
                                    second_level: tuner
                                }})
 
     def category_to_saved_tuners(self):
         self.saved_tuners = []
-        for k, v in self.saved_tuners_category.items():
-            for kk, vv in v.items():
-                self.saved_tuners.append(vv)
+        for login_user_name, user_model in self.saved_tuners_category.items():
+            for k, v in user_model.items():
+                for kk, vv in v.items():
+                    self.saved_tuners.append(vv)
 
-    def get_choices_and_values(self):
-        diffusion_models_choice = list(self.saved_tuners_category.keys())
+    def get_choices_and_values(self, login_user_name='admin'):
+        diffusion_models_choice = list(
+            self.saved_tuners_category.get(login_user_name,
+                                           OrderedDict()).keys())
         diffusion_model = diffusion_models_choice[0] if len(
             diffusion_models_choice) > 0 else None
         tuner_models_choice = []
         tuner_model = None
         if diffusion_model:
             tuner_models_choice = list(
-                self.saved_tuners_category.get(diffusion_model, {}).keys())
+                self.saved_tuners_category.get(login_user_name,
+                                               OrderedDict()).get(
+                                                   diffusion_model, {}).keys())
             tuner_model = tuner_models_choice[0] if len(
                 tuner_models_choice) > 0 else None
         return diffusion_models_choice, diffusion_model, tuner_models_choice, tuner_model
@@ -380,6 +387,7 @@ class BrowserUI(UIBase):
             params = Config.get_plain_cfg(meta.get('PARAMS', {}))
             params['work_dir'] = ''
             params['work_name'] = ''
+            params['USER_NAME'] = ''
             save_yaml(
                 {
                     'PARAMS':
@@ -432,8 +440,8 @@ class BrowserUI(UIBase):
         return tar_path, tuner_example_path, enable_share
 
     def save_tuner(self, manager, tuner_name, new_name, tuner_desc,
-                   tuner_example, tuner_prompt_example, base_model,
-                   tuner_type):
+                   tuner_example, tuner_prompt_example, base_model, tuner_type,
+                   login_user_name):
         is_legal, msg = self.check_new_name(new_name)
         if not is_legal:
             raise gr.Error('Save failed because ' + msg)
@@ -450,8 +458,10 @@ class BrowserUI(UIBase):
                                       '@'.join(tuner_name.split('@')[:-1]),
                                       'checkpoints', steps)
         else:
-            source_dir = self.saved_tuners_category.get(sub_dir, {}).get(
-                tuner_name, {}).get('MODEL_PATH', '')
+            source_dir = self.saved_tuners_category.get(
+                login_user_name,
+                OrderedDict()).get(sub_dir, {}).get(tuner_name,
+                                                    {}).get('MODEL_PATH', '')
             if source_dir == '':
                 raise gr.Error(self.component_names.model_err4 + tuner_name)
 
@@ -465,6 +475,7 @@ class BrowserUI(UIBase):
             'SOURCE': 'self_train',
             'DESCRIPTION': tuner_desc,
             'BASE_MODEL': base_model,
+            'USER_NAME': login_user_name,
             'MODEL_PATH': model_dir,
             'TUNER_TYPE': tuner_type,
             'PROMPT_EXAMPLE': tuner_prompt_example,
@@ -479,19 +490,25 @@ class BrowserUI(UIBase):
         pipeline_ins = pipeline_level_modules[new_tuner['BASE_MODEL']]
         now_diffusion_model = f"{new_tuner['BASE_MODEL']}_{pipeline_ins.diffusion_model['name']}"
 
-        custom_tuner_choices = self.add_tuner(new_tuner, manager,
-                                              now_diffusion_model)
+        custom_tuner_choices = self.add_tuner(new_tuner,
+                                              manager,
+                                              now_diffusion_model,
+                                              login_user_name=login_user_name)
 
         gr.Info('Successfully save tuner model!')
 
-        return (gr.update(choices=list(self.saved_tuners_category.keys()),
+        return (gr.update(choices=list(
+            self.saved_tuners_category.get(login_user_name, {}).keys()),
                           value=sub_dir),
                 gr.update(choices=list(
-                    self.saved_tuners_category.get(sub_dir, {}).keys()),
+                    self.saved_tuners_category.get(login_user_name,
+                                                   {}).get(sub_dir,
+                                                           {}).keys()),
                           value=new_name), gr.Text(value=new_name),
                 gr.Dropdown(choices=custom_tuner_choices))
 
-    def add_tuner(self, new_tuner, manager, now_diffusion_model):
+    def add_tuner(self, new_tuner, manager, now_diffusion_model,
+                  login_user_name):
         self.saved_tuners.append(new_tuner)
         self.saved_tuners_to_category()
         with FS.put_to(self.yaml) as local_path:
@@ -529,9 +546,11 @@ class BrowserUI(UIBase):
         return custom_tunner_choices
 
     def delete_tuner(self, first_level, second_level, manager,
-                     now_diffusion_model):
-        self.saved_tuners_category, del_tuner = delete_2level_dict(
-            self.saved_tuners_category, first_level, second_level)
+                     now_diffusion_model, login_user_name):
+        self.saved_tuners_category[
+            login_user_name], del_tuner = delete_2level_dict(
+                self.saved_tuners_category.get(login_user_name, OrderedDict()),
+                first_level, second_level)
         self.category_to_saved_tuners()
         save_yaml({'TUNERS': self.saved_tuners}, self.yaml)
 
@@ -557,16 +576,24 @@ class BrowserUI(UIBase):
 
         return custom_tuner_choices
 
-    def update_tuner_info(self, base_model, tuner_name, update_items):
+    def update_tuner_info(self, base_model, tuner_name, update_items,
+                          login_user_name):
+        if login_user_name not in self.saved_tuners_category:
+            self.saved_tuners_category[login_user_name] = OrderedDict()
+            self.saved_tuners_category[login_user_name][
+                base_model] = OrderedDict()
+        if tuner_name not in self.saved_tuners_category[login_user_name][
+                base_model]:
+            raise gr.Error(f'{tuner_name} not found in {base_model}')
         self.saved_tuners_category[base_model][tuner_name].update(update_items)
         self.category_to_saved_tuners()
         with FS.put_to(self.yaml) as local_path:
             save_yaml({'TUNERS': self.saved_tuners}, local_path)
 
     def set_callbacks(self, manager, info_ui):
-        def refresh_browser():
+        def refresh_browser(login_user_name):
             diffusion_models_choice, diffusion_model, tuner_models_choice, tuner_model = self.get_choices_and_values(
-            )
+                login_user_name=login_user_name)
             return (gr.Dropdown(choices=diffusion_models_choice,
                                 value=diffusion_model),
                     gr.Dropdown(choices=tuner_models_choice,
@@ -574,28 +601,31 @@ class BrowserUI(UIBase):
 
         self.refresh_button.click(
             refresh_browser,
-            inputs=[],
+            inputs=[manager.user_name],
             outputs=[self.diffusion_models, self.tuner_models])
 
-        def diffusion_model_change(diffusion_model):
+        def diffusion_model_change(diffusion_model, login_user_name):
             choices = list(
-                self.saved_tuners_category.get(diffusion_model, {}).keys())
+                self.saved_tuners_category.get(login_user_name,
+                                               OrderedDict()).get(
+                                                   diffusion_model, {}).keys())
             return gr.Dropdown(choices=choices,
                                value=choices[-1] if len(choices) > 0 else None)
 
-        self.diffusion_models.change(diffusion_model_change,
-                                     inputs=[self.diffusion_models],
-                                     outputs=[self.tuner_models],
-                                     queue=True)
+        self.diffusion_models.change(
+            diffusion_model_change,
+            inputs=[self.diffusion_models, manager.user_name],
+            outputs=[self.tuner_models],
+            queue=True)
 
-        def tuner_model_change(tuner_model, diffusion_model):
+        def tuner_model_change(tuner_model, diffusion_model, login_user_name):
             if tuner_model is None:
                 # fix refresh bug
                 return (gr.Text(), gr.Text(), gr.Text(), gr.Text(), gr.Text(),
                         gr.Image(), gr.Text(), gr.Text(), gr.Text())
 
-            tuner_info = self.saved_tuners_category[diffusion_model][
-                tuner_model]
+            tuner_info = self.saved_tuners_category.get(
+                login_user_name, OrderedDict())[diffusion_model][tuner_model]
             local_model_dir, _ = FS.map_to_local(tuner_info['MODEL_PATH'])
             image_path = tuner_info.get('IMAGE_PATH', None)
             if image_path is not None:
@@ -619,34 +649,37 @@ class BrowserUI(UIBase):
                     gr.Text(value=tuner_info.get('HUGGINGFACE_URL', ''),
                             interactive=False))
 
-        self.tuner_models.change(
-            tuner_model_change,
-            inputs=[self.tuner_models, self.diffusion_models],
-            outputs=[
-                info_ui.tuner_name,
-                info_ui.new_name,
-                info_ui.tuner_type,
-                info_ui.base_model,
-                info_ui.tuner_desc,
-                info_ui.tuner_example,
-                info_ui.tuner_prompt_example,
-                info_ui.ms_url,
-                info_ui.hf_url,
-            ],
-            queue=False)
+        self.tuner_models.change(tuner_model_change,
+                                 inputs=[
+                                     self.tuner_models, self.diffusion_models,
+                                     manager.user_name
+                                 ],
+                                 outputs=[
+                                     info_ui.tuner_name,
+                                     info_ui.new_name,
+                                     info_ui.tuner_type,
+                                     info_ui.base_model,
+                                     info_ui.tuner_desc,
+                                     info_ui.tuner_example,
+                                     info_ui.tuner_prompt_example,
+                                     info_ui.ms_url,
+                                     info_ui.hf_url,
+                                 ],
+                                 queue=False)
 
         def save_tuner_func(tuner_name, new_name, tuner_desc, tuner_example,
-                            tuner_prompt_example, base_model, tuner_type):
+                            tuner_prompt_example, base_model, tuner_type,
+                            login_user_name):
             return self.save_tuner(manager, tuner_name, new_name, tuner_desc,
                                    tuner_example, tuner_prompt_example,
-                                   base_model, tuner_type)
+                                   base_model, tuner_type, login_user_name)
 
         self.save_button.click(
             save_tuner_func,
             inputs=[
                 info_ui.tuner_name, info_ui.new_name, info_ui.tuner_desc,
                 info_ui.tuner_example, info_ui.tuner_prompt_example,
-                info_ui.base_model, info_ui.tuner_type
+                info_ui.base_model, info_ui.tuner_type, manager.user_name
             ],
             outputs=[
                 self.diffusion_models, self.tuner_models, info_ui.tuner_name,
@@ -655,21 +688,24 @@ class BrowserUI(UIBase):
             queue=True)
 
         def delete_tuner(tuner_name, tuner_type, base_model,
-                         now_diffusion_model):
+                         now_diffusion_model, login_user_name):
             first_level = f'{base_model}-{tuner_type}'
             second_level = f'{tuner_name}'
             custom_tuner_choices = self.delete_tuner(first_level, second_level,
                                                      manager,
-                                                     now_diffusion_model)
-            return (gr.Dropdown(
-                choices=list(self.saved_tuners_category.keys()),
-                value=None), gr.Dropdown(choices=custom_tuner_choices))
+                                                     now_diffusion_model,
+                                                     login_user_name)
+            return (gr.Dropdown(choices=list(
+                self.saved_tuners_category.get(login_user_name,
+                                               OrderedDict()).keys()),
+                                value=None),
+                    gr.Dropdown(choices=custom_tuner_choices))
 
         self.delete_button.click(
             delete_tuner,
             inputs=[
                 info_ui.tuner_name, info_ui.tuner_type, info_ui.base_model,
-                manager.inference.model_manage_ui.diffusion_model
+                manager.inference.model_manage_ui.diffusion_model, manager.user_name
             ],
             outputs=[
                 self.diffusion_models,
@@ -771,20 +807,23 @@ class BrowserUI(UIBase):
                                 queue=False)
 
         def push_to_modelscope(ms_sdk, username, private, base_model_name,
-                               tuner_model_name):
+                               tuner_model_name, login_user_name):
+            from swift import push_to_hub
             gr.Info('Start uploading tuner model to ModelScope!')
-            if (isinstance(base_model_name, list) and len(base_model_name) == 0
-                ) or (isinstance(tuner_model_name, list)
-                      and len(tuner_model_name)
-                      == 0) or tuner_model_name is None or (
-                          base_model_name not in self.saved_tuners_category
-                          and tuner_model_name
-                          not in self.saved_tuners_category[base_model_name]):
+            if (isinstance(base_model_name, list)
+                    and len(base_model_name) == 0) or (
+                        isinstance(tuner_model_name, list)
+                        and len(tuner_model_name) == 0
+                    ) or tuner_model_name is None or (
+                        base_model_name not in self.saved_tuners_category.get(
+                            login_user_name, {}) and tuner_model_name
+                        not in self.saved_tuners_category[login_user_name]
+                        [base_model_name]):
                 raise gr.Error(
                     'Please save model first or select a valid base model name.'
                 )
-            tuner = self.saved_tuners_category[base_model_name][
-                tuner_model_name]
+            tuner = self.saved_tuners_category[login_user_name][
+                base_model_name][tuner_model_name]
 
             enable_share = tuner.get('ENABLE_SHARE', True)
             if enable_share:
@@ -802,7 +841,7 @@ class BrowserUI(UIBase):
                     with open(local_readme, 'r') as f:
                         rc = f.read()
                         rc = rc.replace(r'{MODEL_URL}', ms_url)
-                        rc = rc.replace(r'{USER_NAME}', username)
+                        rc = rc.replace(r'{login_user_name}', username)
                     with open(local_readme, 'w') as f:
                         f.write(rc)
                 local_configuration = os.path.join(local_ckpt_path,
@@ -840,12 +879,12 @@ class BrowserUI(UIBase):
             fn=push_to_modelscope,
             inputs=[
                 self.ms_sdk, self.ms_export_username, self.ms_model_private,
-                self.diffusion_models, self.tuner_models
+                self.diffusion_models, self.tuner_models, manager.user_name
             ],
             outputs=[info_ui.ms_url, self.export_setting],
             queue=True)
 
-        def pull_from_modelscope(modelid, username):
+        def pull_from_modelscope(modelid, username, login_user_name):
             gr.Info('Start pulling tuner model from ModelScope to Local!')
             src_path = f'ms://{username}/{modelid}'
             local_work_dir, _ = FS.map_to_local(src_path)
@@ -880,6 +919,7 @@ class BrowserUI(UIBase):
             new_tuner = {
                 'NAME': new_name,
                 'NAME_ZH': new_name,
+                'USER_NAME': login_user_name,
                 'SOURCE': 'modelscope',
                 'DESCRIPTION': meta.get('DESCRIPTION', ''),
                 'BASE_MODEL': base_model,
@@ -895,8 +935,11 @@ class BrowserUI(UIBase):
             pipeline_ins = pipeline_level_modules[new_tuner['BASE_MODEL']]
             now_diffusion_model = f"{new_tuner['BASE_MODEL']}_{pipeline_ins.diffusion_model['name']}"
 
-            custom_tuner_choices = self.add_tuner(new_tuner, manager,
-                                                  now_diffusion_model)
+            custom_tuner_choices = self.add_tuner(
+                new_tuner,
+                manager,
+                now_diffusion_model,
+                login_user_name=login_user_name)
 
             update_items = {
                 'MODELSCOPE_URL':
@@ -906,11 +949,15 @@ class BrowserUI(UIBase):
                                    new_name,
                                    update_items=update_items)
 
-            return (gr.update(choices=list(self.saved_tuners_category.keys()),
+            return (gr.update(choices=list(
+                self.saved_tuners_category.get(login_user_name,
+                                               OrderedDict()).keys()),
                               value=tuner_category),
                     gr.update(choices=list(
-                        self.saved_tuners_category.get(tuner_category,
-                                                       {}).keys()),
+                        self.saved_tuners_category.get(login_user_name,
+                                                       OrderedDict()).get(
+                                                           tuner_category,
+                                                           {}).keys()),
                               value=new_name), gr.Text(value=new_name),
                     gr.Dropdown(choices=custom_tuner_choices),
                     gr.update(visible=False))
@@ -920,6 +967,7 @@ class BrowserUI(UIBase):
             inputs=[
                 self.ms_modelid,
                 self.ms_import_username,
+                manager.user_name
             ],
             outputs=[
                 self.diffusion_models, self.tuner_models, info_ui.tuner_name,
@@ -929,20 +977,22 @@ class BrowserUI(UIBase):
             queue=True)
 
         def push_to_huggingface(sdk, username, private, base_model_name,
-                                tuner_model_name):
+                                tuner_model_name, login_user_name):
             gr.Info('Start uploading tuner model to HuggingFace!')
-            if (isinstance(base_model_name, list) and len(base_model_name) == 0
-                ) or (isinstance(tuner_model_name, list)
-                      and len(tuner_model_name)
-                      == 0) or tuner_model_name is None or (
-                          base_model_name not in self.saved_tuners_category
-                          and tuner_model_name
-                          not in self.saved_tuners_category[base_model_name]):
+            if (
+                    isinstance(base_model_name, list)
+                    and len(base_model_name) == 0
+            ) or (isinstance(tuner_model_name, list) and len(tuner_model_name)
+                  == 0) or tuner_model_name is None or (
+                      base_model_name not in self.saved_tuners_category.get(
+                          login_user_name, OrderedDict())
+                      and tuner_model_name not in self.
+                      saved_tuners_category[login_user_name][base_model_name]):
                 raise gr.Error(
                     'Please save model first or select a valid base model name.'
                 )
-            tuner = self.saved_tuners_category[base_model_name][
-                tuner_model_name]
+            tuner = self.saved_tuners_category[login_user_name][
+                base_model_name][tuner_model_name]
 
             enable_share = tuner.get('ENABLE_SHARE', True)
             if enable_share:
@@ -960,7 +1010,7 @@ class BrowserUI(UIBase):
                     with open(local_readme, 'r') as f:
                         rc = f.read()
                         rc = rc.replace(r'{MODEL_URL}', hf_url)
-                        rc = rc.replace(r'{USER_NAME}', username)
+                        rc = rc.replace(r'{login_user_name}', username)
                     with open(local_readme, 'w') as f:
                         f.write(rc)
                 local_configuration = os.path.join(ckpt_path,
@@ -999,12 +1049,12 @@ class BrowserUI(UIBase):
             fn=push_to_huggingface,
             inputs=[
                 self.hf_sdk, self.hf_export_username, self.hf_model_private,
-                self.diffusion_models, self.tuner_models
+                self.diffusion_models, self.tuner_models, manager.user_name
             ],
             outputs=[info_ui.hf_url, self.export_setting],
             queue=True)
 
-        def pull_from_huggingface(modelid, username, hf_sdk):
+        def pull_from_huggingface(modelid, username, hf_sdk, login_user_name):
             gr.Info('Start pulling tuner model from HuggingFace to Local!')
             src_path = f'{username}/{modelid}'
 
@@ -1058,7 +1108,8 @@ class BrowserUI(UIBase):
             now_diffusion_model = f"{new_tuner['BASE_MODEL']}_{pipeline_ins.diffusion_model['name']}"
 
             custom_tuner_choices = self.add_tuner(new_tuner, manager,
-                                                  now_diffusion_model)
+                                                  now_diffusion_model,
+                                                  login_user_name)
 
             update_items = {
                 'HUGGINGFACE_URL':
@@ -1066,13 +1117,18 @@ class BrowserUI(UIBase):
             }
             self.update_tuner_info(tuner_category,
                                    new_name,
-                                   update_items=update_items)
+                                   update_items=update_items,
+                                   login_user_name=login_user_name)
 
-            return (gr.update(choices=list(self.saved_tuners_category.keys()),
+            return (gr.update(choices=list(
+                self.saved_tuners_category.get(login_user_name,
+                                               OrderedDict()).keys()),
                               value=tuner_category),
                     gr.update(choices=list(
-                        self.saved_tuners_category.get(tuner_category,
-                                                       {}).keys()),
+                        self.saved_tuners_category.get(login_user_name,
+                                                       OrderedDict()).get(
+                                                           tuner_category,
+                                                           {}).keys()),
                               value=new_name), gr.Text(value=new_name),
                     gr.Dropdown(choices=custom_tuner_choices),
                     gr.update(visible=False))
@@ -1080,9 +1136,8 @@ class BrowserUI(UIBase):
         self.hf_import_submit.click(
             fn=pull_from_huggingface,
             inputs=[
-                self.hf_modelid,
-                self.hf_import_username,
-                self.hf_sdk2,
+                self.hf_modelid, self.hf_import_username, self.hf_sdk2,
+                manager.user_name
             ],
             outputs=[
                 self.diffusion_models, self.tuner_models, info_ui.tuner_name,
@@ -1129,8 +1184,8 @@ class BrowserUI(UIBase):
             FS.get_dir_to_local_dir(model_dir, local_model_dir)
             return model_dir, local_model_dir
 
-        def upload_zip(file_path, file_url, tuner_name, base_model,
-                       tuner_type):
+        def upload_zip(file_path, file_url, tuner_name, base_model, tuner_type,
+                       login_user_name):
             sub_dir = f'{base_model}-{tuner_type}'
             sub_work_dir = os.path.join(self.work_dir, sub_dir)
             if not FS.exists(sub_work_dir):
@@ -1220,6 +1275,7 @@ class BrowserUI(UIBase):
                 'NAME': tuner_name,
                 'NAME_ZH': tuner_name,
                 'SOURCE': 'self_train',
+                'USER_NAME': login_user_name,
                 'DESCRIPTION': tuner_desc,
                 'BASE_MODEL': base_model,
                 'MODEL_PATH': model_dir,
@@ -1239,15 +1295,22 @@ class BrowserUI(UIBase):
             pipeline_ins = pipeline_level_modules[new_tuner['BASE_MODEL']]
             now_diffusion_model = f"{new_tuner['BASE_MODEL']}_{pipeline_ins.diffusion_model['name']}"
 
-            custom_tuner_choices = self.add_tuner(new_tuner, manager,
-                                                  now_diffusion_model)
+            custom_tuner_choices = self.add_tuner(
+                new_tuner,
+                manager,
+                now_diffusion_model,
+                login_user_name=login_user_name)
             gr.Info(self.component_names.upload_success)
 
             return (gr.Dropdown(choices=list(
-                self.saved_tuners_category.keys()),
+                self.saved_tuners_category.get(login_user_name,
+                                               OrderedDict()).keys()),
                                 value=sub_dir),
                     gr.Dropdown(choices=list(
-                        self.saved_tuners_category.get(sub_dir, {}).keys()),
+                        self.saved_tuners_category.get(login_user_name,
+                                                       OrderedDict()).get(
+                                                           sub_dir,
+                                                           {}).keys()),
                                 value=tuner_name), gr.Text(value=tuner_name),
                     gr.Text(value=tuner_type), gr.Text(value=base_model),
                     gr.Text(value=tuner_desc),
@@ -1260,7 +1323,7 @@ class BrowserUI(UIBase):
             upload_zip,
             inputs=[
                 self.file_path, self.file_url, self.upload_tuner_name,
-                self.upload_base_models, self.upload_tuner_type
+                self.upload_base_models, self.upload_tuner_type, manager.user_name
             ],
             outputs=[
                 self.diffusion_models, self.tuner_models, info_ui.tuner_name,

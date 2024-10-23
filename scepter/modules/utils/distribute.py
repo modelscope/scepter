@@ -4,12 +4,16 @@ import functools
 import os
 import pickle
 import random
+import socket
 import warnings
 from collections import OrderedDict
+from datetime import timedelta
 
 import numpy as np
 import torch
 import torch.distributed as dist
+from torch.autograd import Function
+
 from scepter.modules.utils.model import StdMsg
 
 __all__ = [
@@ -202,6 +206,96 @@ def barrier():
         dist.barrier()
 
 
+def all_gather(tensor, uniform_size=True, group=None, **kwargs):
+    world_size = dist.get_world_size(group)
+    if world_size == 1:
+        return [tensor]
+    assert tensor.is_contiguous(), \
+        'ops.all_gather requires the tensor to be contiguous()'
+
+    if uniform_size:
+        tensor_list = [torch.empty_like(tensor) for _ in range(world_size)]
+        dist.all_gather(tensor_list, tensor, group, **kwargs)
+        return tensor_list
+    else:
+        # collect tensor shapes across GPUs
+        shape = tuple(tensor.shape)
+        shape_list = generalized_all_gather(shape, group)
+
+        # flatten the tensor
+        tensor = tensor.reshape(-1)
+        size = int(np.prod(shape))
+        size_list = [int(np.prod(u)) for u in shape_list]
+        max_size = max(size_list)
+
+        # pad to maximum size
+        if size != max_size:
+            padding = tensor.new_zeros(max_size - size)
+            tensor = torch.cat([tensor, padding], dim=0)
+
+        # all_gather
+        tensor_list = [torch.empty_like(tensor) for _ in range(world_size)]
+        dist.all_gather(tensor_list, tensor, group, **kwargs)
+
+        # reshape tensors
+        tensor_list = [
+            t[:n].view(s)
+            for t, n, s in zip(tensor_list, size_list, shape_list)
+        ]
+        return tensor_list
+
+
+def _pad_to_largest_tensor(tensor, group):
+    world_size = dist.get_world_size(group=group)
+    assert world_size >= 1, \
+        'gather/all_gather must be called from ranks within' \
+        'the give group!'
+    local_size = torch.tensor([tensor.numel()],
+                              dtype=torch.int64,
+                              device=tensor.device)
+    size_list = [
+        torch.zeros([1], dtype=torch.int64, device=tensor.device)
+        for _ in range(world_size)
+    ]
+
+    # gather tensors and compute the maximum size
+    dist.all_gather(size_list, local_size, group=group)
+    size_list = [int(size.item()) for size in size_list]
+    max_size = max(size_list)
+
+    # pad tensors to the same size
+    if local_size != max_size:
+        padding = torch.zeros((max_size - local_size, ),
+                              dtype=torch.uint8,
+                              device=tensor.device)
+        tensor = torch.cat((tensor, padding), dim=0)
+    return size_list, tensor
+
+
+def generalized_all_gather(data, group=None):
+    if dist.get_world_size(group) == 1:
+        return [data]
+    if group is None:
+        group = get_global_gloo_group()
+
+    tensor = _serialize_to_tensor(data, group)
+    size_list, tensor = _pad_to_largest_tensor(tensor, group)
+    max_size = max(size_list)
+
+    # receiving tensors from all ranks
+    tensor_list = [
+        torch.empty((max_size, ), dtype=torch.uint8, device=tensor.device)
+        for _ in size_list
+    ]
+    dist.all_gather(tensor_list, tensor, group=group)
+
+    data_list = []
+    for size, tensor in zip(size_list, tensor_list):
+        buffer = tensor.cpu().numpy().tobytes()[:size]
+        data_list.append(pickle.loads(buffer))
+    return data_list
+
+
 @functools.lru_cache()
 def get_global_gloo_group():
     backend = dist.get_backend()
@@ -223,12 +317,14 @@ def reduce_scatter(output,
 
 def all_reduce(tensor, op=dist.ReduceOp.SUM, group=None, **kwargs):
     if we.is_distributed:
-        return dist.all_reduce(tensor, op, group, **kwargs)
+        dist.all_reduce(tensor, op, group, **kwargs)
+    return tensor
 
 
 def reduce(tensor, dst, op=dist.ReduceOp.SUM, group=None, **kwargs):
     if we.is_distributed:
-        return dist.reduce(tensor, dst, op, group, **kwargs)
+        dist.reduce(tensor, dst, op, group, **kwargs)
+    return tensor
 
 
 def _serialize_to_tensor(data):
@@ -241,6 +337,24 @@ def _serialize_to_tensor(data):
 def _unserialize_from_tensor(recv_data):
     buffer = recv_data.cpu().numpy().tobytes()
     return pickle.loads(buffer)
+
+
+def find_free_port():
+    # Copied from https://github.com/facebookresearch/detectron2/blob/main/detectron2/engine/launch.py # noqa: E501
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Binding to port 0 will cause the OS to find an available port for us
+    sock.bind(('', 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    # NOTE: there is still a chance the port could be taken by other processes.
+    return port
+
+
+def is_free_port(port):
+    ips = socket.gethostbyname_ex(socket.gethostname())[-1]
+    ips.append('localhost')
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return all(s.connect_ex((ip, port)) != 0 for ip in ips)
 
 
 def send(tensor, dst, group=None, **kwargs):
@@ -288,6 +402,144 @@ def shared_random_seed():
     return all_seeds[0]
 
 
+def all_to_all(x, scatter_dim, gather_dim, group=None, **kwargs):
+    """
+    `scatter` along one dimension and `gather` along another.
+    """
+    world_size = dist.get_world_size(group) if we.is_distributed else 1
+    if world_size > 1:
+        inputs = [u.contiguous() for u in x.chunk(world_size, dim=scatter_dim)]
+        outputs = [torch.empty_like(u) for u in inputs]
+        dist.all_to_all(outputs, inputs, group=group, **kwargs)
+        x = torch.cat(outputs, dim=gather_dim).contiguous()
+    return x
+
+
+def _split(input, dim, group):
+    # skip if world_size == 1
+    rank = dist.get_rank(group=group)
+    world_size = dist.get_world_size(group=group)
+    if world_size == 1:
+        return input
+
+    # split sequence
+    assert input.size(dim) % world_size == 0
+    return input.chunk(world_size, dim=dim)[rank].contiguous()
+
+
+def _gather(input, dim, group):
+    # skip if world_size == 1
+    world_size = dist.get_world_size(group=group)
+    if world_size == 1:
+        return input
+
+    # gather sequence
+    output = all_gather(input, uniform_size=True, group=group)
+    return torch.cat(output, dim=dim).contiguous()
+
+
+class AllToAll(Function):
+    @staticmethod
+    def forward(ctx, input, scatter_dim, gather_dim, group):
+        ctx.scatter_dim = scatter_dim
+        ctx.gather_dim = gather_dim
+        ctx.group = group
+        return all_to_all(input, scatter_dim, gather_dim, group)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return (all_to_all(grad_output, ctx.gather_dim, ctx.scatter_dim,
+                           ctx.group), None, None, None)
+
+
+class GradScaler(Function):
+    @staticmethod
+    def forward(ctx, input, scale):
+        ctx.scale = scale
+        return input
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        if ctx.scale != 1:
+            grad_output = grad_output * ctx.scale
+        return grad_output, None
+
+
+class AllGather(Function):
+    @staticmethod
+    def forward(ctx, input, dim, group=None):
+        ctx.dim = dim
+        ctx.group = group
+        output = all_gather(input, uniform_size=True, group=group)
+        return torch.cat(output, dim=dim).contiguous()
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        rank = dist.get_rank(group=ctx.group)
+        world_size = dist.get_world_size(group=ctx.group)
+        return grad_output.chunk(world_size,
+                                 dim=ctx.dim)[rank].contiguous(), None, None
+
+
+def diff_all_to_all(input, scatter_dim, gather_dim, group=None):
+    return AllToAll.apply(input, scatter_dim, gather_dim, group)
+
+
+def diff_scatter_sequence(input, dim, group=None):
+    rank = dist.get_rank(group)
+    world_size = dist.get_world_size(group)
+    output = input.chunk(world_size, dim=dim)[rank].contiguous()
+    return GradScaler.apply(output, 1. / world_size)
+
+
+def diff_gather_sequence(input, dim, group=None):
+    world_size = dist.get_world_size(group)
+    output = AllGather.apply(input, dim, group)
+    return GradScaler.apply(output, world_size)
+
+
+class SplitForwardGatherBackward(Function):
+    @staticmethod
+    def forward(ctx, input, dim, group=None, grad_scale=None):
+        ctx.dim = dim
+        ctx.group = group
+        ctx.grad_scale = grad_scale
+        return _split(input, dim, group)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        if ctx.grad_scale == 'up':
+            grad_output = grad_output * dist.get_world_size(group=ctx.group)
+        elif ctx.grad_scale == 'down':
+            grad_output = grad_output / dist.get_world_size(group=ctx.group)
+        return _gather(grad_output, ctx.dim, ctx.group), None, None, None
+
+
+class GatherForwardSplitBackward(Function):
+    @staticmethod
+    def forward(ctx, input, dim, group=None, grad_scale=None):
+        ctx.dim = dim
+        ctx.group = group
+        ctx.grad_scale = grad_scale
+        return _gather(input, dim, group)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        if ctx.grad_scale == 'up':
+            grad_output = grad_output * dist.get_world_size(group=ctx.group)
+        elif ctx.grad_scale == 'down':
+            grad_output = grad_output / dist.get_world_size(group=ctx.group)
+        return _split(grad_output, ctx.dim, ctx.group), None, None, None
+
+
+def split_forward_gather_backward(input, dim, group=None, grad_scale=None):
+    return SplitForwardGatherBackward.apply(input, dim, group, grad_scale)
+
+
+def gather_forward_split_backward(input, dim, group=None, grad_scale=None):
+    return GatherForwardSplitBackward.apply(input, dim, group, grad_scale)
+
+
 global we
 
 
@@ -295,7 +547,10 @@ def mp_worker(gpu, ngpus_per_node, cfg, fn, pmi_rank, world_size, work_env):
     rank = pmi_rank * ngpus_per_node + gpu
     work_env.device_id = gpu % ngpus_per_node
     work_env.rank = rank
-    dist.init_process_group(backend='nccl', world_size=world_size, rank=rank)
+    dist.init_process_group(backend='nccl',
+                            world_size=world_size,
+                            rank=rank,
+                            timeout=timedelta(seconds=18000))
     torch.backends.cudnn.deterministic = cfg.ENV.get('CUDNN_DETERMINISTIC',
                                                      True)
     torch.backends.cudnn.benchmark = cfg.ENV.get('CUDNN_BENCHMARK', False)
@@ -307,11 +562,50 @@ def mp_worker(gpu, ngpus_per_node, cfg, fn, pmi_rank, world_size, work_env):
         work_env.logger.info(f'PMI rank {pmi_rank}!')
         work_env.logger.info(f'Nums of gpu {ngpus_per_node}!')
         work_env.logger.info(
-            f'Current rank {work_env.rank} current devices num {ngpus_per_node} '
+            f'Current rank {work_env.rank} current devices num {ngpus_per_node} \n'
             f'current machine rank {pmi_rank} and all world size {world_size}')
+    # model parallel
+    tensor_parallel_size = cfg.ENV.get('TENSOR_PARALLEL_SIZE', 1)
+    pipeline_parallel_size = cfg.ENV.get('PIPELINE_PARALLEL_SIZE', 1)
 
-    we.set_env(work_env.get_env())
+    env_dict = work_env.get_env()
+
+    if tensor_parallel_size * pipeline_parallel_size > 1:
+        '''
+        '''
+        assert world_size % tensor_parallel_size == 0
+        assert world_size % (tensor_parallel_size *
+                             pipeline_parallel_size) == 0
+        data_parallel_size = world_size // (tensor_parallel_size *
+                                            pipeline_parallel_size)
+        mesh = torch.arange(world_size).view(data_parallel_size,
+                                             pipeline_parallel_size,
+                                             tensor_parallel_size)
+        index = torch.where(mesh == rank)
+        assert all(u.numel() == 1 for u in index)
+        index = [u.item() for u in index]
+        for j in range(pipeline_parallel_size):
+            for k in range(tensor_parallel_size):
+                group = dist.new_group(mesh[:, j, k].tolist())
+                if j == index[1] and k == index[2]:
+                    env_dict['data_parallel_group'] = group
+        for i in range(data_parallel_size):
+            for j in range(pipeline_parallel_size):
+                group = dist.new_group(mesh[i, j, :].tolist())
+                if i == index[0] and j == index[1]:
+                    env_dict['tensor_parallel_group'] = group
+        for i in range(data_parallel_size):
+            for k in range(tensor_parallel_size):
+                ranks = mesh[i, :, k].tolist()
+                group = dist.new_group(ranks)
+                if i == index[0] and k == index[2]:
+                    env_dict['pipeline_parallel_group'] = group
+                    env_dict['pipeline_parallel_ranks'] = ranks
+    we.set_env(env_dict)
+    work_env.logger.info(str(we))
     fn(cfg)
+    torch.cuda.synchronize()
+    barrier()
 
 
 class Workenv(object):
@@ -322,6 +616,7 @@ class Workenv(object):
         self.rank = 0
         self.world_size = 1
         self.device_id = 0
+        self.backend = ''
         self.device_count = 1
         self.seed = 2023
         self.debug = False
@@ -330,24 +625,36 @@ class Workenv(object):
         self.data_online = False
         self.share_storage = False
 
+        self.data_parallel_group = None
+        self.tensor_parallel_group = None
+        self.pipleline_parallel_group = None
+        self.pipeline_parallel_ranks = None
+
     def init_env(self, config, fn, logger=None):
         # if use pytorch_lightning: then direct use pytorch_lightning.
         config.ENV = config.get('ENV', {})
         self.seed = config.ENV.get('SEED', 2023)
         self.debug = os.environ.get('ES_DEBUG', None) == 'true'
+
+        if logger is None:
+            self.logger = StdMsg(name='env')
+        else:
+            self.logger = logger
+
+        self.sys_envs = config.ENV.get('SYS_ENVS', None)
+        if self.sys_envs:
+            for k, v in self.sys_envs.items():
+                os.environ[k] = v
+                self.logger.info(f'Set env variable {k}={v}')
         set_random_seed(self.seed)
-        if logger is not None:
-            logger.info(f'And running with seed {self.seed}!')
+        self.logger.info(f'And running with seed {self.seed}!')
+
         if config.ENV.get('USE_PL', False):
             self.use_pl = config.ENV.USE_PL
             fn(config)
             return
         if hasattr(config, 'args') and hasattr(config.args, 'launcher'):
             self.launcher = config.args.launcher
-        if logger is None:
-            self.logger = StdMsg(name='env')
-        else:
-            self.logger = logger
 
         self.data_online = os.environ.get('DATA_ONLINE', None) == 'true'
         self.share_storage = os.environ.get('SHARE_STORAGE', None) == 'true'
@@ -379,7 +686,8 @@ class Workenv(object):
                 if self.is_distributed:
                     self.backend = config.ENV.get('BACKEND', 'nccl')
                     self.sync_bn = config.ENV.get('SYNC_BN', False)
-                    dist.init_process_group(backend=self.backend)
+                    dist.init_process_group(backend=self.backend,
+                                            timeout=timedelta(seconds=18000))
                     # dist.barrier()
                 self.initialized = True
                 if dist.is_initialized():
@@ -422,7 +730,7 @@ class Workenv(object):
             self.device_count = ngpus_per_node
             world_size = ngpus_per_node * pmi_world_size
             self.world_size = world_size
-            if self.world_size > 1:
+            if self.world_size >= 1:
                 self.is_distributed = True
                 self.initialized = True
             if self.is_distributed:
@@ -434,12 +742,40 @@ class Workenv(object):
                            self))
 
     def get_env(self):
-        return self.__dict__
+        ret_dict = {}
+        for k, v in self.__dict__.items():
+            if isinstance(v, (list, dict, int, float, str, bool)):
+                ret_dict[k] = v
+        return ret_dict
 
     def set_env(self, we_env):
         for k, v in we_env.items():
             setattr(self, k, v)
         set_random_seed(self.seed)
+
+    def group_info(self, group):
+        group_info = f'group size: {group.size()}\n'
+        group_info += f'group rank: {group.rank()}\n'
+        group_info += f'group name: {group.name()}\n'
+        return group_info
+
+    @property
+    def data_group_world_size(self):
+        if self.data_parallel_group is not None:
+            return self.data_parallel_group.size()
+        return self.world_size
+
+    @property
+    def tensor_group_world_size(self):
+        if self.tensor_parallel_group is not None:
+            return self.tensor_parallel_group.size()
+        return 1
+
+    @property
+    def pipeline_group_world_size(self):
+        if self.pipleline_parallel_group is not None:
+            return self.pipleline_parallel_group.size()
+        return 1
 
     def __str__(self):
         environ_str = f'Now running in the distributed environment with world size {self.world_size}\n!'
@@ -448,8 +784,19 @@ class Workenv(object):
         environ_str += f"Current task's global rank is {self.rank} \n"
         environ_str += f"Current task's data online is set {self.data_online} \n"
         environ_str += f"Current task's share storage is set {self.share_storage} \n"
-        environ_str += f"Current task's global seed is set {self.seed}"
+        environ_str += f"Current task's global seed is set {self.seed} \n"
+        if self.data_parallel_group is not None:
+            environ_str += f"Current task's data parallel group: {self.group_info(self.data_parallel_group)} \n"
+        if self.pipleline_parallel_group is not None:
+            environ_str += f"Current task's pipeline parallel group: {self.group_info(self.pipleline_parallel_group)} \n"
+        if self.tensor_parallel_group is not None:
+            environ_str += f"Current task's tensor parallel group: {self.group_info(self.tensor_parallel_group)} \n"
+        environ_str += f"Current task's backend is set {self.backend} \n"
         return environ_str
+
+    def __del__(self):
+        if we.is_distributed:
+            dist.destroy_process_group()
 
 
 we = Workenv()

@@ -1,0 +1,266 @@
+NAME: PIXART_ALPHA
+IS_DEFAULT: False
+DEFAULT_PARAS:
+  PARAS:
+    RESOLUTIONS: [[1024, 1024]]
+  INPUT:
+    IMAGE:
+    ORIGINAL_SIZE_AS_TUPLE: [1024, 1024]
+    TARGET_SIZE_AS_TUPLE: [1024, 1024]
+    PROMPT: ""
+    NEGATIVE_PROMPT: ""
+    PROMPT_PREFIX: ""
+    SAMPLE: ddim
+    SAMPLE_STEPS: 20
+    GUIDE_SCALE: 4.5
+    GUIDE_RESCALE: 0.5
+    DISCRETIZATION: trailing
+  OUTPUT:
+    LATENT:
+    IMAGES:
+    SEED:
+  MODULES_PARAS:
+    FIRST_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: float32
+          INPUT: ["IMAGE"]
+        -
+          NAME: decode
+          DTYPE: float32
+          INPUT: ["LATENT"]
+      PARAS:
+        SCALE_FACTOR: 0.18215
+        SIZE_FACTOR: 8
+    DIFFUSION_MODEL:
+      FUNCTION:
+        -
+          NAME: forward
+          DTYPE: float16
+          INPUT: ["SAMPLE_STEPS", "SAMPLE", "GUIDE_SCALE", "GUIDE_RESCALE", "DISCRETIZATION"]
+    COND_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: float32
+          INPUT: ["PROMPT"]
+#
+MODEL:
+  PRETRAINED_MODEL:
+  DECODER_BIAS: 0.5
+  SCHEDULE:
+    PARAMETERIZATION: "eps"
+    TIMESTEPS: 1000
+    ZERO_TERMINAL_SNR: False
+    SCHEDULE_ARGS:
+      "NAME": "linear"
+      "BETA_MIN": 0.0001
+      "BETA_MAX": 0.02
+  #
+  DIFFUSION_MODEL:
+    NAME: PixArt
+    PRETRAINED_MODEL: ms://AI-ModelScope/PixArt-alpha@PixArt-XL-2-1024-MS.pth
+    INPUT_SIZE: 128
+    PATCH_SIZE: 2
+    IN_CHANNELS: 4
+    HIDDEN_SIZE: 1152
+    DEPTH: 28
+    NUM_HEADS: 16
+    MLP_RATIO: 4.0
+    CLASS_DROPOUT_PROB: 0.1
+    PRED_SIGMA: True
+    DROP_PATH: 0.0
+    WINDOW_DIZE: 0
+    USE_REL_POS: False
+    CAPTION_CHANNELS: 4096
+    LEWEI_SCALE: 2
+    MODEL_MAX_LENGTH: 120
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    PRETRAINED_MODEL: ms://AI-ModelScope/stable-diffusion-2-base@512-base-ema.safetensors
+    EMBED_DIM: 4
+    IGNORE_KEYS: [ ]
+    BATCH_SIZE: 1
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: T5EmbedderHF
+    PRETRAINED_MODEL: ms://AI-ModelScope/PixArt-alpha@t5-v1_1-xxl/
+    TOKENIZER_PATH: ms://AI-ModelScope/PixArt-alpha@t5-v1_1-xxl/
+    LENGTH: 120
+    CLEAN: heavy
+    USE_GRAD: False
+#
+MODEL_LOCAL:
+  PRETRAINED_MODEL:
+  DECODER_BIAS: 0.5
+  SCHEDULE:
+    PARAMETERIZATION: "eps"
+    TIMESTEPS: 1000
+    ZERO_TERMINAL_SNR: False
+    SCHEDULE_ARGS:
+      "NAME": "linear"
+      "BETA_MIN": 0.0001
+      "BETA_MAX": 0.02
+  #
+  DIFFUSION_MODEL:
+    NAME: PixArt
+    PRETRAINED_MODEL: models/scepter/PixArt-alpha/PixArt-XL-2-1024-MS.pth
+    INPUT_SIZE: 128
+    PATCH_SIZE: 2
+    IN_CHANNELS: 4
+    HIDDEN_SIZE: 1152
+    DEPTH: 28
+    NUM_HEADS: 16
+    MLP_RATIO: 4.0
+    CLASS_DROPOUT_PROB: 0.1
+    PRED_SIGMA: True
+    DROP_PATH: 0.0
+    WINDOW_DIZE: 0
+    USE_REL_POS: False
+    CAPTION_CHANNELS: 4096
+    LEWEI_SCALE: 2
+    MODEL_MAX_LENGTH: 120
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    PRETRAINED_MODEL: models/scepter/stable-diffusion-2-base/512-base-ema.safetensors
+    EMBED_DIM: 4
+    IGNORE_KEYS: [ ]
+    BATCH_SIZE: 1
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: T5EmbedderHF
+    PRETRAINED_MODEL: models/scepter/PixArt-alpha/t5-v1_1-xxl/
+    TOKENIZER_PATH: models/scepter/PixArt-alpha/t5-v1_1-xxl/
+    LENGTH: 120
+    CLEAN: heavy
+    USE_GRAD: False
+#
+MODEL_HF:
+  PRETRAINED_MODEL:
+  DECODER_BIAS: 0.5
+  SCHEDULE:
+    PARAMETERIZATION: "eps"
+    TIMESTEPS: 1000
+    ZERO_TERMINAL_SNR: False
+    SCHEDULE_ARGS:
+      "NAME": "linear"
+      "BETA_MIN": 0.0001
+      "BETA_MAX": 0.02
+  #
+  DIFFUSION_MODEL:
+    NAME: PixArt
+    PRETRAINED_MODEL: hf://PixArt-alpha/PixArt-alpha@PixArt-XL-2-1024-MS.pth
+    INPUT_SIZE: 128
+    PATCH_SIZE: 2
+    IN_CHANNELS: 4
+    HIDDEN_SIZE: 1152
+    DEPTH: 28
+    NUM_HEADS: 16
+    MLP_RATIO: 4.0
+    CLASS_DROPOUT_PROB: 0.1
+    PRED_SIGMA: True
+    DROP_PATH: 0.0
+    WINDOW_DIZE: 0
+    USE_REL_POS: False
+    CAPTION_CHANNELS: 4096
+    LEWEI_SCALE: 2
+    MODEL_MAX_LENGTH: 120
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    PRETRAINED_MODEL: hf://stabilityai/stable-diffusion-2-base@512-base-ema.safetensors
+    EMBED_DIM: 4
+    IGNORE_KEYS: [ ]
+    BATCH_SIZE: 1
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: T5EmbedderHF
+    PRETRAINED_MODEL: hf://PixArt-alpha/PixArt-alpha@t5-v1_1-xxl/
+    TOKENIZER_PATH: hf://PixArt-alpha/PixArt-alpha@t5-v1_1-xxl/
+    LENGTH: 120
+    CLEAN: heavy
+    USE_GRAD: False

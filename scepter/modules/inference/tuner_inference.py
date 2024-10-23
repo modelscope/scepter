@@ -13,10 +13,6 @@ try:
     from peft.utils import CONFIG_NAME, SAFETENSORS_WEIGHTS_NAME, WEIGHTS_NAME
 except Exception as e:
     warnings.warn(f'Import peft error, please deal with this problem: {e}')
-try:
-    from swift import Swift, SwiftModel
-except Exception as e:
-    warnings.warn(f'Import swift error, please deal with this problem: {e}')
 
 
 class TunerInference():
@@ -27,6 +23,11 @@ class TunerInference():
     # @classmethod
     def unregister_tuner(self, tuner_model_list, diffusion_model,
                          cond_stage_model):
+        try:
+            from swift import SwiftModel
+        except Exception as e:
+            warnings.warn(f'Import swift error, please deal with this problem: {e}')
+
         self.logger.info('Unloading tuner model')
         if isinstance(diffusion_model['model'], SwiftModel):
             for adapter_name in diffusion_model['model'].adapters:
@@ -41,6 +42,11 @@ class TunerInference():
     # @classmethod
     def register_tuner(self, tuner_model_list, diffusion_model,
                        cond_stage_model):
+        try:
+            from swift import Swift
+        except Exception as e:
+            warnings.warn(f'Import swift error, please deal with this problem: {e}')
+
         self.logger.info('Loading tuner model')
         if len(tuner_model_list) < 1:
             self.unregister_tuner(tuner_model_list, diffusion_model,
@@ -137,7 +143,10 @@ class TunerInference():
                         state_dict = {}
                         is_bin_file = True
                         if os.path.isfile(bin_file):
-                            state_dict = torch.load(bin_file)
+                            if 'weights_only' in torch.load.__code__.co_varnames:
+                                state_dict = torch.load(bin_file, weights_only=True)
+                            else:
+                                state_dict = torch.load(bin_file)
                         elif os.path.isfile(safe_file):
                             is_bin_file = False
                             from safetensors.torch import \

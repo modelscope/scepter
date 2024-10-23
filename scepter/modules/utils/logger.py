@@ -47,7 +47,7 @@ def time_since(since, percent):
     return '{} {:.2f}%({})'.format(as_time(s), 100 * percent, as_time(rs))
 
 
-def get_logger(name='torch dist'):
+def get_logger(name='scepter', level=logging.INFO):
     logger = logging.getLogger(name)
     logger.propagate = False
     if len(logger.handlers) == 0:
@@ -57,8 +57,8 @@ def get_logger(name='torch dist'):
             '[File: %(filename)s Function: %(funcName)s at line %(lineno)d]  %(message)s'
         )
         std_handler.setFormatter(formatter)
-        std_handler.setLevel(logging.INFO)
-        logger.setLevel(logging.INFO)
+        std_handler.setLevel(level)
+        logger.setLevel(level)
         logger.addHandler(std_handler)
     return logger
 
