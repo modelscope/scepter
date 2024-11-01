@@ -3,12 +3,14 @@
 import argparse
 import base64
 import copy
+import csv
 import glob
 import io
 import os
 import random
 import re
 import string
+import sys
 import threading
 
 import cv2
@@ -30,6 +32,8 @@ from scepter.studio.utils.env import init_env
 
 from .example import get_examples
 from .utils import load_image
+
+csv.field_size_limit(sys.maxsize)
 
 refresh_sty = '\U0001f504'  # 🔄
 clear_sty = '\U0001f5d1'  # 🗑️
@@ -640,8 +644,8 @@ class ChatBotUI(object):
 
             print(new_message)
             imgs = self.pipe(
-                input_image=edit_image,
-                input_mask=edit_image_mask,
+                image=edit_image,
+                mask=edit_image_mask,
                 task=edit_task,
                 prompt=[new_message] *
                 len(edit_image) if edit_image is not None else [new_message],
@@ -832,8 +836,8 @@ class ChatBotUI(object):
 
             img_num = len(edit_image) if edit_image is not None else 1
             imgs = self.pipe(
-                input_image=edit_image,
-                input_mask=edit_image_mask,
+                image=edit_image,
+                mask=edit_image_mask,
                 task=edit_task,
                 prompt=[prompt] * img_num,
                 negative_prompt=[''] * img_num,
@@ -875,6 +879,7 @@ class ChatBotUI(object):
                     self.example_ref_im1, self.text, self.seed
                 ],
                 outputs=[self.chatbot, self.text, self.gallery],
+                examples_per_page=4,
                 run_on_click=True)
 
         ########################################
