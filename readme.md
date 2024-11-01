@@ -40,6 +40,41 @@ ACE is a unified foundational model framework that supports a wide range of visu
 
 [![Watch the demo](https://ali-vilab.github.io/ace-page/static/images/tasks.png)](https://ali-vilab.github.io/ace-page/)
 
+#### ACE Training
+
+We offer a demonstration training YAML that enables the end-to-end training of ACE using a toy dataset. For a comprehensive overview of the hyperparameter configurations, please consult `scepter/methods/edit/dit_ace_0.6b_512.yaml`.
+
+##### Prepare datasets
+
+Please find the dataset class located in `scepter/modules/data/dataset/ms_dataset.py`,
+designed to facilitate end-to-end training using an open-source toy dataset.
+Download a dataset zip file from [modelscope](https://www.modelscope.cn/models/iic/scepter/resolve/master/datasets/hed_pair.zip), and then extract its contents into the `cache/datasets/` directory.
+
+Should you wish to prepare your own datasets, we recommend consulting `scepter/modules/data/dataset/ms_dataset.py` for detailed guidance on the required data format.
+
+##### Prepare initial weight
+The ACE checkpoint has been uploaded to both ModelScope and HuggingFace platforms:
+* [ModelScope](https://www.modelscope.cn/models/iic/ACE-0.6B-512px)
+* [HuggingFace](https://huggingface.co/scepter-studio/ACE-0.6B-512px)
+
+In the provided training YAML configuration, we have designated the Modelscope URL as the default checkpoint URL. Should you wish to transition to Hugging Face, you can effortlessly achieve this by modifying the PRETRAINED_MODEL value within the YAML file (replace the prefix "ms://iic" to "hf://scepter-studio").
+
+
+##### Start training
+
+You can easily start training procedure by executing the following command:
+```bash
+PYTHONPATH=. python scepter/tools/run_train.py --cfg scepter/methods/edit/dit_ace_0.6b_512.yaml
+```
+
+#### ACE Chat Bot
+
+We have developed a chatbot interface utilizing Gradio, designed to convert user input in natural language into visually captivating images that align semantically with the specified instructions. You can easily access this functionality by launching Scepter Studio with the following command:
+```bash
+PYTHONPATH=. python scepter/tools/webui.py --cfg scepter/methods/studio/scepter_ui.yaml --language zh
+```
+Upon starting, you will find a "ChatBot" tab within the Gradio application, which serves as a chat-based interface to handle any requests related to image editing or generation.
+
 #### ACE ComfyUI Workflow
 
 ![Workflow](https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_example.jpg)
