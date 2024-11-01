@@ -852,7 +852,7 @@ class ChatBotUI(object):
             history = [(prompt,
                         f'{pre_info} The generated image is:\n {img_str}')]
             return self.get_history(history), gr.update(value=''), gr.update(
-                visible=False)
+                visible=False), gr.update(value=-1)
 
         with self.eg:
             self.example_task = gr.Text(label='Task Name',
@@ -878,7 +878,7 @@ class ChatBotUI(object):
                     self.example_task, self.example_image, self.example_mask,
                     self.example_ref_im1, self.text, self.seed
                 ],
-                outputs=[self.chatbot, self.text, self.gallery],
+                outputs=[self.chatbot, self.text, self.gallery, self.seed],
                 examples_per_page=4,
                 run_on_click=True)
 
