@@ -8,6 +8,8 @@ from abc import ABCMeta
 from collections import OrderedDict, defaultdict
 
 import torch
+from torch.nn.parallel import DistributedDataParallel
+
 from scepter.modules.data.dataset import DATASETS
 from scepter.modules.model.base_model import BaseModel
 from scepter.modules.model.metric.registry import METRICS
@@ -18,15 +20,14 @@ from scepter.modules.solver.hooks import HOOKS
 from scepter.modules.utils.config import Config, dict_to_yaml
 from scepter.modules.utils.data import transfer_data_to_cuda
 from scepter.modules.utils.directory import get_relative_folder, osp_path
-from scepter.modules.utils.distribute import (
-    dist, gather_data, we, all_reduce,
-    _serialize_to_tensor, broadcast, _unserialize_from_tensor,
-    all_reduce, barrier)
+from scepter.modules.utils.distribute import (_serialize_to_tensor,
+                                              _unserialize_from_tensor,
+                                              all_reduce, barrier, broadcast,
+                                              gather_data, we)
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger, init_logger
 from scepter.modules.utils.probe import (ProbeData, merge_gathered_probe,
                                          register_data)
-from torch.nn.parallel import DistributedDataParallel
 
 try:
     import pytorch_lightning as pl
@@ -187,6 +188,7 @@ try:
 except Exception as e:
     warnings.warn(f'{e}')
 
+
 def async_str(text):
     broadcast_size = torch.zeros(1, dtype=torch.long).to(we.device_id)
     if we.rank == 0:
@@ -196,7 +198,8 @@ def async_str(text):
         broadcast(text_tensor, src=0)
     else:
         broadcast(broadcast_size, src=0)
-        text_tensor = torch.empty((broadcast_size[0],), dtype=torch.uint8).to(we.device_id)
+        text_tensor = torch.empty((broadcast_size[0], ),
+                                  dtype=torch.uint8).to(we.device_id)
         broadcast(text_tensor, src=0)
         text = _unserialize_from_tensor(text_tensor)
     return text
@@ -271,8 +274,8 @@ class BaseSolver(object, metaclass=ABCMeta):
         self.pl_dir = self.work_dir
         self.log_file = osp_path(self.work_dir, cfg.LOG_FILE)
         self.optimizer, self.lr_scheduler = None, None
-        self.resume_from: str = cfg.get("RESUME_FROM", None)
-        self.max_epochs: int = cfg.get("MAX_EPOCHS", -1)
+        self.resume_from: str = cfg.get('RESUME_FROM', None)
+        self.max_epochs: int = cfg.get('MAX_EPOCHS', -1)
         self.use_pl = we.use_pl
         self.train_precision = self.cfg.get('TRAIN_PRECISION', 32)
         self._mode_set = set()
@@ -284,7 +287,7 @@ class BaseSolver(object, metaclass=ABCMeta):
         if not self.use_pl:
             world_size = we.world_size
             if world_size > 1:
-                self._num_folds: int = cfg.get("NUM_FOLDS", 1)
+                self._num_folds: int = cfg.get('NUM_FOLDS', 1)
             if cfg.have('MODE'):
                 self._mode_set.add(cfg.MODE)
                 self._mode = cfg.MODE
@@ -765,17 +768,21 @@ class BaseSolver(object, metaclass=ABCMeta):
             save_folder = pre_save_paras['save_folder']
             save_probe_prefix = pre_save_paras['save_probe_prefix']
             step = pre_save_paras['step']
-            save_image_postfix = pre_save_paras.get('save_image_postfix', 'jpg')
-            save_video_postfix = pre_save_paras.get('save_video_postfix', 'mp4')
+            save_image_postfix = pre_save_paras.get('save_image_postfix',
+                                                    'jpg')
+            save_video_postfix = pre_save_paras.get('save_video_postfix',
+                                                    'mp4')
             for k, v in self.collect_probe.items():
                 if save_probe_prefix is not None:
                     ret_prefix = os.path.join(save_folder, save_probe_prefix)
                 else:
-                    ret_prefix = os.path.join(save_folder, k.replace('/', '_') + f'_step_{step}')
-                v.presave(prefix = ret_prefix,
-                          image_postfix = save_image_postfix,
-                          video_postfix = save_video_postfix,
-                          rank = we.rank)
+                    ret_prefix = os.path.join(
+                        save_folder,
+                        k.replace('/', '_') + f'_step_{step}')
+                v.presave(prefix=ret_prefix,
+                          image_postfix=save_image_postfix,
+                          video_postfix=save_video_postfix,
+                          rank=we.rank)
         gather_probe_data = gather_data(self._probe_data[self.mode])
         _dist_data_list = gather_data([self._dist_data[self.mode] or {}])
         if not we.rank == 0:
@@ -877,7 +884,7 @@ class BaseSolver(object, metaclass=ABCMeta):
                 if we.is_distributed:
                     value = value.data.clone()
                     all_reduce(value, group=we.data_parallel_group)
-                    value = value/we.data_group_world_size
+                    value = value / we.data_group_world_size
                 ret[key] = value
             else:
                 ret[key] = value

@@ -53,6 +53,12 @@ BASE_MODELS:
       FIRST_STAGE_MODEL: FLUX1.0_SCHNELL_AutoencoderKLFlux
       COND_STAGE_MODEL: FLUX1.0_SCHNELL_T5PlusClipFluxEmbedder
       CONFIG: config/flux1.0_schnell_pro.yaml
+    -
+      NAME: ACE_0.6B_512
+      DIFFUSION_MODEL: ACE_0.6B_512_ACE
+      FIRST_STAGE_MODEL: ACE_0.6B_512_AutoencoderKL
+      COND_STAGE_MODEL: ACE_0.6B_512_T5EmbedderHF
+      CONFIG: config/ace_0.6b_512_pro.yaml
 
 MODEL_SOURCE:
   - "ModelScope"

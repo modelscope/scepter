@@ -97,7 +97,7 @@ class TrainerUI(UIBase):
                    reverse=False))
 
     def create_ui(self):
-        with gr.Tabs():
+        with gr.Group():
             with gr.Row(variant='panel', equal_height=True):
                 with gr.Column(scale=1, min_width=0, variant='panel'):
                     gr.Markdown(self.component_names.user_direction)
@@ -659,15 +659,16 @@ class TrainerUI(UIBase):
                 data_cfg['BATCH_SIZE'] = int(train_batch_size)
                 data_cfg['PROMPT_PREFIX'] = prompt_prefix
                 data_cfg['REPLACE_KEYWORDS'] = replace_keywords
-                for trans in data_cfg['TRANSFORMS']:
-                    if trans['NAME'] in [
-                            'Resize', 'FlexibleResize', 'CenterCrop',
-                            'FlexibleCenterCrop'
-                    ]:
-                        trans['SIZE'] = [
-                            int(resolution_height),
-                            int(resolution_width)
-                        ]
+                if 'TRANSFORMS' in data_cfg:
+                    for trans in data_cfg['TRANSFORMS']:
+                        if trans['NAME'] in [
+                                'Resize', 'FlexibleResize', 'CenterCrop',
+                                'FlexibleCenterCrop'
+                        ]:
+                            trans['SIZE'] = [
+                                int(resolution_height),
+                                int(resolution_width)
+                            ]
                 if data_source in self.component_names.data_source_choices:
                     if ms_data_name.startswith(
                             'http') or ms_data_name.endswith('zip'):
@@ -736,7 +737,8 @@ class TrainerUI(UIBase):
                         if os.path.exists(local_data_dir) and os.path.exists(
                                 local_file_list):
                             data_cfg.update({
-                                'NAME': 'ImageTextPairDataset',
+                                'NAME': 'ImageTextPairDataset' if data_cfg['NAME'] == 'ImageTextPairMSDataset' else data_cfg['NAME'],
+                                'ENABLE_RESOLUTION_BUCKET': enable_resolution_bucket,
                                 'SAMPLER': {
                                     'NAME':
                                     'ResolutionBatchSampler',
@@ -761,11 +763,12 @@ class TrainerUI(UIBase):
                                 },
                                 'DATA_NUM': data_num
                             })
-                            for trans in data_cfg['TRANSFORMS']:
-                                if trans['NAME'] == 'Select':
-                                    trans['META_KEYS'] = [
-                                        'img_path', 'image_size'
-                                    ]
+                            if 'TRANSFORMS' in data_cfg:
+                                for trans in data_cfg['TRANSFORMS']:
+                                    if trans['NAME'] == 'Select':
+                                        trans['META_KEYS'] = [
+                                            'img_path', 'image_size'
+                                        ]
                         else:
                             raise Exception(
                                 'Cannot find right data format for resolution_bucket'

@@ -1,3 +1,7 @@
-from .samplers import BaseDiffusionSampler, FlowEluerSampler, DDIMSampler
-from .schedules import BaseNoiseScheduler, ScaledLinearScheduler, FlowMatchShiftScheduler
+# -*- coding: utf-8 -*-
+# Copyright (c) Alibaba, Inc. and its affiliates.
+
 from .diffusions import BaseDiffusion, DiffusionFluxRF
+from .samplers import BaseDiffusionSampler, DDIMSampler, FlowEluerSampler
+from .schedules import (BaseNoiseScheduler, FlowMatchShiftScheduler,
+                        ScaledLinearScheduler)

@@ -9,8 +9,11 @@ import numpy as np
 import open_clip
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.dlpack
 from einops import rearrange
+from torch.utils.checkpoint import checkpoint
+
 from scepter.modules.model.backbone.unet.unet_utils import Timestep
 from scepter.modules.model.embedder.base_embedder import BaseEmbedder
 from scepter.modules.model.embedder.resampler import Resampler
@@ -21,7 +24,6 @@ from scepter.modules.model.utils.basic_utils import expand_dims_like
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
-from torch.utils.checkpoint import checkpoint
 
 try:
     from transformers import (CLIPTextModel, CLIPTokenizer,
@@ -831,22 +833,30 @@ class T5EmbedderHF(BaseEmbedder):
     def __init__(self, cfg, logger=None):
         super().__init__(cfg, logger=logger)
         pretrained_path = cfg.get('PRETRAINED_MODEL', None)
-        t5_dtype = cfg.get('T5_DTYPE', None)
+        self.t5_dtype = cfg.get('T5_DTYPE', 'float32')
         assert pretrained_path
         with FS.get_dir_to_local_dir(pretrained_path,
                                      wait_finish=True) as local_path:
-            if t5_dtype is not None:
-                self.model = T5EncoderModel.from_pretrained(
-                    local_path, torch_dtype=getattr(torch, t5_dtype))
-            else:
-                self.model = T5EncoderModel.from_pretrained(local_path)
+            self.model = T5EncoderModel.from_pretrained(
+                local_path,
+                torch_dtype=getattr(
+                    torch,
+                    'float' if self.t5_dtype == 'float32' else self.t5_dtype))
         tokenizer_path = cfg.get('TOKENIZER_PATH', None)
         self.length = cfg.get('LENGTH', 77)
+
+        self.use_grad = cfg.get('USE_GRAD', False)
+        self.clean = cfg.get('CLEAN', 'whitespace')
+        self.added_identifier = cfg.get('ADDED_IDENTIFIER', None)
         if tokenizer_path:
             self.tokenize_kargs = {'return_tensors': 'pt'}
             with FS.get_dir_to_local_dir(tokenizer_path,
                                          wait_finish=True) as local_path:
-                self.tokenizer = AutoTokenizer.from_pretrained(local_path)
+                if self.added_identifier is not None and isinstance(
+                        self.added_identifier, list):
+                    self.tokenizer = AutoTokenizer.from_pretrained(local_path)
+                else:
+                    self.tokenizer = AutoTokenizer.from_pretrained(local_path)
             if self.length is not None:
                 self.tokenize_kargs.update({
                     'padding': 'max_length',
@@ -868,12 +878,15 @@ class T5EmbedderHF(BaseEmbedder):
             param.requires_grad = False
 
     # encode && encode_text
-    def forward(self, tokens, return_mask=False):
+    def forward(self, tokens, return_mask=False, use_mask=True):
         # tokenization
         embedding_context = nullcontext if self.use_grad else torch.no_grad
         with embedding_context():
-            x = self.model(tokens.input_ids.to(we.device_id),
-                           tokens.attention_mask.to(we.device_id))
+            if use_mask:
+                x = self.model(tokens.input_ids.to(we.device_id),
+                               tokens.attention_mask.to(we.device_id))
+            else:
+                x = self.model(tokens.input_ids.to(we.device_id))
             x = x.last_hidden_state
             # if not self.return_pooled:
             #     return x.detach()
@@ -882,7 +895,7 @@ class T5EmbedderHF(BaseEmbedder):
             if return_mask:
                 return x.detach() + 0.0, tokens.attention_mask.to(we.device_id)
             else:
-                return x.detach() + 0.0
+                return x.detach() + 0.0, None
 
     def pool(self, x, tokens):
         # take features from the eot embedding (eot_token is the highest number in each sequence)
@@ -897,7 +910,7 @@ class T5EmbedderHF(BaseEmbedder):
         elif self.clean == 'canonicalize':
             text = canonicalize(basic_clean(text))
         elif self.clean == 'heavy':
-            text = heavy_clean(heavy_clean(text))
+            text = heavy_clean(basic_clean(text))
         return text
 
     def encode_text(self,
@@ -907,14 +920,90 @@ class T5EmbedderHF(BaseEmbedder):
                     return_mask=False):
         return self(tokens, return_mask=return_mask)
 
-    def encode(self, text, return_mask=False):
+    def encode(self, text, return_mask=False, use_mask=True):
         if isinstance(text, str):
             text = [text]
         if self.clean:
             text = [self._clean(u) for u in text]
         assert self.tokenizer is not None
-        tokens = self.tokenizer(text, **self.tokenize_kargs)
-        return self(tokens, return_mask=return_mask)
+        cont, mask = [], []
+        with torch.autocast(device_type='cuda',
+                            enabled=self.t5_dtype in ('float16', 'bfloat16'),
+                            dtype=getattr(torch, self.t5_dtype)):
+            for tt in text:
+                tokens = self.tokenizer([tt], **self.tokenize_kargs)
+                one_cont, one_mask = self(tokens,
+                                          return_mask=return_mask,
+                                          use_mask=use_mask)
+                cont.append(one_cont)
+                mask.append(one_mask)
+        if return_mask:
+            return torch.cat(cont, dim=0), torch.cat(mask, dim=0)
+        else:
+            return torch.cat(cont, dim=0)
+
+    def encode_longlist(self, text_list, return_mask=True):
+        text_max_len = max([len(p) for p in text_list]) * self.length
+        cont_list, cont_mask_list = [], []
+        for pp in text_list:
+            cont, cont_mask = self.encode(pp, return_mask=return_mask)
+            cont_channel, cont_dim = cont.shape[0] * cont.shape[1], cont.shape[
+                2]
+            cont = cont.view(cont_channel, cont_dim)
+            cont_mask_channel = cont_mask.shape[0] * cont_mask.shape[1]
+            cont_mask = cont_mask.view(cont_mask_channel)
+            select_cont = cont[cont_mask == 1]
+            select_cont_mask, _ = torch.sort(cont_mask, dim=0, descending=True)
+            if select_cont.shape[0] != text_max_len:
+                select_cont = F.pad(
+                    select_cont,
+                    (0, 0, 0, text_max_len - select_cont.shape[0]))
+            if select_cont_mask.shape[0] != text_max_len:
+                select_cont_mask = F.pad(
+                    select_cont_mask,
+                    (0, text_max_len - select_cont_mask.shape[0]))
+            cont_list.append(select_cont)
+            cont_mask_list.append(select_cont_mask)
+        return torch.stack(cont_list), torch.stack(cont_mask_list)
+
+    def encode_longlist_v1(self, text_list, return_mask=True):
+        cont_list = []
+        max_len = 0
+        for pp in text_list:
+            cont, cont_mask = self.encode(pp, return_mask=True)
+            txt_lens = cont_mask.flatten(start_dim=1).sum(dim=-1)
+            pp_cont = torch.cat(
+                [c[:txt_len] for c, txt_len in zip(cont, txt_lens)], dim=0)
+            max_len = pp_cont.size(0) if pp_cont.size(0) > max_len else max_len
+            cont_list.append(pp_cont)
+        cont = torch.cat([
+            torch.cat([c, c.new_zeros(max_len - c.size(0), c.size(1))],
+                      dim=0).unsqueeze(0) for c in cont_list
+        ],
+                         dim=0)
+        if return_mask:
+            cont_mask = torch.cat([
+                torch.cat(
+                    [c.new_ones(c.size(0)),
+                     c.new_zeros(max_len - c.size(0))],
+                    dim=-1).unsqueeze(0) for c in cont_list
+            ],
+                                  dim=0).type(torch.long, non_blocking=True)
+            return cont, cont_mask
+        else:
+            return cont
+
+    def encode_list(self, text_list, return_mask=True):
+        cont_list = []
+        mask_list = []
+        for pp in text_list:
+            cont, cont_mask = self.encode(pp, return_mask=return_mask)
+            cont_list.append(cont)
+            mask_list.append(cont_mask)
+        if return_mask:
+            return cont_list, mask_list
+        else:
+            return cont_list
 
     @staticmethod
     def get_config_template():

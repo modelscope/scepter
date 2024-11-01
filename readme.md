@@ -18,6 +18,7 @@ SCEPTER offers 3 core components:
 
 
 ## 🎉 News
+- [2024.10]: We release the code of [ACE](https://arxiv.org/abs/2410.00086), supporting training / inference / gradio-based ChatBot UI. The corresponding checkpoints are uploaded on [ModelScope](https://www.modelscope.cn/models/iic/ACE-0.6B-512px) and [HuggingFace](https://huggingface.co/scepter-studio/ACE-0.6B-512px). The detailed documents can be found at [ACE repo]().
 - [2024.10]: Support for inference and tuning with [FLUX](https://huggingface.co/black-forest-labs/FLUX.1-dev), as well as for building [ComfyUI](https://github.com/comfyanonymous/ComfyUI) workflows using this framework.
 - [🔥2024.09]: We introduce **ACE**, an **A**ll-round **C**reator and **E**ditor adept at executing a diverse array of image editing tasks tailored to your specifications. Built upon the cutting-edge Diffusion Transformer architecture, ACE has been extensively trained on a comprehensive dataset to seamlessly interpret and execute any natural language instruction. For further information, please consult the [project page](https://ali-vilab.github.io/ace-page/).
 - [2024.07]: Support the inference and training of open-source generative models based on the [DiT](https://arxiv.org/abs/2212.09748) architecture, such as [SD3](https://arxiv.org/pdf/2403.03206) and [PixArt](https://arxiv.org/abs/2310.00426).
@@ -33,13 +34,44 @@ SCEPTER offers 3 core components:
 
 ## 🖼 Gallery for Recent Works
 
-### <img src="https://github.com/ali-vilab/ace-page/raw/main/static/images/logo.png?raw=true" height=20> <img src="https://github.com/ali-vilab/ace-page/raw/main/static/images/icon.png?raw=true" height=20>
+### ACE
 
-ACE is a unified foundational model framework that supports a wide range of visual generation tasks. By defining CU for unifying multi-modal inputs across different tasks and incorporating long-
-context CU, we introduce historical contextual information into visual generation tasks, paving
-the way for ChatGPT-like dialog systems in visual generation.
+ACE is a unified foundational model framework that supports a wide range of visual generation tasks. By defining CU for unifying multi-modal inputs across different tasks and incorporating long-context CU, we introduce historical contextual information into visual generation tasks, paving the way for ChatGPT-like dialog systems in visual generation.
 
-[![Watch the demo](https://github.com/ali-vilab/ace-page/raw/main/static/images/teaser.jpg)](https://ali-vilab.github.io/ace-page/)
+[![Watch the demo](https://www.modelscope.cn/api/v1/models/iic/ACE-0.6B-512px/repo?Revision=master&FilePath=assets%2Ffigures%2Fteaser.png&View=true)](https://ali-vilab.github.io/ace-page/)
+
+#### ACE ComfyUI Workflow
+
+![Workflow](https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_example.jpg)
+
+<table><tbody>
+  <tr>
+    <th align="center" colspan="4">ACE Workflow Examples</th>
+  </tr>
+  <tr>
+    <th align="center" colspan="1">Control</th>
+    <th align="center" colspan="1">Semantic</th>
+    <th align="center" colspan="1">Element</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_control.png" target="_blank">
+        <img src="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_control.png" width="200">
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_semantic.png" target="_blank">
+        <img src="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_semantic.png" width="200">
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_element.png" target="_blank">
+        <img src="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_element.png" width="200">
+      </a>
+    </td>
+  </tr>
+</tbody>
+</table>
 
 ### FLUX Tuners
 

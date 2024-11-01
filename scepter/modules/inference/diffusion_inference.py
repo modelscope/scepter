@@ -11,7 +11,7 @@ from PIL.Image import Image
 from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
 from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, MODELS,
-                                            TOKENIZERS)
+                                            TOKENIZERS, DIFFUSIONS)
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 from scepter.studio.utils.env import get_available_memory
@@ -49,7 +49,10 @@ class DiffusionInference():
         assert cfg.have('MODEL')
         if self.is_redefine_paras:
             cfg.MODEL = self.redefine_paras(cfg.MODEL)
-        self.diffusion = self.load_schedule(cfg.MODEL.SCHEDULE)
+        if 'DIFFUSION' in cfg.MODEL:
+            self.diffusion = DIFFUSIONS.build(cfg.MODEL.DIFFUSION, logger=self.logger)
+        else:
+            self.diffusion = self.load_schedule(cfg.MODEL.SCHEDULE)
         self.diffusion_model = self.infer_model(
             cfg.MODEL.DIFFUSION_MODEL, module_paras.get(
                 'DIFFUSION_MODEL',

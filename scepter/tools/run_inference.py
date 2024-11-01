@@ -7,6 +7,7 @@ import sys
 
 import numpy as np
 import torch
+import torch.amp as amp
 import torchvision.transforms as TT
 from PIL import Image
 from scepter.modules.solver.registry import SOLVERS

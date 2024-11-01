@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
-import math
 import random
 from abc import ABCMeta
 from enum import Enum
@@ -8,7 +7,8 @@ from enum import Enum
 import cv2
 import numpy as np
 import torch
-from PIL import Image, ImageDraw
+from PIL import Image
+
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.utils.config import Config, dict_to_yaml
@@ -226,7 +226,12 @@ class InpaintingAnnotator(BaseAnnotator, metaclass=ABCMeta):
         self.return_invert = cfg.get('RETURN_INVERT', True)
         self.mask_color = cfg.get('MASK_COLOR', 0)
 
-    def forward(self, image, mask=None, return_mask=None, return_invert=None, mask_color=None):
+    def forward(self,
+                image,
+                mask=None,
+                return_mask=None,
+                return_invert=None,
+                mask_color=None):
         return_mask = return_mask if return_mask is not None else self.return_mask
         return_invert = return_invert if return_invert is not None else self.return_invert
         mask_color = mask_color if mask_color is not None else self.mask_color
@@ -247,18 +252,17 @@ class InpaintingAnnotator(BaseAnnotator, metaclass=ABCMeta):
         else:
             img = np.transpose(image, (2, 0, 1))
             mask = self.mask_generator(img)
-            mask = (np.transpose(mask, (1, 2, 0)).squeeze(-1) * 255).astype(np.uint8)
+            mask = (np.transpose(mask,
+                                 (1, 2, 0)).squeeze(-1) * 255).astype(np.uint8)
             if return_invert:
                 mask = invert_image(mask)
             colored_mask = np.zeros_like(image)
             if mask_color: colored_mask[:] = mask_color
-            image = np.where(mask[:, :, np.newaxis] == 255, colored_mask, image)
+            image = np.where(mask[:, :, np.newaxis] == 255, colored_mask,
+                             image)
 
         if return_mask:
-            ret_data = {
-                'image': np.array(image),
-                'mask': np.array(mask)
-            }
+            ret_data = {'image': np.array(image), 'mask': np.array(mask)}
         else:
             ret_data = np.array(image)
         return ret_data

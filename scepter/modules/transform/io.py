@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image, ImageFile
+
 from scepter.modules.transform.registry import TRANSFORMS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
@@ -15,18 +16,18 @@ from scepter.modules.utils.file_system import DATA_FS as FS
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-def pillow_convert(image, rgb_order):
-    if image.mode != rgb_order:
+def pillow_convert(image, cvt_type):
+    if image.mode != cvt_type:
         if image.mode == 'P':
-            image = image.convert(f'{rgb_order}A')
-        if image.mode == f'{rgb_order}A':
-            bg = Image.new(rgb_order,
+            image = image.convert(f'{cvt_type}A')
+        if image.mode == f'{cvt_type}A':
+            bg = Image.new(cvt_type,
                            size=(image.width, image.height),
                            color=(255, 255, 255))
             bg.paste(image, (0, 0), mask=image)
             image = bg
         else:
-            image = image.convert('RGB')
+            image = image.convert(cvt_type)
     return image
 
 

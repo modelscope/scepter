@@ -201,6 +201,11 @@ def broadcast(tensor, src, group=None, **kwargs):
         return dist.broadcast(tensor, src, group, **kwargs)
 
 
+def broadcast_object_list(object_list, src, group=None, **kwargs):
+    if we.is_distributed:
+        return dist.broadcast_object_list(object_list, src, group, **kwargs)
+
+
 def barrier():
     if we.is_distributed:
         dist.barrier()

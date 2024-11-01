@@ -5,12 +5,11 @@
 # diffusers: https://github.com/huggingface/diffusers
 # ComfyUI: https://github.com/comfyanonymous/ComfyUI
 
-import logging
 import math
 import re
 from collections import OrderedDict
 from functools import partial
-from typing import Dict, Optional
+from typing import Optional
 
 import numpy as np
 import torch
@@ -26,7 +25,7 @@ try:
     import xformers
     import xformers.ops
     XFORMERS_IS_AVAILBLE = True
-except:
+except Exception:
     XFORMERS_IS_AVAILBLE = False
 
 BROKEN_XFORMERS = False
@@ -35,7 +34,7 @@ try:
     # XFormers bug confirmed on all versions from 0.0.21 to 0.0.26 (q with bs bigger than 65535 gives CUDA error)
     BROKEN_XFORMERS = x_vers.startswith(
         '0.0.2') and not x_vers.startswith('0.0.20')
-except:
+except Exception:
     pass
 
 
@@ -1145,7 +1144,7 @@ class MMDiT(BaseModel):
                 for k, v in model.items():
                     if self.ignore_keys is not None:
                         if (isinstance(self.ignore_keys, str) and re.match(self.ignore_keys, k)) or \
-                            (isinstance(self.ignore_keys, list) and k in self.ignore_keys):
+                           (isinstance(self.ignore_keys, list) and k in self.ignore_keys):
                             ignore_ckpt[k] = v
                             continue
                     k = k.replace('model.diffusion_model.', '')
@@ -1185,11 +1184,6 @@ class MMDiT(BaseModel):
         spatial_pos_embed = spatial_pos_embed[:, top:top + h, left:left + w, :]
         spatial_pos_embed = rearrange(spatial_pos_embed,
                                       '1 h w c -> 1 (h w) c')
-        # print(spatial_pos_embed, top, left, h, w)
-        # # t = get_2d_sincos_pos_embed_torch(self.hidden_size, w, h, 7.875, 7.875, device=device) #matches exactly for 1024 res
-        # t = get_2d_sincos_pos_embed_torch(self.hidden_size, w, h, 7.5, 7.5, device=device) #scales better
-        # # print(t)
-        # return t
         return spatial_pos_embed
 
     def unpatchify(self, x, hw=None):

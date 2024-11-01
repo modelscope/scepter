@@ -9,6 +9,7 @@ import math
 import torch
 import torch.nn as nn
 from einops import rearrange
+
 from scepter.modules.model.backbone.transformer.attention import drop_path
 
 
@@ -298,4 +299,29 @@ class Mlp(nn.Module):
         x = self.drop(x)
         x = self.fc2(x)
         x = self.drop(x)
+        return x
+
+
+class T2IFinalLayer(nn.Module):
+    """
+    The final layer of PixArt.
+    """
+    def __init__(self, hidden_size, patch_size, out_channels):
+        super().__init__()
+        self.norm_final = nn.LayerNorm(hidden_size,
+                                       elementwise_affine=False,
+                                       eps=1e-6)
+        self.linear = nn.Linear(hidden_size,
+                                patch_size * patch_size * out_channels,
+                                bias=True)
+        self.scale_shift_table = nn.Parameter(
+            torch.randn(2, hidden_size) / hidden_size**0.5)
+        self.out_channels = out_channels
+
+    def forward(self, x, t):
+        shift, scale = (self.scale_shift_table[None] + t[:, None]).chunk(2,
+                                                                         dim=1)
+        shift, scale = shift.squeeze(1), scale.squeeze(1)
+        x = modulate(self.norm_final(x), shift, scale)
+        x = self.linear(x)
         return x

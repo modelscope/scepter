@@ -7,5 +7,6 @@ from scepter.modules.data.dataset.dataset import (Image2ImageDataset,
                                                   ImageTextPairDataset,
                                                   Text2ImageDataset)
 from scepter.modules.data.dataset.ms_dataset import (
-    ImageTextPairFolderDataset, ImageTextPairMSDataset)
+    ImageTextPairFolderDataset, ImageTextPairMSDataset,
+    ImageTextPairMSDatasetForACE)
 from scepter.modules.data.dataset.registry import DATASETS

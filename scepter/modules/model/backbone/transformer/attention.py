@@ -537,7 +537,7 @@ class FullAttention(nn.Module):
         k_img, k_txt = self.k_img_norm(k_img).view(
             b, -1, n * d), self.k_txt_norm(k_txt).view(b, -1, n * d)
 
-        ### add position
+        # add position
         q_img, k_img = apply_2d_rope(q_img, k_img, padded_pos_index, n, d)
 
         # support varying length

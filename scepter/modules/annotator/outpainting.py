@@ -4,10 +4,10 @@ import math
 import random
 from abc import ABCMeta
 
-import cv2
 import numpy as np
 import torch
 from PIL import Image, ImageDraw
+
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.utils.config import dict_to_yaml
@@ -87,7 +87,8 @@ class OutpaintingAnnotator(BaseAnnotator, metaclass=ABCMeta):
             if down > 0:
                 down = tar_height - src_height - up
             if mask_color is not None:
-                img = Image.new('RGB', (tar_width, tar_height), color=mask_color)
+                img = Image.new('RGB', (tar_width, tar_height),
+                                color=mask_color)
             else:
                 img = Image.new('RGB', (tar_width, tar_height))
             img.paste(init_image, (left, up))
@@ -108,20 +109,30 @@ class OutpaintingAnnotator(BaseAnnotator, metaclass=ABCMeta):
                 init_image = image
             else:
                 mask = Image.new('L', (image.width, image.height), 'white')
-                mask_zero = Image.new('L', (bbox[2]-bbox[0], bbox[3]-bbox[1]), 'black')
+                mask_zero = Image.new('L',
+                                      (bbox[2] - bbox[0], bbox[3] - bbox[1]),
+                                      'black')
                 mask.paste(mask_zero, (bbox[0], bbox[1]))
                 crop_image = image.crop(bbox)
-                init_image = Image.new('RGB', (image.width, image.height), 'black')
+                init_image = Image.new('RGB', (image.width, image.height),
+                                       'black')
                 init_image.paste(crop_image, (bbox[0], bbox[1]))
                 img = image
         if return_mask:
             if return_source:
-                ret_data = {'src_image': np.array(init_image), 'image': np.array(img), 'mask': np.array(mask)}
+                ret_data = {
+                    'src_image': np.array(init_image),
+                    'image': np.array(img),
+                    'mask': np.array(mask)
+                }
             else:
                 ret_data = {'image': np.array(img), 'mask': np.array(mask)}
         else:
             if return_source:
-                ret_data = {'src_image': np.array(init_image), 'image': np.array(img)}
+                ret_data = {
+                    'src_image': np.array(init_image),
+                    'image': np.array(img)
+                }
             else:
                 ret_data = np.array(img)
         return ret_data
@@ -132,6 +143,7 @@ class OutpaintingAnnotator(BaseAnnotator, metaclass=ABCMeta):
                             __class__.__name__,
                             OutpaintingAnnotator.para_dict,
                             set_name=True)
+
 
 @ANNOTATORS.register_class()
 class OutpaintingResize(BaseAnnotator, metaclass=ABCMeta):
@@ -148,11 +160,7 @@ class OutpaintingResize(BaseAnnotator, metaclass=ABCMeta):
         top, bottom = np.min(locs[0]), np.max(locs[0])
         return [left, top, right, bottom]
 
-    def forward(self,
-                image,
-                target_image,
-                mask=None
-                ):
+    def forward(self, image, target_image, mask=None):
         if isinstance(image, Image.Image):
             image = image
         elif isinstance(image, torch.Tensor):
@@ -175,8 +183,10 @@ class OutpaintingResize(BaseAnnotator, metaclass=ABCMeta):
         if bbox is None:
             init_image = image
         else:
-            paste_img = image.resize((bbox[2]-bbox[0], bbox[3]-bbox[1]))
-            init_image = Image.new('RGB', (target_image.width, target_image.height), 'black')
+            paste_img = image.resize((bbox[2] - bbox[0], bbox[3] - bbox[1]))
+            init_image = Image.new('RGB',
+                                   (target_image.width, target_image.height),
+                                   'black')
             init_image.paste(paste_img, (bbox[0], bbox[1]))
         ret_data = {'src_image': np.array(init_image)}
         return ret_data

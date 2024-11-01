@@ -72,6 +72,7 @@ class LargenUI(UIBase):
                                 label=self.component_names.scene_image,
                                 type='pil',
                                 sources=['upload'],
+                                transforms=[],
                                 layers=False,
                                 interactive=True)
                             self.cache_button = gr.Button(
@@ -81,6 +82,7 @@ class LargenUI(UIBase):
                                 label=self.component_names.subject_image,
                                 type='pil',
                                 sources=['upload'],
+                                transforms=[],
                                 layers=False,
                                 visible=False,
                                 interactive=True)
