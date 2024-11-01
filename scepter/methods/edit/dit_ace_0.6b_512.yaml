@@ -23,11 +23,11 @@ SOLVER:
   #
   FILE_SYSTEM:
     - NAME: "HuggingfaceFs"
-      TEMP_DIR: ./cache
+      TEMP_DIR: ./cache/cache_data
     - NAME: "LocalFs"
-      TEMP_DIR: ./cache
+      TEMP_DIR: ./cache/cache_data
     - NAME: "ModelscopeFs"
-      TEMP_DIR: ./cache
+      TEMP_DIR: ./cache/cache_data
 
   #
   MODEL:
