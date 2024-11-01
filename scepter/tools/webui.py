@@ -8,6 +8,7 @@ import random
 import sys
 
 import gradio as gr
+
 import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
@@ -125,6 +126,12 @@ if __name__ == '__main__':
                                     is_debug=args.debug,
                                     language=args.language,
                                     root_work_dir=config.WORK_DIR)
+            print('init inference success!')
+        if ifid == 'ChatBot':
+            from scepter.studio.chatbot.chatbot import ChatBotUI
+
+            interface = ChatBotUI(info['CONFIG'],
+                                  root_work_dir=config.WORK_DIR)
             print('init inference success!')
         if ifid == '':
             pass  # TODO: Add New Features

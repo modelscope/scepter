@@ -789,7 +789,7 @@ class OpenposeAnnotator(BaseAnnotator, metaclass=ABCMeta):
             raise f'Unsurpport datatype{type(image)}, only surpport np.ndarray, torch.Tensor, Pillow Image.'
         image = image[:, :, ::-1]
         candidate, subset = self.body_estimation(image)
-        canvas = np.zeros_like(image)
+        canvas = np.zeros_like(image, order='C')   # to check
         canvas = draw_bodypose(canvas, candidate, subset)
         if self.use_hand:
             hands_list = handDetect(candidate, subset, image)

@@ -9,13 +9,12 @@
 *.bin
 *.idea
 *.csv
+cache
 build
 dist
 dev
 scepter.egg-info
 .readthedocs.yml
-1.9
-#MANIFEST.in
 *resources
 *.ipynb_checkpoints*
 *.vscode

@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-
+# Copyright (c) Alibaba, Inc. and its affiliates.
 import math
 from abc import ABCMeta
 
-import cv2
 import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.transforms as TT
 from einops import rearrange
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.registry import ANNOTATORS

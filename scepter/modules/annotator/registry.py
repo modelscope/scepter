@@ -15,7 +15,7 @@ def build_annotator(cfg, registry, logger=None, *args, **kwargs):
         raise TypeError(f'Config must be type dict, got {type(cfg)}')
     if cfg.have('PRETRAINED_MODEL'):
         pretrain_cfg = cfg.PRETRAINED_MODEL
-        if pretrain_cfg is not None and not isinstance(pretrain_cfg, (str)):
+        if pretrain_cfg is not None and not isinstance(pretrain_cfg, (str, list)):
             raise TypeError('Pretrain parameter must be a string')
     else:
         pretrain_cfg = None

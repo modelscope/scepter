@@ -3,20 +3,15 @@
 import copy
 import numbers
 import random
-from collections import OrderedDict
 
 import torch
 
-from scepter.modules.model.network.diffusion.diffusion import GaussianDiffusion
-from scepter.modules.model.network.diffusion.schedules import noise_schedule
 from scepter.modules.model.network.ldm import LatentDiffusion
-from scepter.modules.model.network.train_module import TrainModule
 from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, LOSSES,
                                             MODELS, TOKENIZERS)
-from scepter.modules.model.utils.basic_utils import count_params, default
+from scepter.modules.model.utils.basic_utils import count_params
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
-from scepter.modules.utils.file_system import FS
 
 
 def disabled_train(self, mode=True):

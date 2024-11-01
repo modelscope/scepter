@@ -2,7 +2,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 from __future__ import annotations
 
-import json
 import os.path
 import time
 
@@ -305,6 +304,7 @@ class DatasetGalleryUI(UIBase):
                         self.preview_src_image = gr.ImageMask(
                             label=self.component_names.preview_src_image,
                             sources=[],
+                            transforms=[],
                             layers=False,
                             type='pil',
                             interactive=True)
@@ -315,6 +315,7 @@ class DatasetGalleryUI(UIBase):
                         self.preview_src_mask_image = gr.ImageMask(
                             label=self.component_names.preview_src_mask_image,
                             sources=[],
+                            transforms=[],
                             layers=False,
                             type='pil',
                             interactive=True)
@@ -324,6 +325,7 @@ class DatasetGalleryUI(UIBase):
                         self.preview_taget_image = gr.ImageMask(
                             label=self.component_names.preview_target_image,
                             sources=[],
+                            transforms=[],
                             layers=False,
                             type='pil',
                             interactive=True)

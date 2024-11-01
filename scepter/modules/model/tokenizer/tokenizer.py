@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import open_clip
+from transformers import CLIPTokenizer as transformer_clip_tokenizer
+
 from scepter.modules.model.registry import TOKENIZERS
 from scepter.modules.model.tokenizer import BaseTokenizer
 from scepter.modules.model.tokenizer.tokenizer_component import (
-    basic_clean, canonicalize, heavy_clean, whitespace_clean)
+    basic_clean, canonicalize, whitespace_clean)
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.file_system import FS
-from transformers import CLIPTokenizer as transformer_clip_tokenizer
 
 
 @TOKENIZERS.register_class()
@@ -31,13 +32,16 @@ class HuggingfaceTokenizer(BaseTokenizer):
         super().__init__(cfg, logger=logger)
         self.pretrained_path = cfg.get('PRETRAINED_PATH', 'xlm-roberta-large')
         self.length = cfg.get('LENGTH', 77)
-        self.clean = cfg.get('CLEAN', True)
+        self.clean = cfg.get('CLEAN', 'whitespace')
+        assert self.clean in (None, 'whitespace', 'lower', 'canonicalize')
 
         # init tokenizer
         from transformers import AutoTokenizer
         with FS.get_dir_to_local_dir(self.pretrained_path) as local_path:
             self.tokenizer = AutoTokenizer.from_pretrained(local_path)
-        self.vocab_size = len(self.tokenizer)
+
+        self.vocab_size = len(
+            self.tokenizer)  # self.vocab_size = self.tokenizer.vocab_size
 
         # special tokens
         self.comma_token = self.tokenizer(',')['input_ids'][
@@ -51,6 +55,7 @@ class HuggingfaceTokenizer(BaseTokenizer):
 
     def __call__(self, sequence, **kwargs):
         # arguments
+        return_mask = kwargs.pop('return_mask', False)
         _kwargs = {'return_tensors': 'pt'}
         if self.length is not None:
             _kwargs.update({
@@ -64,9 +69,23 @@ class HuggingfaceTokenizer(BaseTokenizer):
         if isinstance(sequence, str):
             sequence = [sequence]
         if self.clean:
-            sequence = [whitespace_clean(basic_clean(u)) for u in sequence]
+            sequence = [self._clean(u) for u in sequence]
         tokens = self.tokenizer(sequence, **_kwargs)
-        return tokens.input_ids
+
+        # output
+        if return_mask:
+            return tokens.input_ids, tokens.attention_mask
+        else:
+            return tokens.input_ids
+
+    def _clean(self, text):
+        if self.clean == 'whitespace':
+            text = whitespace_clean(basic_clean(text))
+        elif self.clean == 'lower':
+            text = whitespace_clean(basic_clean(text)).lower()
+        elif self.clean == 'canonicalize':
+            text = canonicalize(basic_clean(text))
+        return text
 
     @staticmethod
     def get_config_template():

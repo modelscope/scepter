@@ -15,8 +15,8 @@ def build_model(cfg, registry, logger=None, *args, **kwargs):
         raise TypeError(f'Config must be type dict, got {type(cfg)}')
     if cfg.have('PRETRAINED_MODEL'):
         pretrain_cfg = cfg.PRETRAINED_MODEL
-        if pretrain_cfg is not None and not isinstance(pretrain_cfg, (str)):
-            raise TypeError('Pretrain parameter must be a string')
+        if pretrain_cfg is not None and not isinstance(pretrain_cfg, (str, list)):
+            raise TypeError('Pretrain parameter must be a string or list')
     else:
         pretrain_cfg = None
 

@@ -1,0 +1,127 @@
+NAME: ACE_0.6B_512
+IS_DEFAULT: False
+DEFAULT_PARAS:
+  PARAS:
+  #
+  INPUT:
+    INPUT_IMAGE:
+    INPUT_MASK:
+    TASK:
+    PROMPT: ""
+    NEGATIVE_PROMPT: ""
+    OUTPUT_HEIGHT: 512
+    OUTPUT_WIDTH: 512
+    SAMPLER: ddim
+    SAMPLE_STEPS: 20
+    GUIDE_SCALE: 4.5
+    GUIDE_RESCALE: 0.5
+    SEED: -1
+    TAR_INDEX: 0
+  OUTPUT:
+    LATENT:
+    IMAGES:
+    SEED:
+  MODULES_PARAS:
+    FIRST_STAGE_MODEL:
+      FUNCTION:
+        - NAME: encode
+          DTYPE: float16
+          INPUT: ["IMAGE"]
+        - NAME: decode
+          DTYPE: float16
+          INPUT: ["LATENT"]
+    #
+    DIFFUSION_MODEL:
+      FUNCTION:
+        - NAME: forward
+          DTYPE: float16
+          INPUT: ["SAMPLE_STEPS", "SAMPLE", "GUIDE_SCALE"]
+    #
+    COND_STAGE_MODEL:
+      FUNCTION:
+        - NAME: encode_list
+          DTYPE: bfloat16
+          INPUT: ["PROMPT"]
+#
+MODEL:
+  NAME: LatentDiffusionACE
+  PRETRAINED_MODEL:
+  IGNORE_KEYS: [ ]
+  SCALE_FACTOR: 0.18215
+  SIZE_FACTOR: 8
+  DECODER_BIAS: 0.5
+  DEFAULT_N_PROMPT: ""
+  TEXT_IDENTIFIER: [ '{image}', '{image1}', '{image2}', '{image3}', '{image4}', '{image5}', '{image6}', '{image7}', '{image8}', '{image9}' ]
+  USE_TEXT_POS_EMBEDDINGS: True
+  #
+  DIFFUSION:
+    NAME: BaseDiffusion
+    PREDICTION_TYPE: eps
+    MIN_SNR_GAMMA:
+    NOISE_SCHEDULER:
+      NAME: LinearScheduler
+      NUM_TIMESTEPS: 1000
+      BETA_MIN: 0.0001
+      BETA_MAX: 0.02
+  #
+  DIFFUSION_MODEL:
+    NAME: ACE
+    PRETRAINED_MODEL: ms://iic/ACE-0.6B-512px@models/dit/ace_0.6b_512px.pth
+    IGNORE_KEYS: [ ]
+    PATCH_SIZE: 2
+    IN_CHANNELS: 4
+    HIDDEN_SIZE: 1152
+    DEPTH: 28
+    NUM_HEADS: 16
+    MLP_RATIO: 4.0
+    PRED_SIGMA: True
+    DROP_PATH: 0.0
+    WINDOW_DIZE: 0
+    Y_CHANNELS: 4096
+    MAX_SEQ_LEN: 1024
+    QK_NORM: True
+    USE_GRAD_CHECKPOINT: True
+    ATTENTION_BACKEND: flash_attn
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKL
+    EMBED_DIM: 4
+    PRETRAINED_MODEL: ms://iic/ACE-0.6B-512px@models/vae/vae.bin
+    IGNORE_KEYS: []
+    #
+    ENCODER:
+      NAME: Encoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DOUBLE_Z: True
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+    #
+    DECODER:
+      NAME: Decoder
+      CH: 128
+      OUT_CH: 3
+      NUM_RES_BLOCKS: 2
+      IN_CHANNELS: 3
+      ATTN_RESOLUTIONS: [ ]
+      CH_MULT: [ 1, 2, 4, 4 ]
+      Z_CHANNELS: 4
+      DROPOUT: 0.0
+      RESAMP_WITH_CONV: True
+      GIVE_PRE_END: False
+      TANH_OUT: False
+  #
+  COND_STAGE_MODEL:
+    NAME: T5EmbedderHF
+    PRETRAINED_MODEL: ms://iic/ACE-0.6B-512px@models/text_encoder/t5-v1_1-xxl/
+    TOKENIZER_PATH: ms://iic/ACE-0.6B-512px@models/tokenizer/t5-v1_1-xxl
+    LENGTH: 120
+    T5_DTYPE: bfloat16
+    ADDED_IDENTIFIER: [ '{image}', '{caption}', '{mask}', '{ref_image}', '{image1}', '{image2}', '{image3}', '{image4}', '{image5}', '{image6}', '{image7}', '{image8}', '{image9}' ]
+    CLEAN: whitespace
+    USE_GRAD: False

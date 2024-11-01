@@ -1,0 +1,25 @@
+WORK_DIR: chatbot
+FILE_SYSTEM:
+  - NAME: LocalFs
+    TEMP_DIR: ./cache/cache_data
+  - NAME: ModelscopeFs
+    TEMP_DIR: ./cache/cache_data
+  - NAME: HuggingfaceFs
+    TEMP_DIR: ./cache/cache_data
+#
+ENABLE_I2V: False
+#
+MODEL:
+  EDIT_MODEL:
+    MODEL_CFG_DIR: scepter/methods/studio/chatbot/models/
+    DEFAULT: ace_0.6b_512
+  I2V:
+    MODEL_NAME: CogVideoX-5b-I2V
+    MODEL_DIR: ms://ZhipuAI/CogVideoX-5b-I2V/
+  CAPTIONER:
+    MODEL_NAME: InternVL2-2B
+    MODEL_DIR: ms://OpenGVLab/InternVL2-2B/
+    PROMPT: '<image>\nThis image is the first frame of a video. Based on this image, please imagine what changes may occur in the next few seconds of the video. Please output brief description, such as "a dog running" or "a person turns to left". No more than 30 words.'
+  ENHANCER:
+    MODEL_NAME: Meta-Llama-3.1-8B-Instruct
+    MODEL_DIR: ms://LLM-Research/Meta-Llama-3.1-8B-Instruct/

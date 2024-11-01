@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
-import math
 import random
 from abc import ABCMeta
 
@@ -9,15 +8,16 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 from PIL import Image
-from scipy import ndimage
 from pycocotools import mask as mask_utils
+from scipy import ndimage
+from sklearn.cluster import KMeans
+from torchvision.ops.boxes import batched_nms
+
 from scepter.modules.annotator.base_annotator import BaseAnnotator
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
-from sklearn.cluster import KMeans
-from torchvision.ops.boxes import batched_nms
 
 
 def find_dominant_color(image, k=1):
@@ -28,7 +28,7 @@ def find_dominant_color(image, k=1):
         kmeans = KMeans(n_clusters=k, n_init='auto')
         kmeans.fit(pixels)
         dominant_color = kmeans.cluster_centers_.astype(int)[0]
-    except:
+    except Exception:
         dominant_color = np.array([255, 255, 255])
     return dominant_color
 
@@ -62,16 +62,9 @@ class ESAMAnnotator(BaseAnnotator, metaclass=ABCMeta):
         super().__init__(cfg, logger=logger)
         try:
             from efficient_sam.efficient_sam import build_efficient_sam
-            from segment_anything.utils.amg import (
-                batched_mask_to_box,
-                calculate_stability_score,
-                mask_to_rle_pytorch,
-                remove_small_regions,
-                rle_to_mask,
-            )
-        except:
+        except Exception:
             raise NotImplementedError(
-                f'Please install efficient_sam and segment_anything modules.')
+                'Please install efficient_sam and segment_anything modules.')
 
         pretrained_model = cfg.get('PRETRAINED_MODEL', None)
         if pretrained_model:
@@ -294,8 +287,6 @@ class ESAMAnnotator(BaseAnnotator, metaclass=ABCMeta):
                             set_name=True)
 
 
-
-
 @ANNOTATORS.register_class()
 class SAMAnnotatorDraw(BaseAnnotator, metaclass=ABCMeta):
     para_dict = {}
@@ -312,10 +303,16 @@ class SAMAnnotatorDraw(BaseAnnotator, metaclass=ABCMeta):
 
         if pretrained_model:
             with FS.get_from(pretrained_model, wait_finish=True) as local_path:
-                seg_model = sam_model_registry[self.sam_model](checkpoint=local_path).eval().to(we.device_id)
+                seg_model = sam_model_registry[self.sam_model](
+                    checkpoint=local_path).eval().to(we.device_id)
                 self.sam_predictor = SamPredictor(seg_model)
 
-    def forward(self, image, input_box=None, mask=None, task_type=None, multimask_output=False):
+    def forward(self,
+                image,
+                input_box=None,
+                mask=None,
+                task_type=None,
+                multimask_output=False):
         task_type = task_type if task_type is not None else self.task_type
 
         if isinstance(image, Image.Image):
@@ -337,21 +334,25 @@ class SAMAnnotatorDraw(BaseAnnotator, metaclass=ABCMeta):
             else:
                 raise f'Unsurpport datatype{type(mask)}, only surpport np.ndarray, torch.Tensor, Pillow Image.'
 
-        original_size = image.shape[:2]
         if task_type == 'mask_point':
             scribble = mask.transpose(2, 1, 0)[0]
             labeled_array, num_features = ndimage.label(scribble >= 255)
-            centers = ndimage.center_of_mass(scribble, labeled_array, range(1, num_features + 1))
+            centers = ndimage.center_of_mass(scribble, labeled_array,
+                                             range(1, num_features + 1))
             point_coords = np.array(centers)
             point_labels = np.array([1] * len(centers))
-            sample = {'point_coords': point_coords, 'point_labels': point_labels}
+            sample = {
+                'point_coords': point_coords,
+                'point_labels': point_labels
+            }
 
         elif task_type == 'mask_box':
             scribble = mask.transpose(2, 1, 0)[0]
             labeled_array, num_features = ndimage.label(scribble >= 255)
-            centers = ndimage.center_of_mass(scribble, labeled_array, range(1, num_features + 1))
+            centers = ndimage.center_of_mass(scribble, labeled_array,
+                                             range(1, num_features + 1))
             centers = np.array(centers)
-            ### (x1, y1, x2, y2)
+            # (x1, y1, x2, y2)
             x_min = centers[:, 0].min()
             x_max = centers[:, 0].max()
             y_min = centers[:, 1].min()
@@ -365,12 +366,13 @@ class SAMAnnotatorDraw(BaseAnnotator, metaclass=ABCMeta):
             sample = {'box': input_box}
 
         self.sam_predictor.set_image(image)
-        masks, scores, logits = self.sam_predictor.predict(**sample, multimask_output=True)
+        masks, scores, logits = self.sam_predictor.predict(
+            **sample, multimask_output=True)
         index = np.argmax(scores)
 
         ret_data = {
-            "mask": (masks[index]* 255).astype(np.uint8),
-            "score": scores[index]
+            'mask': (masks[index] * 255).astype(np.uint8),
+            'score': scores[index]
         }
         return ret_data
 

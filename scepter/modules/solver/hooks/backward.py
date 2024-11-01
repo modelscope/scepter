@@ -4,13 +4,12 @@ import os
 import warnings
 
 import torch
-from scepter.modules.utils.file_system import FS
-
-from scepter.modules.utils.distribute import we
 
 from scepter.modules.solver.hooks.hook import Hook
 from scepter.modules.solver.hooks.registry import HOOKS
 from scepter.modules.utils.config import dict_to_yaml
+from scepter.modules.utils.distribute import we
+from scepter.modules.utils.file_system import FS
 
 _DEFAULT_BACKWARD_PRIORITY = 0
 
@@ -87,15 +86,21 @@ class BackwardHook(Hook):
         os.makedirs(self._local_log_dir, exist_ok=True)
         if self.do_profile:
             self.prof = torch.profiler.profile(
-                schedule=torch.profiler.schedule(wait=self.wait, warmup=self.warmup, active=self.active, repeat=self.repeat),
-                on_trace_ready=torch.profiler.tensorboard_trace_handler(self._local_log_dir),
+                schedule=torch.profiler.schedule(wait=self.wait,
+                                                 warmup=self.warmup,
+                                                 active=self.active,
+                                                 repeat=self.repeat),
+                on_trace_ready=torch.profiler.tensorboard_trace_handler(
+                    self._local_log_dir),
                 record_shapes=True,
                 with_stack=True)
             self.prof.start()
-            solver.logger.info(f'Profiler start ...')
+            solver.logger.info('Profiler start ...')
             solver.logger.info(f'Profiler: save to {self.log_dir}')
+
     def profile(self, solver):
-        if self.prof is None: return
+        if self.prof is None:
+            return
         if we.rank == 0 and self.do_profile:
             if self.profile_step < self.wait + self.warmup + self.active:
                 self.prof.step()
@@ -103,8 +108,10 @@ class BackwardHook(Hook):
             else:
                 self.prof.stop()
                 self.do_profile = False
-                solver.logger.info(f'Profiler stop after {self.profile_step} steps')
+                solver.logger.info(
+                    f'Profiler stop after {self.profile_step} steps')
                 FS.put_dir_from_local_dir(self._local_log_dir, self.log_dir)
+
     def grad_clip(self, parameters):
         torch.nn.utils.clip_grad_norm_(parameters=parameters,
                                        max_norm=self.gradient_clip,
@@ -118,7 +125,8 @@ class BackwardHook(Hook):
                 )
                 return
             if solver.scaler is not None:
-                solver.scaler.scale(solver.loss/self.accumulate_step).backward()
+                solver.scaler.scale(solver.loss /
+                                    self.accumulate_step).backward()
                 if self.gradient_clip > 0:
                     solver.scaler.unscale_(solver.optimizer)
                     self.grad_clip(solver.train_parameters())
@@ -131,7 +139,7 @@ class BackwardHook(Hook):
                     solver.scaler.update()
                     solver.optimizer.zero_grad()
             else:
-                (solver.loss/self.accumulate_step).backward()
+                (solver.loss / self.accumulate_step).backward()
                 if self.gradient_clip > 0:
                     self.grad_clip(solver.train_parameters())
                 self.current_step += 1
