@@ -74,7 +74,6 @@ class ChatBotUI(object):
                            cfg_file=self.model_choices[self.model_name])
         self.pipe = ACEInference()
         self.pipe.init_from_cfg(model_cfg)
-        self.retry_msg = ''
         self.max_msgs = 20
 
         self.enable_i2v = cfg.get('ENABLE_I2V', False)
@@ -176,6 +175,7 @@ class ChatBotUI(object):
             self.history = gr.State(value=[])
             self.images = gr.State(value={})
             self.history_result = gr.State(value={})
+            self.retry_msg = gr.State(value='')
             with gr.Group():
                 with gr.Row(equal_height=True):
                     with gr.Column(visible=True) as self.chat_page:
@@ -595,7 +595,7 @@ class ChatBotUI(object):
                      video_fps,
                      video_seed,
                      progress=gr.Progress(track_tqdm=True)):
-            self.retry_msg = message
+            retry_msg = message
             gen_id = get_md5(message)[:12]
             save_path = os.path.join(self.cache_dir, f'{gen_id}.png')
 
@@ -768,7 +768,8 @@ class ChatBotUI(object):
                 history.pop(0)
 
             return history, images, history_result, self.get_history(
-                history), gr.update(value=''), gr.update(visible=False)
+                history), gr.update(value=''), gr.update(
+                    visible=False), retry_msg
 
         chat_inputs = [
             self.extend_prompt, self.history, self.images, self.use_history,
@@ -781,7 +782,7 @@ class ChatBotUI(object):
 
         chat_outputs = [
             self.history, self.images, self.history_result, self.chatbot,
-            self.text, self.gallery
+            self.text, self.gallery, self.retry_msg
         ]
 
         self.chat_btn.click(run_chat,
@@ -792,12 +793,11 @@ class ChatBotUI(object):
                          inputs=[self.text] + chat_inputs,
                          outputs=chat_outputs)
 
-        ########################################
-        def retry_chat(*args):
-            return run_chat(self.retry_msg, *args)
+        def retry_fn(*args):
+            return run_chat(*args)
 
-        self.retry_btn.click(retry_chat,
-                             inputs=chat_inputs,
+        self.retry_btn.click(retry_fn,
+                             inputs=[self.retry_msg] + chat_inputs,
                              outputs=chat_outputs)
 
         ########################################
