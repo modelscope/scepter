@@ -383,6 +383,20 @@ class ChatBotUI(object):
                                                     label='Video Seed',
                                                     visible=True)
 
+                with gr.Row():
+                    inst = """
+                       **Instruction**:
+
+                       1. Click 'Upload' button to upload one or more images as input images.
+                       2. Enter '@' in the text box will exhibit all images in the gallery.
+                       3. Select the image you wish to edit from the gallery, and its Image ID will be displayed in the text box.
+                       4. Compose the editing instruction for the selected image, incorporating image id '@xxxxxx' into your instruction.
+                       For example, you might say, "Change the girl's skirt in @123456 to blue." The '@xxxxx' token will facilitate the identification of the specific image, and will be automatically replaced by a special token '{image}' in the instruction.
+                       5. Once your instructions are prepared, please click the "Chat" button to view the edited result in the chat window.
+
+                    """
+                    gr.Markdown(value=inst)
+
                 with gr.Row(variant='panel',
                             equal_height=True,
                             show_progress=False):
