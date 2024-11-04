@@ -393,6 +393,7 @@ class ChatBotUI(object):
                        4. Compose the editing instruction for the selected image, incorporating image id '@xxxxxx' into your instruction.
                        For example, you might say, "Change the girl's skirt in @123456 to blue." The '@xxxxx' token will facilitate the identification of the specific image, and will be automatically replaced by a special token '{image}' in the instruction.
                        5. Once your instructions are prepared, please click the "Chat" button to view the edited result in the chat window.
+                       6. **Important** To render text on an image, please ensure to include a space between each letter. For instance, "add text 'g i r l' on the mask area of @xxxxx".
 
                     """
                     gr.Markdown(value=inst)
