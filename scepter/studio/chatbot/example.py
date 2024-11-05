@@ -15,6 +15,34 @@ def get_examples(cache_dir):
     print('Downloading Examples ...')
     examples = [
         [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/e33edc106953.png?raw=true',
+                os.path.join(cache_dir, 'examples/e33edc106953.png')), None,
+            None, '{image} let the man smile', 6666
+        ],
+        [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/5d2bcc91a3e9.png?raw=true',
+                os.path.join(cache_dir, 'examples/5d2bcc91a3e9.png')), None,
+            None, 'let the man in {image} wear sunglasses', 9999
+        ],
+        [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/3a52eac708bd.png?raw=true',
+                os.path.join(cache_dir, 'examples/3a52eac708bd.png')), None,
+            None, '{image} red hair', 9999
+        ],
+        [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/3f4dc464a0ea.png?raw=true',
+                os.path.join(cache_dir, 'examples/3f4dc464a0ea.png')), None,
+            None, '{image} let the man serious', 99999
+        ],
+        [
             'Controllable Generation',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/131ca90fd2a9.png?raw=true',
