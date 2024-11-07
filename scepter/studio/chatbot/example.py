@@ -15,6 +15,77 @@ def get_examples(cache_dir):
     print('Downloading Examples ...')
     examples = [
         [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/e33edc106953.png?raw=true',
+                os.path.join(cache_dir, 'examples/e33edc106953.png')), None,
+            None, '{image} let the man smile', 6666
+        ],
+        [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/5d2bcc91a3e9.png?raw=true',
+                os.path.join(cache_dir, 'examples/5d2bcc91a3e9.png')), None,
+            None, 'let the man in {image} wear sunglasses', 9999
+        ],
+        [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/3a52eac708bd.png?raw=true',
+                os.path.join(cache_dir, 'examples/3a52eac708bd.png')), None,
+            None, '{image} red hair', 9999
+        ],
+        [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/3f4dc464a0ea.png?raw=true',
+                os.path.join(cache_dir, 'examples/3f4dc464a0ea.png')), None,
+            None, '{image} let the man serious', 99999
+        ],
+        [
+            'Controllable Generation',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/131ca90fd2a9.png?raw=true',
+                os.path.join(cache_dir,
+                             'examples/131ca90fd2a9.png')), None, None,
+            '"A person sits contemplatively on the ground, surrounded by falling autumn leaves. Dressed in a green sweater and dark blue pants, they rest their chin on their hand, exuding a relaxed demeanor. Their stylish checkered slip-on shoes add a touch of flair, while a black purse lies in their lap. The backdrop of muted brown enhances the warm, cozy atmosphere of the scene." , generate the image that corresponds to the given scribble {image}.',
+            613725
+        ],
+        [
+            'Render Text',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/33e9f27c2c48.png?raw=true',
+                os.path.join(cache_dir, 'examples/33e9f27c2c48.png')),
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/33e9f27c2c48_mask.png?raw=true',
+                os.path.join(cache_dir,
+                             'examples/33e9f27c2c48_mask.png')), None,
+            'Put the text "C A T" at the position marked by mask in the {image}',
+            6666
+        ],
+        [
+            'Style Transfer',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/9e73e7eeef55.png?raw=true',
+                os.path.join(cache_dir, 'examples/9e73e7eeef55.png')), None,
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/2e02975293d6.png?raw=true',
+                os.path.join(cache_dir, 'examples/2e02975293d6.png')),
+            'edit {image} based on the style of {image1} ', 99999
+        ],
+        [
+            'Outpainting',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/f2b22c08be3f.png?raw=true',
+                os.path.join(cache_dir, 'examples/f2b22c08be3f.png')),
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/f2b22c08be3f_mask.png?raw=true',
+                os.path.join(cache_dir,
+                             'examples/f2b22c08be3f_mask.png')), None,
+            'Could the {image} be widened within the space designated by mask, while retaining the original?',
+            6666
+        ],
+        [
             'Image Segmentation',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/db3ebaa81899.png?raw=true',
@@ -136,15 +207,6 @@ def get_examples(cache_dir):
             6666
         ],
         [
-            'Controllable Generation',
-            download_image(
-                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/131ca90fd2a9.png?raw=true',
-                os.path.join(cache_dir,
-                             'examples/131ca90fd2a9.png')), None, None,
-            '"A person sits contemplatively on the ground, surrounded by falling autumn leaves. Dressed in a green sweater and dark blue pants, they rest their chin on their hand, exuding a relaxed demeanor. Their stylish checkered slip-on shoes add a touch of flair, while a black purse lies in their lap. The backdrop of muted brown enhances the warm, cozy atmosphere of the scene." , generate the image that corresponds to the given scribble {image}.',
-            613725
-        ],
-        [
             'Image Denoising',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/0844a686a179.png?raw=true',
@@ -175,18 +237,6 @@ def get_examples(cache_dir):
                 os.path.join(cache_dir,
                              'examples/632899695b26_mask.png')), None,
             'Refashion the mask portion of {image} in accordance with "A yellow egg with a smiling face painted on it"',
-            6666
-        ],
-        [
-            'Outpainting',
-            download_image(
-                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/f2b22c08be3f.png?raw=true',
-                os.path.join(cache_dir, 'examples/f2b22c08be3f.png')),
-            download_image(
-                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/f2b22c08be3f_mask.png?raw=true',
-                os.path.join(cache_dir,
-                             'examples/f2b22c08be3f_mask.png')), None,
-            'Could the {image} be widened within the space designated by mask, while retaining the original?',
             6666
         ],
         [
@@ -229,18 +279,6 @@ def get_examples(cache_dir):
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/92751f2e4a0e.png?raw=true',
                 os.path.join(cache_dir, 'examples/92751f2e4a0e.png')), None,
             None, '{image} Remove the smile from his face', 9899999
-        ],
-        [
-            'Render Text',
-            download_image(
-                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/33e9f27c2c48.png?raw=true',
-                os.path.join(cache_dir, 'examples/33e9f27c2c48.png')),
-            download_image(
-                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/33e9f27c2c48_mask.png?raw=true',
-                os.path.join(cache_dir,
-                             'examples/33e9f27c2c48_mask.png')), None,
-            'Put the text "C A T" at the position marked by mask in the {image}',
-            6666
         ],
         [
             'Remove Text',
@@ -303,16 +341,6 @@ def get_examples(cache_dir):
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/e0f48b3fd010.png?raw=true',
                 os.path.join(cache_dir, 'examples/e0f48b3fd010.png')), None,
             None, 'make {image} to Walt Disney Animation style', 99999
-        ],
-        [
-            'Style Transfer',
-            download_image(
-                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/9e73e7eeef55.png?raw=true',
-                os.path.join(cache_dir, 'examples/9e73e7eeef55.png')), None,
-            download_image(
-                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/2e02975293d6.png?raw=true',
-                os.path.join(cache_dir, 'examples/2e02975293d6.png')),
-            'edit {image} based on the style of {image1} ', 99999
         ],
         [
             'Try On',
