@@ -102,3 +102,25 @@ def to_device(inputs, strict=True):
 
 def check_list_of_list(ll):
     return isinstance(ll, list) and all(isinstance(i, list) for i in ll)
+
+
+def pack_imagelist_into_tensor(image_list):
+    image_tensor, shapes = [], []
+    for img in image_list:
+        _, c, h, w = img.size()
+        image_tensor.append(img.view(c, h * w).transpose(1, 0))  # h*w, c
+        shapes.append((h, w))
+
+    image_tensor = pad_sequence(image_tensor, batch_first=True).permute(0, 2, 1)  # b, c, l
+    return image_tensor, shapes
+
+def limit_batch_data(batch_data_list, log_num):
+    if log_num and log_num > 0:
+        batch_data_list_limited = []
+        for sub_data in batch_data_list:
+            if sub_data is not None:
+                sub_data = sub_data[:log_num]
+            batch_data_list_limited.append(sub_data)
+        return batch_data_list_limited
+    else:
+        return batch_data_list

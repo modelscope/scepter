@@ -2,35 +2,24 @@ ENV:
   BACKEND: nccl
   SEED: 166666
 SOLVER:
-  # NAME DESCRIPTION:  TYPE:  default: 'LatentUfitSolver'
   NAME: LatentDiffusionSolver
-  # MAX_STEPS DESCRIPTION: The total steps for training. TYPE: int default: 100000
   MAX_STEPS: 100000
-  # USE_AMP DESCRIPTION: Use amp to surpport mix precision or not, default is False. TYPE: bool default: False
   USE_AMP: True
-  # DTYPE DESCRIPTION: The precision for training. TYPE: str default: 'float32'
   DTYPE: bfloat16
-  # USE_FAIRSCALE DESCRIPTION: Use fairscale as the backend of ddp, default False. TYPE: bool default: False
   USE_FAIRSCALE: False
-  # USE_FSDP DESCRIPTION: Use fsdp as the backend of ddp, default False. TYPE: bool default: False
   USE_FSDP: True
-  # LOAD_MODEL_ONLY DESCRIPTION: Only load the model rather than the optimizer and schedule, default is False. TYPE: bool default: False
   LOAD_MODEL_ONLY: False
-  # RESUME_FROM DESCRIPTION: Resume from some state of training! TYPE: str default: ''
+  ENABLE_GRADSCALER: False
+  USE_SCALER: False
   RESUME_FROM:
   WORK_DIR: ./cache/save_data/dit_flux_schnell_1024_lora
   LOG_FILE: std_log.txt
-  # EVAL_INTERVAL DESCRIPTION: Eval the model interval. TYPE: int default: 1
   EVAL_INTERVAL: 100
-  # LOG_TRAIN_NUM DESCRIPTION: The number samples used to log in training phase. TYPE: int default: -1
   LOG_TRAIN_NUM: 16
-  # FSDP_REDUCE_DTYPE DESCRIPTION: The dtype of reduce in FSDP. TYPE: str default: 'float16'
   FSDP_REDUCE_DTYPE: float32
-  # FSDP_BUFFER_DTYPE DESCRIPTION: The dtype of buffer in FSDP. TYPE: str default: 'float16'
   FSDP_BUFFER_DTYPE: float32
-  # FSDP_SHARD_MODULES DESCRIPTION: The modules to be sharded in FSDP. TYPE: list default: ['model']
   FSDP_SHARD_MODULES: [ 'model', 'cond_stage_model.t5_model' ] #
-  SAVE_MODULES: [ 'model'] #
+  SAVE_MODULES: [ 'model']
   TRAIN_MODULES: ['model']
   #
   FILE_SYSTEM:
@@ -58,12 +47,9 @@ SOLVER:
     USE_EMA: False
     EVAL_EMA: False
     DIFFUSION:
-      # NAME DESCRIPTION:  TYPE:  default: 'DiffusionFluxRF'
       NAME: DiffusionFluxRF
       PREDICTION_TYPE: raw
-      # NOISE_SCHEDULER DESCRIPTION:  TYPE:  default: ''
       NOISE_SCHEDULER:
-        # NAME DESCRIPTION:  TYPE:  default: 'FlowMatchSigmaScheduler'
         NAME: FlowMatchSigmaScheduler
         # WEIGHTING_SCHEME DESCRIPTION: The weighting scheme for sampling timesteps, choose from ['sigma_sqrt', 'logit_normal', 'mode', 'cosmap', 'none']. TYPE: str default: 'logit_normal'
         WEIGHTING_SCHEME: logit_normal
@@ -157,54 +143,33 @@ SOLVER:
         TANH_OUT: False
     #
     COND_STAGE_MODEL:
-      # NAME DESCRIPTION:  TYPE:  default: 'T5PlusClipFluxEmbedder'
       NAME: T5PlusClipFluxEmbedder
-      # T5_MODEL DESCRIPTION:  TYPE:  default: ''
       T5_MODEL:
-        # NAME DESCRIPTION:  TYPE:  default: 'HFEmbedder'
         NAME: HFEmbedder
-        # HF_MODEL_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
         HF_MODEL_CLS: T5EncoderModel
-        # MODEL_PATH DESCRIPTION: model folder path TYPE: NoneType default: None
         MODEL_PATH: ms://AI-ModelScope/FLUX.1-schnell@text_encoder_2/
-        # HF_TOKENIZER_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
         HF_TOKENIZER_CLS: T5Tokenizer
-        # TOKENIZER_PATH DESCRIPTION: tokenizer folder path TYPE: NoneType default: None
         TOKENIZER_PATH: ms://AI-ModelScope/FLUX.1-schnell@tokenizer_2/
-        # MAX_LENGTH DESCRIPTION: max length of input TYPE: int default: 77
         MAX_LENGTH: 256
-        # OUTPUT_KEY DESCRIPTION: output key TYPE: str default: 'last_hidden_state'
         OUTPUT_KEY: last_hidden_state
-        # D_TYPE DESCRIPTION: dtype TYPE: str default: 'bfloat16'
         D_TYPE: bfloat16
-        # BATCH_INFER DESCRIPTION: batch infer TYPE: bool default: False
         BATCH_INFER: False
         CLEAN: whitespace
-      # CLIP_MODEL DESCRIPTION:  TYPE:  default: ''
       CLIP_MODEL:
-        # NAME DESCRIPTION:  TYPE:  default: 'HFEmbedder'
         NAME: HFEmbedder
-        # HF_MODEL_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
         HF_MODEL_CLS: CLIPTextModel
-        # MODEL_PATH DESCRIPTION: model folder path TYPE: NoneType default: None
         MODEL_PATH: ms://AI-ModelScope/FLUX.1-schnell@text_encoder/
-        # HF_TOKENIZER_CLS DESCRIPTION: huggingface cls in transfomer TYPE: NoneType default: None
         HF_TOKENIZER_CLS: CLIPTokenizer
-        # TOKENIZER_PATH DESCRIPTION: tokenizer folder path TYPE: NoneType default: None
         TOKENIZER_PATH: ms://AI-ModelScope/FLUX.1-schnell@tokenizer/
-        # MAX_LENGTH DESCRIPTION: max length of input TYPE: int default: 77
         MAX_LENGTH: 77
-        # OUTPUT_KEY DESCRIPTION: output key TYPE: str default: 'last_hidden_state'
         OUTPUT_KEY: pooler_output
-        # D_TYPE DESCRIPTION: dtype TYPE: str default: 'bfloat16'
         D_TYPE: bfloat16
-        # BATCH_INFER DESCRIPTION: batch infer TYPE: bool default: False
         BATCH_INFER: True
         CLEAN: whitespace
   #
   SAMPLE_ARGS:
     SAMPLE_STEPS: 4
-    SAMPLER: flow_eluer
+    SAMPLER: flow_euler
     SEED: 2024
     IMAGE_SIZE: [ 1024, 1024 ]
     GUIDE_SCALE: 3.5

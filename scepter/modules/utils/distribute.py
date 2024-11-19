@@ -721,6 +721,7 @@ class Workenv(object):
             torch.backends.cudnn.benchmark = config.ENV.get(
                 'CUDNN_BENCHMARK', False)
             fn(config)
+            return
         else:
             import torch.multiprocessing as mp
             if 'MASTER_ADDR' not in os.environ:
@@ -741,10 +742,13 @@ class Workenv(object):
             if self.is_distributed:
                 self.backend = config.ENV.get('BACKEND', 'nccl')
                 self.sync_bn = config.ENV.get('SYNC_BN', False)
-            mp.spawn(mp_worker,
-                     nprocs=ngpus_per_node,
-                     args=(ngpus_per_node, config, fn, pmi_rank, world_size,
-                           self))
+            spawn_join = config.ENV.get('SPAWN_JOIN', True)
+            context = mp.spawn(mp_worker,
+                               nprocs=ngpus_per_node,
+                               join=spawn_join,
+                               args=(ngpus_per_node, config, fn, pmi_rank, world_size,
+                                     self))
+            return context
 
     def get_env(self):
         ret_dict = {}

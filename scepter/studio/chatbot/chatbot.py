@@ -12,15 +12,13 @@ import re
 import string
 import sys
 import threading
+import warnings
 
 import cv2
 import gradio as gr
 import numpy as np
 import torch
 import transformers
-from diffusers import CogVideoXImageToVideoPipeline
-from diffusers.utils import export_to_video
-from gradio_imageslider import ImageSlider
 from PIL import Image
 from transformers import AutoModel, AutoTokenizer
 
@@ -29,6 +27,7 @@ from scepter.modules.utils.config import Config
 from scepter.modules.utils.directory import get_md5
 from scepter.modules.utils.file_system import FS
 from scepter.studio.utils.env import init_env
+from importlib.metadata import version
 
 from .example import get_examples
 from .utils import load_image
@@ -51,6 +50,11 @@ class ChatBotUI(object):
                  is_debug=False,
                  language='en',
                  root_work_dir='./'):
+        try:
+            from diffusers import CogVideoXImageToVideoPipeline
+            from diffusers.utils import export_to_video
+        except Exception as e:
+            print(f"Import diffusers failed, please install or upgrade diffusers. Error information: {e}")
 
         cfg = Config(cfg_file=cfg_general_file)
         cfg.WORK_DIR = os.path.join(root_work_dir, cfg.WORK_DIR)
@@ -58,25 +62,27 @@ class ChatBotUI(object):
             FS.make_dir(cfg.WORK_DIR)
         cfg = init_env(cfg)
         self.cache_dir = cfg.WORK_DIR
-        self.chatbot_examples = get_examples(self.cache_dir)
+        self.chatbot_examples = get_examples(self.cache_dir) if not cfg.get('SKIP_EXAMPLES', False) else []
         self.model_cfg_dir = cfg.MODEL.EDIT_MODEL.MODEL_CFG_DIR
         self.model_yamls = glob.glob(os.path.join(self.model_cfg_dir,
                                                   '*.yaml'))
         self.model_choices = dict()
+        self.default_model_name = ''
         for i in self.model_yamls:
-            model_name = '.'.join(i.split('/')[-1].split('.')[:-1])
-            self.model_choices[model_name] = i
-        print('Models: ', self.model_choices)
-
-        self.model_name = cfg.MODEL.EDIT_MODEL.DEFAULT
-        assert self.model_name in self.model_choices
-        model_cfg = Config(load=True,
-                           cfg_file=self.model_choices[self.model_name])
+            model_cfg = Config(load=True, cfg_file=i)
+            model_name = model_cfg.NAME
+            if model_cfg.IS_DEFAULT: self.default_model_name = model_name
+            self.model_choices[model_name] = model_cfg
+        print('Models: ', self.model_choices.keys())
+        assert len(self.model_choices) > 0
+        if self.default_model_name == "": self.default_model_name = self.model_choices.keys()[0]
+        self.model_name = self.default_model_name
         self.pipe = ACEInference()
-        self.pipe.init_from_cfg(model_cfg)
+        self.pipe.init_from_cfg(self.model_choices[self.default_model_name])
         self.max_msgs = 20
-
         self.enable_i2v = cfg.get('ENABLE_I2V', False)
+        self.gradio_version = version('gradio')
+
         if self.enable_i2v:
             self.i2v_model_dir = cfg.MODEL.I2V.MODEL_DIR
             self.i2v_model_name = cfg.MODEL.I2V.MODEL_NAME
@@ -167,6 +173,7 @@ class ChatBotUI(object):
             ]
 
     def create_ui(self):
+
         css = '.chatbot.prose.md {opacity: 1.0 !important} #chatbot {opacity: 1.0 !important}'
         with gr.Blocks(css=css,
                        title='Chatbot',
@@ -177,7 +184,8 @@ class ChatBotUI(object):
             self.history_result = gr.State(value={})
             self.retry_msg = gr.State(value='')
             with gr.Group():
-                with gr.Row(equal_height=True):
+                self.ui_mode = gr.State(value='legacy')
+                with gr.Row(equal_height=True, visible=False) as self.chat_group:
                     with gr.Column(visible=True) as self.chat_page:
                         self.chatbot = gr.Chatbot(
                             height=600,
@@ -192,7 +200,7 @@ class ChatBotUI(object):
                                                        size='sm')
 
                     with gr.Column(visible=False) as self.editor_page:
-                        with gr.Tabs():
+                        with gr.Tabs(visible=False) as self.upload_tabs:
                             with gr.Tab(id='ImageUploader',
                                         label='Image Uploader',
                                         visible=True) as self.upload_tab:
@@ -201,7 +209,7 @@ class ChatBotUI(object):
                                     interactive=True,
                                     type='pil',
                                     image_mode='RGB',
-                                    sources='upload',
+                                    sources=['upload'],
                                     elem_id='image_uploader',
                                     format='png')
                                 with gr.Row():
@@ -209,10 +217,9 @@ class ChatBotUI(object):
                                         value='Submit',
                                         elem_id='upload_submit')
                                     self.ext_btn_1 = gr.Button(value='Exit')
-
+                        with gr.Tabs(visible=False) as self.edit_tabs:
                             with gr.Tab(id='ImageEditor',
-                                        label='Image Editor',
-                                        visible=False) as self.edit_tab:
+                                        label='Image Editor') as self.edit_tab:
                                 self.mask_type = gr.Dropdown(
                                     label='Mask Type',
                                     choices=[
@@ -275,13 +282,23 @@ class ChatBotUI(object):
                                     self.ext_btn_2 = gr.Button(value='Exit')
 
                             with gr.Tab(id='ImageViewer',
-                                        label='Image Viewer',
-                                        visible=False) as self.image_view_tab:
-                                self.image_viewer = ImageSlider(
-                                    label='Image',
-                                    type='pil',
-                                    show_download_button=True,
-                                    elem_id='image_viewer')
+                                        label='Image Viewer') as self.image_view_tab:
+                                if self.gradio_version >= '5.0.0':
+                                    self.image_viewer = gr.Image(
+                                        label='Image',
+                                        type='pil',
+                                        show_download_button=True,
+                                        elem_id='image_viewer')
+                                else:
+                                    try:
+                                        from gradio_imageslider import ImageSlider
+                                    except Exception as e:
+                                        print(f"Import gradio_imageslider failed, please install.")
+                                    self.image_viewer = ImageSlider(
+                                        label='Image',
+                                        type='pil',
+                                        show_download_button=True,
+                                        elem_id='image_viewer')
 
                                 self.ext_btn_3 = gr.Button(value='Exit')
 
@@ -300,11 +317,30 @@ class ChatBotUI(object):
 
                                 self.ext_btn_4 = gr.Button(value='Exit')
 
+                with gr.Row(equal_height=True, visible=True) as self.legacy_group:
+                    with gr.Column():
+                        self.legacy_image_uploader = gr.Image(
+                            height=550,
+                            interactive=True,
+                            type='pil',
+                            image_mode='RGB',
+                            elem_id='legacy_image_uploader',
+                            format='png')
+                    with gr.Column():
+                        self.legacy_image_viewer = gr.Image(
+                            label='Image',
+                            height=550,
+                            type='pil',
+                            interactive=False,
+                            show_download_button=True,
+                            elem_id='image_viewer')
+
+
                 with gr.Accordion(label='Setting', open=False):
                     with gr.Row():
                         self.model_name_dd = gr.Dropdown(
                             choices=self.model_choices,
-                            value=self.model_name,
+                            value=self.default_model_name,
                             label='Model Version')
 
                     with gr.Row():
@@ -316,38 +352,62 @@ class ChatBotUI(object):
                             container=False)
 
                     with gr.Row():
+                        # REFINER_PROMPT
+                        self.refiner_prompt = gr.Textbox(
+                            value=self.pipe.input.get("refiner_prompt", ""),
+                            visible=self.pipe.input.get("refiner_prompt", None) is not None,
+                            placeholder=
+                            'Prompt used for refiner',
+                            label='Refiner Prompt',
+                            container=False)
+
+
+                    with gr.Row():
                         with gr.Column(scale=8, min_width=500):
                             with gr.Row():
                                 self.step = gr.Slider(minimum=1,
                                                       maximum=1000,
-                                                      value=20,
+                                                      value=self.pipe.input.get("sample_steps", 20),
+                                                      visible=self.pipe.input.get("sample_steps", None) is not None,
                                                       label='Sample Step')
                                 self.cfg_scale = gr.Slider(
                                     minimum=1.0,
                                     maximum=20.0,
-                                    value=4.5,
+                                    value=self.pipe.input.get("guide_scale", 4.5),
+                                    visible=self.pipe.input.get("guide_scale", None) is not None,
                                     label='Guidance Scale')
                                 self.rescale = gr.Slider(minimum=0.0,
                                                          maximum=1.0,
-                                                         value=0.5,
+                                                         value=self.pipe.input.get("guide_rescale", 0.5),
+                                                         visible=self.pipe.input.get("guide_rescale", None) is not None,
                                                          label='Rescale')
+                                self.refiner_scale = gr.Slider(minimum=-0.1,
+                                                         maximum=1.0,
+                                                         value=self.pipe.input.get("refiner_scale", 0.5),
+                                                         visible=self.pipe.input.get("refiner_scale", None) is not None,
+                                                         label='Refiner Scale')
                                 self.seed = gr.Slider(minimum=-1,
                                                       maximum=10000000,
                                                       value=-1,
                                                       label='Seed')
                                 self.output_height = gr.Slider(
                                     minimum=256,
-                                    maximum=1024,
-                                    value=512,
+                                    maximum=1440,
+                                    value=self.pipe.input.get("output_height", 1024),
+                                    visible=self.pipe.input.get("output_height", None) is not None,
                                     label='Output Height')
                                 self.output_width = gr.Slider(
                                     minimum=256,
-                                    maximum=1024,
-                                    value=512,
+                                    maximum=1440,
+                                    value=self.pipe.input.get("output_width", 1024),
+                                    visible=self.pipe.input.get("output_width", None) is not None,
                                     label='Output Width')
                         with gr.Column(scale=1, min_width=50):
                             self.use_history = gr.Checkbox(value=False,
                                                            label='Use History')
+                            self.use_ace = gr.Checkbox(value=self.pipe.input.get("use_ace", True),
+                                                       visible=self.pipe.input.get("use_ace", None) is not None,
+                                                       label='Use ACE')
                             self.video_auto = gr.Checkbox(
                                 value=False,
                                 label='Auto Gen Video',
@@ -384,7 +444,7 @@ class ChatBotUI(object):
                                                     visible=True)
 
                 with gr.Row():
-                    inst = """
+                    self.chatbot_inst = """
                        **Instruction**:
 
                        1. Click 'Upload' button to upload one or more images as input images.
@@ -398,12 +458,25 @@ class ChatBotUI(object):
                        8. If you find our work valuable, we invite you to refer to the [ACE Page](https://ali-vilab.github.io/ace-page/) for comprehensive information.
 
                     """
-                    gr.Markdown(value=inst)
+
+                    self.legacy_inst = """
+                       **Instruction**:
+
+                       1. You can edit the image by uploading it; if no image is uploaded, an image will be generated from text..
+                       2. Enter '@' in the text box will exhibit all images in the gallery.
+                       3. Select the image you wish to edit from the gallery, and its Image ID will be displayed in the text box.
+                       4. **Important** To render text on an image, please ensure to include a space between each letter. For instance, "add text 'g i r l' on the mask area of @xxxxx".
+                       5. To perform multi-step editing, partial editing, inpainting, outpainting, and other operations, please click the Chatbot Checkbox to enable the conversational editing mode and follow the relevant instructions..
+                       6. If you find our work valuable, we invite you to refer to the [ACE Page](https://ali-vilab.github.io/ace-page/) for comprehensive information.
+
+                    """
+
+                    self.instruction = gr.Markdown(value=self.legacy_inst)
 
                 with gr.Row(variant='panel',
                             equal_height=True,
                             show_progress=False):
-                    with gr.Column(scale=1, min_width=100):
+                    with gr.Column(scale=1, min_width=100, visible=False) as self.upload_panel:
                         self.upload_btn = gr.Button(value=upload_sty +
                                                     ' Upload',
                                                     variant='secondary')
@@ -413,12 +486,16 @@ class ChatBotUI(object):
                             label='Instruction',
                             container=False)
                     with gr.Column(scale=1, min_width=100):
-                        self.chat_btn = gr.Button(value=chat_sty + ' Chat',
+                        self.chat_btn = gr.Button(value='Generate',
                                                   variant='primary')
                     with gr.Column(scale=1, min_width=100):
                         self.retry_btn = gr.Button(value=refresh_sty +
                                                    ' Retry',
                                                    variant='secondary')
+                    with gr.Column(scale=1, min_width=100):
+                        self.mode_checkbox = gr.Checkbox(
+                            value=False,
+                            label='ChatBot')
                     with gr.Column(scale=(1 if self.enable_i2v else 0),
                                    min_width=0):
                         self.video_gen_btn = gr.Button(value=video_sty +
@@ -453,19 +530,77 @@ class ChatBotUI(object):
                 lock.acquire()
                 del self.pipe
                 torch.cuda.empty_cache()
-                model_cfg = Config(load=True,
-                                   cfg_file=self.model_choices[model_name])
                 self.pipe = ACEInference()
-                self.pipe.init_from_cfg(model_cfg)
+                self.pipe.init_from_cfg(self.model_choices[model_name])
                 self.model_name = model_name
                 lock.release()
 
-            return model_name, gr.update(), gr.update()
+            return (model_name, gr.update(), gr.update(),
+                    gr.Slider(
+                              value=self.pipe.input.get("sample_steps", 20),
+                              visible=self.pipe.input.get("sample_steps", None) is not None),
+                    gr.Slider(
+                        value=self.pipe.input.get("guide_scale", 4.5),
+                        visible=self.pipe.input.get("guide_scale", None) is not None),
+                    gr.Slider(
+                              value=self.pipe.input.get("guide_rescale", 0.5),
+                              visible=self.pipe.input.get("guide_rescale", None) is not None),
+                    gr.Slider(
+                        value=self.pipe.input.get("output_height", 1024),
+                        visible=self.pipe.input.get("output_height", None) is not None),
+                    gr.Slider(
+                        value=self.pipe.input.get("output_width", 1024),
+                        visible=self.pipe.input.get("output_width", None) is not None),
+                    gr.Textbox(
+                        value=self.pipe.input.get("refiner_prompt", ""),
+                        visible=self.pipe.input.get("refiner_prompt", None) is not None),
+                    gr.Slider(
+                              value=self.pipe.input.get("refiner_scale", 0.5),
+                              visible=self.pipe.input.get("refiner_scale", None) is not None
+                        ),
+                    gr.Checkbox(
+                        value=self.pipe.input.get("use_ace", True),
+                        visible=self.pipe.input.get("use_ace", None) is not None
+                    )
+                    )
 
         self.model_name_dd.change(
             change_model,
             inputs=[self.model_name_dd],
-            outputs=[self.model_name_dd, self.chatbot, self.text])
+            outputs=[
+                self.model_name_dd, self.chatbot, self.text,
+                self.step,
+                self.cfg_scale, self.rescale, self.output_height,
+                self.output_width, self.refiner_prompt, self.refiner_scale,
+                self.use_ace])
+
+
+        def mode_change(mode_check):
+            if mode_check:
+                # ChatBot
+                return (
+                    gr.Row(visible=False),
+                    gr.Row(visible=True),
+                    gr.Button(value='Generate'),
+                    gr.State(value='chatbot'),
+                    gr.Column(visible=True),
+                    gr.Markdown(value=self.chatbot_inst)
+                )
+            else:
+                # Legacy
+                return (
+                    gr.Row(visible=True),
+                    gr.Row(visible=False),
+                    gr.Button(value=chat_sty + ' Chat'),
+                    gr.State(value='legacy'),
+                    gr.Column(visible=False),
+                    gr.Markdown(value=self.legacy_inst)
+                )
+        self.mode_checkbox.change(mode_change, inputs=[self.mode_checkbox],
+                                  outputs=[self.legacy_group, self.chat_group,
+                                           self.chat_btn, self.ui_mode,
+                                           self.upload_panel, self.instruction])
+
 
         ########################################
         def generate_gallery(text, images):
@@ -522,6 +657,9 @@ class ChatBotUI(object):
                            fps,
                            seed,
                            progress=gr.Progress(track_tqdm=True)):
+
+            from diffusers.utils import export_to_video
+
             generator = torch.Generator(device='cuda').manual_seed(seed)
             img_ids = re.findall('@(.*?)[ ,;.?$]', message)
             if len(img_ids) == 0:
@@ -592,7 +730,11 @@ class ChatBotUI(object):
             outputs=[self.history, self.chatbot, self.text, self.gallery])
 
         ########################################
-        def run_chat(message,
+        def run_chat(
+                     message,
+                     legacy_image,
+                     ui_mode,
+                     use_ace,
                      extend_prompt,
                      history,
                      images,
@@ -601,6 +743,8 @@ class ChatBotUI(object):
                      negative_prompt,
                      cfg_scale,
                      rescale,
+                     refiner_prompt,
+                     refiner_scale,
                      step,
                      seed,
                      output_h,
@@ -612,12 +756,25 @@ class ChatBotUI(object):
                      video_fps,
                      video_seed,
                      progress=gr.Progress(track_tqdm=True)):
+            legacy_img_ids = []
+            if ui_mode == 'legacy':
+                if legacy_image is not None:
+                    history, images, img_id = self.add_uploaded_image_to_history(
+                        legacy_image, history, images)
+                    legacy_img_ids.append(img_id)
             retry_msg = message
             gen_id = get_md5(message)[:12]
             save_path = os.path.join(self.cache_dir, f'{gen_id}.png')
 
             img_ids = re.findall('@(.*?)[ ,;.?$]', message)
             history_io = None
+
+            if len(img_ids) < 1:
+                img_ids = legacy_img_ids
+                for img_id in img_ids:
+                    if f'@{img_id}' not in message:
+                        message = f'@{img_id} ' + message
+
             new_message = message
 
             if len(img_ids) > 0:
@@ -676,6 +833,9 @@ class ChatBotUI(object):
                 guide_scale=cfg_scale,
                 guide_rescale=rescale,
                 seed=seed,
+                refiner_prompt=refiner_prompt,
+                refiner_scale=refiner_scale,
+                use_ace=use_ace
             )
 
             img = imgs[0]
@@ -784,21 +944,25 @@ class ChatBotUI(object):
             while len(history) >= self.max_msgs:
                 history.pop(0)
 
-            return history, images, history_result, self.get_history(
-                history), gr.update(value=''), gr.update(
-                    visible=False), retry_msg
+            return (history, images, gr.Image(value=save_path),
+                    history_result, self.get_history(
+                history), gr.update(), gr.update(
+                    visible=False), retry_msg)
 
         chat_inputs = [
+            self.legacy_image_uploader, self.ui_mode, self.use_ace,
             self.extend_prompt, self.history, self.images, self.use_history,
             self.history_result, self.negative_prompt, self.cfg_scale,
-            self.rescale, self.step, self.seed, self.output_height,
+            self.rescale, self.refiner_prompt, self.refiner_scale,
+            self.step, self.seed, self.output_height,
             self.output_width, self.video_auto, self.video_step,
             self.video_frames, self.video_cfg_scale, self.video_fps,
             self.video_seed
         ]
 
         chat_outputs = [
-            self.history, self.images, self.history_result, self.chatbot,
+            self.history, self.images, self.legacy_image_viewer,
+            self.history_result, self.chatbot,
             self.text, self.gallery, self.retry_msg
         ]
 
@@ -859,6 +1023,8 @@ class ChatBotUI(object):
                 prompt=[prompt] * img_num,
                 negative_prompt=[''] * img_num,
                 seed=seed,
+                refiner_prompt=self.pipe.input.get("refiner_prompt", ""),
+                refiner_scale=self.pipe.input.get("refiner_scale", 0.0),
             )
 
             img = imgs[0]
@@ -904,14 +1070,16 @@ class ChatBotUI(object):
             return (gr.update(visible=True,
                               scale=1), gr.update(visible=True, scale=1),
                     gr.update(visible=True), gr.update(visible=False),
-                    gr.update(visible=False), gr.update(visible=False))
+                    gr.update(visible=False), gr.update(visible=False),
+                    gr.update(visible=True))
 
         self.upload_btn.click(upload_image,
                               inputs=[],
                               outputs=[
                                   self.chat_page, self.editor_page,
                                   self.upload_tab, self.edit_tab,
-                                  self.image_view_tab, self.video_view_tab
+                                  self.image_view_tab, self.video_view_tab,
+                                  self.upload_tabs
                               ])
 
         ########################################
@@ -926,13 +1094,19 @@ class ChatBotUI(object):
                 ]
                 if len(imgs) > 0:
                     if len(imgs) == 2:
-                        view_img = copy.deepcopy(imgs)
+                        if self.gradio_version >= '5.0.0':
+                            view_img = copy.deepcopy(imgs[-1])
+                        else:
+                            view_img = copy.deepcopy(imgs)
                         edit_img = copy.deepcopy(imgs[-1])
                     else:
-                        view_img = [
-                            copy.deepcopy(imgs[-1]),
-                            copy.deepcopy(imgs[-1])
-                        ]
+                        if self.gradio_version >= '5.0.0':
+                            view_img = copy.deepcopy(imgs[-1])
+                        else:
+                            view_img = [
+                                copy.deepcopy(imgs[-1]),
+                                copy.deepcopy(imgs[-1])
+                            ]
                         edit_img = copy.deepcopy(imgs[-1])
 
                     return (gr.update(visible=True,
@@ -941,11 +1115,12 @@ class ChatBotUI(object):
                             gr.update(visible=False), gr.update(visible=True),
                             gr.update(visible=True), gr.update(visible=False),
                             gr.update(value=edit_img),
-                            gr.update(value=view_img), gr.update(value=None))
+                            gr.update(value=view_img), gr.update(value=None),
+                            gr.update(visible=True))
                 else:
                     return (gr.update(), gr.update(), gr.update(), gr.update(),
                             gr.update(), gr.update(), gr.update(), gr.update(),
-                            gr.update())
+                            gr.update(), gr.update())
             elif isinstance(evt.value, dict) and evt.value.get(
                     'component', '') == 'video':
                 value = evt.value['value']['video']['path']
@@ -953,11 +1128,12 @@ class ChatBotUI(object):
                                   scale=1), gr.update(visible=True, scale=1),
                         gr.update(visible=False), gr.update(visible=False),
                         gr.update(visible=False), gr.update(visible=True),
-                        gr.update(), gr.update(), gr.update(value=value))
+                        gr.update(), gr.update(), gr.update(value=value),
+                        gr.update())
             else:
                 return (gr.update(), gr.update(), gr.update(), gr.update(),
                         gr.update(), gr.update(), gr.update(), gr.update(),
-                        gr.update())
+                        gr.update(), gr.update())
 
         self.chatbot.select(edit_image,
                             outputs=[
@@ -965,16 +1141,17 @@ class ChatBotUI(object):
                                 self.upload_tab, self.edit_tab,
                                 self.image_view_tab, self.video_view_tab,
                                 self.image_editor, self.image_viewer,
-                                self.video_viewer
+                                self.video_viewer, self.edit_tabs
                             ])
 
-        self.image_viewer.change(lambda x: x,
-                                 inputs=self.image_viewer,
-                                 outputs=self.image_viewer)
+        if self.gradio_version < '5.0.0':
+            self.image_viewer.change(lambda x: x,
+                                     inputs=self.image_viewer,
+                                     outputs=self.image_viewer)
 
         ########################################
         def submit_upload_image(image, history, images):
-            history, images = self.add_uploaded_image_to_history(
+            history, images, _ = self.add_uploaded_image_to_history(
                 image, history, images)
             return gr.update(visible=False), gr.update(
                 visible=True), gr.update(
@@ -1207,7 +1384,7 @@ class ChatBotUI(object):
         history.append(
             (None,
              f'This is uploaded image:\n {img_str} image ID is: {img_id}'))
-        return history, images
+        return history, images, img_id
 
 
 def run_gr(cfg):

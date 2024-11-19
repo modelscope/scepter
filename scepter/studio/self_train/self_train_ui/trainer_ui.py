@@ -5,12 +5,17 @@ import datetime
 import json
 import os
 import random
+import time
 from collections import OrderedDict
 
+from tqdm import tqdm
+
+import decord
 import gradio as gr
 import scepter
 import torch
 import yaml
+from scepter.modules.utils.directory import get_md5
 from scepter.modules.utils.file_system import FS
 from scepter.studio.self_train.scripts.trainer import TrainManager
 from scepter.studio.self_train.self_train_ui.component_names import \
@@ -84,6 +89,7 @@ class TrainerUI(UIBase):
         self.current_train_model = None
         self.trainer_ins = TrainManager(self.run_script, self.work_dir_pre)
         self.component_names = TrainerUIName(language=language)
+        self.save_file_local_path = cfg.SAVE_FILE_LOCAL_PATH
 
         self.h_level_dict = {}
         for hw_tuple in self.train_para_data.RESOLUTIONS.get('VALUES', []):
@@ -107,7 +113,7 @@ class TrainerUI(UIBase):
                             choices=self.component_names.data_source_choices,
                             value=self.component_names.data_source_value,
                             label=self.component_names.data_source_name,
-                            interactive=False)
+                            interactive=True)
                         self.data_type = gr.Dropdown(
                             choices=[
                                 self.component_names.data_type_map[key] for key
@@ -116,20 +122,20 @@ class TrainerUI(UIBase):
                             value=self.component_names.data_type_map[
                                 self.component_names.data_type_value],
                             label=self.component_names.data_type_name,
-                            interactive=False)
+                            interactive=True)
                         self.ori_data_name = gr.Textbox(
                             label=self.component_names.ori_data_name,
                             max_lines=1,
                             placeholder=self.component_names.ori_data_name,
-                            interactive=False)
+                            interactive=True)
                         self.ms_data_name = gr.Textbox(
                             label=' or '.join(
                                 self.component_names.data_source_choices),
                             max_lines=1,
                             placeholder=self.component_names.
                             ms_data_name_place_hold,
-                            visible=False,
-                            interactive=False)
+                            visible=True,
+                            interactive=True)
                         with gr.Group(visible=False) as self.ms_data_box:
                             with gr.Row():
                                 self.ms_data_space = gr.Textbox(
@@ -199,8 +205,7 @@ class TrainerUI(UIBase):
                                     visible=lora_visible) as self.lora_param:
                                 self.lora_alpha = gr.Number(
                                     label='LoRA Alpha',
-                                    value=self.para_data.get(
-                                        'lora_alpha', 4),
+                                    value=self.para_data.get('lora_alpha', 4),
                                     interactive=True)
                                 self.lora_rank = gr.Number(
                                     label='LoRA Rank',
@@ -311,6 +316,19 @@ class TrainerUI(UIBase):
                                 interactive=True)
 
                         with gr.Row():
+                            self.accumulate_step = gr.Number(
+                                label=self.component_names.accumulate_step,
+                                value=self.para_data.get('ACCUMULATE_STEP', 1),
+                                precision=0,
+                                interactive=True)
+                            self.gpus = gr.Dropdown(
+                                choices=list(range(torch.cuda.device_count())),
+                                value=list(range(torch.cuda.device_count())),
+                                label=self.component_names.gpus,
+                                multiselect=True,
+                                interactive=True)
+
+                        with gr.Row():
                             self.prompt_prefix = gr.Text(
                                 label=self.component_names.prompt_prefix,
                                 value=self.para_data.get('TRAIN_PREFIX', ''))
@@ -355,6 +373,15 @@ class TrainerUI(UIBase):
                                 self.component_names.data_type_value], 'damo',
                             'style_custom_dataset', 'style_custom_dataset',
                             '3D'
+                        ],
+                        [
+                            self.component_names.data_source_choices[2],
+                            self.component_names.data_type_map[
+                                self.component_names.data_type_value_video],
+                            '',
+                            'https://modelscope.cn/models/iic/scepter/resolve/master/datasets/video_example.txt',   # noqa
+                            'video_example_txt',
+                            ''
                         ]
                     ],
                     inputs=[
@@ -439,6 +466,7 @@ class TrainerUI(UIBase):
             eval_prompts = [] if is_edit else self.train_para_data.get(
                 'EVAL_PROMPTS', [])
             eval_prompts = ret_data.get('EVAL_PROMPTS', eval_prompts)
+
             return ret_data.get('EPOCHS', 10), \
                 ret_data.get('LEARNING_RATE', 0.0001), \
                 ret_data.get('SAVE_INTERVAL', 10), \
@@ -613,7 +641,8 @@ class TrainerUI(UIBase):
                       lora_alpha, lora_rank, text_lora_alpha, text_lora_rank,
                       sce_ratio, enable_resolution_bucket,
                       min_bucket_resolution, max_bucket_resolution,
-                      bucket_resolution_steps, bucket_no_upscale, user_name):
+                      bucket_resolution_steps, bucket_no_upscale,
+                      accumulate_step, gpus, user_name):
             # Check Cuda
             if not torch.cuda.is_available() and not self.is_debug:
                 raise gr.Error(self.component_names.training_err1)
@@ -621,7 +650,7 @@ class TrainerUI(UIBase):
             if work_name == 'custom' or work_name is None or work_name == '':
                 raise gr.Error(self.component_names.training_err4)
             work_dir = os.path.join(self.work_dir_pre, work_name)
-            login_user_name = user_name
+
             self.current_train_model = work_name
             if os.path.exists(work_dir) or os.path.exists(
                     f'.flag/{work_name}.tmp'):
@@ -655,7 +684,7 @@ class TrainerUI(UIBase):
             if ms_data_name is None:
                 raise gr.Error(self.component_names.training_err3)
 
-            def prepare_train_data(data_cfg):
+            def prepare_train_image_data(data_cfg):
                 data_cfg['BATCH_SIZE'] = int(train_batch_size)
                 data_cfg['PROMPT_PREFIX'] = prompt_prefix
                 data_cfg['REPLACE_KEYWORDS'] = replace_keywords
@@ -737,8 +766,12 @@ class TrainerUI(UIBase):
                         if os.path.exists(local_data_dir) and os.path.exists(
                                 local_file_list):
                             data_cfg.update({
-                                'NAME': 'ImageTextPairDataset' if data_cfg['NAME'] == 'ImageTextPairMSDataset' else data_cfg['NAME'],
-                                'ENABLE_RESOLUTION_BUCKET': enable_resolution_bucket,
+                                'NAME':
+                                'ImageTextPairDataset'
+                                if data_cfg['NAME'] == 'ImageTextPairMSDataset'
+                                else data_cfg['NAME'],
+                                'ENABLE_RESOLUTION_BUCKET':
+                                enable_resolution_bucket,
                                 'SAMPLER': {
                                     'NAME':
                                     'ResolutionBatchSampler',
@@ -761,7 +794,8 @@ class TrainerUI(UIBase):
                                     'BUCKET_NO_UPSCALE':
                                     bucket_no_upscale
                                 },
-                                'DATA_NUM': data_num
+                                'DATA_NUM':
+                                data_num
                             })
                             if 'TRANSFORMS' in data_cfg:
                                 for trans in data_cfg['TRANSFORMS']:
@@ -775,6 +809,69 @@ class TrainerUI(UIBase):
                             )
 
                 return data_cfg
+
+            def prepare_train_video_data(data_cfg):
+                if ms_data_name.startswith('http') and (
+                        '.txt' in ms_data_name or '.csv' in ms_data_name):
+                    data_name = get_data_from_list()
+                else:
+                    data_name = os.path.join(ms_data_name, 'file.txt')
+
+                data_cfg['BATCH_SIZE'] = int(train_batch_size)
+                data_cfg['PROMPT_PREFIX'] = prompt_prefix
+                if data_cfg['NAME'] in ['VideoGenDataset']:
+                    data_cfg['SAMPLER']['SUB_SAMPLERS'][0][
+                        'PATH_PREFIX'] = os.path.dirname(data_name)
+                    data_cfg['SAMPLER']['SUB_SAMPLERS'][0][
+                        'INDEX_FILE'] = data_name
+                elif data_cfg['NAME'] in ['VideoGenDatasetOTF']:
+                    data_cfg['PATH_PREFIX'] = os.path.dirname(data_name)
+                    data_cfg['DATA_FILE'] = data_name
+                else:
+                    raise Exception('Unsupported data type {}'.format(
+                        data_cfg['NAME']))
+                return data_cfg
+
+            def get_data_from_list():
+                file_list = []
+                file = FS.get_from(ms_data_name)
+                with FS.get_from(file) as local_path:
+                    with open(local_path, 'r') as f:
+                        for line in tqdm(f):
+                            line = line.strip()
+                            if line == '':
+                                continue
+                            try:
+                                src_video_path, caption = line.split('#;#', 1)
+                            except Exception:
+                                try:
+                                    src_video_path, caption = line.split(
+                                        ',', 1)
+                                except Exception:
+                                    raise gr.Error(
+                                        self.component_names.illegal_data_err)
+                            relative_path = os.path.join(
+                                'videos',
+                                f'{get_md5(src_video_path)[:18]}_{int(time.time())}.mp4'
+                            )
+                            video_path = os.path.join(
+                                self.save_file_local_path, ori_data_name,
+                                relative_path)
+                            local_path = FS.get_from(src_video_path,
+                                                     local_path=video_path)
+                            video_reader = decord.VideoReader(local_path)
+                            w = video_reader[0].shape[1]
+                            h = video_reader[0].shape[0]
+                            file_list.append('{}#;#{}#;#{}#;#{}\n'.format(
+                                relative_path, w, h, caption))
+                local_save_file_list = os.path.join(self.save_file_local_path,
+                                                    ori_data_name, 'file.txt')
+                directory = os.path.dirname(local_save_file_list)
+                os.makedirs(directory, exist_ok=True)
+                FS.delete_object(file)
+                with open(local_save_file_list, 'w') as f:
+                    f.writelines(file_list)
+                return local_save_file_list
 
             def prepare_eval_data(data_cfg):
                 data_cfg['PROMPT_PREFIX'] = prompt_prefix
@@ -850,8 +947,14 @@ class TrainerUI(UIBase):
                         ]
                     cfg['SOLVER']['TUNER'] = tuner_cfg_list
 
-                cfg['SOLVER']['TRAIN_DATA'] = prepare_train_data(
-                    cfg['SOLVER']['TRAIN_DATA'])
+                if cfg['SOLVER']['TRAIN_DATA']['NAME'] in [
+                        'VideoGenDataset', 'VideoGenDatasetOTF'
+                ]:
+                    cfg['SOLVER']['TRAIN_DATA'] = prepare_train_video_data(
+                        cfg['SOLVER']['TRAIN_DATA'])
+                else:
+                    cfg['SOLVER']['TRAIN_DATA'] = prepare_train_image_data(
+                        cfg['SOLVER']['TRAIN_DATA'])
                 if eval_prompts is not None and len(eval_prompts) > 0:
                     cfg['SOLVER']['EVAL_DATA'] = prepare_eval_data(
                         cfg['SOLVER']['EVAL_DATA'])
@@ -868,6 +971,8 @@ class TrainerUI(UIBase):
                         hook['INTERVAL'] = save_interval
                         hook['PUSH_TO_HUB'] = push_to_hub
                         hook['HUB_MODEL_ID'] = hub_model_id
+                    if hook['NAME'] == 'BackwardHook':
+                        hook['ACCUMULATE_STEP'] = int(accumulate_step)
                 if 'EVAL_HOOKS' in cfg['SOLVER']:
                     for hook in cfg['SOLVER']['EVAL_HOOKS']:
                         if hook['NAME'] == 'ProbeDataHook':
@@ -881,6 +986,7 @@ class TrainerUI(UIBase):
                               default_flow_style=False)
                 return cfg_file
 
+            self.trainer_ins.set_gpus(gpus)
             before_kill_inference = self.trainer_ins.check_memory()
             if hasattr(manager, 'inference'):
                 for k, v in manager.inference.pipe_manager.pipeline_level_modules.items(
@@ -892,7 +998,6 @@ class TrainerUI(UIBase):
                     'dynamic_unload')):
                 manager.preprocess.dataset_gallery.processors_manager.dynamic_unload(
                 )
-
             after_kill_inference = self.trainer_ins.check_memory()
             message = f'GPU info: {before_kill_inference}. \n\n'
             message += f'After unloading inference models, the GPU info: {after_kill_inference}. \n\n'
@@ -923,7 +1028,8 @@ class TrainerUI(UIBase):
                 self.text_lora_alpha, self.text_lora_rank, self.sce_ratio,
                 self.enable_resolution_bucket, self.min_bucket_resolution,
                 self.max_bucket_resolution, self.bucket_resolution_steps,
-                self.bucket_no_upscale, manager.user_name
+                self.bucket_no_upscale, self.accumulate_step, self.gpus,
+                manager.user_name
             ],
             outputs=[inference_ui.output_model_name],
             queue=True)

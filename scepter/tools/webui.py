@@ -65,6 +65,13 @@ if __name__ == '__main__':
                         choices=['en', 'zh'],
                         default='en',
                         help='Now we only support english(en) and chinese(zh)')
+    parser.add_argument('--tab',
+                        dest='tab',
+                        choices=['all', 'chatbot'],
+                        default='all',
+                        help='The tabs will be launched, '
+                             'set [all] to use all tools and set [chatbot] to use chatbot only.')
+
     args = parser.parse_args()
     if not os.path.exists(args.config):
         print(
@@ -88,7 +95,7 @@ if __name__ == '__main__':
         if not FS.exists(info['CONFIG']):
             raise f"{info['CONFIG']} doesn't exist."
         interface = None
-        if ifid == 'home':
+        if ifid == 'home' and args.tab in ["all", ifid]:
             from scepter.studio.home.home import HomeUI
 
             interface = HomeUI(info['CONFIG'],
@@ -96,7 +103,7 @@ if __name__ == '__main__':
                                language=args.language,
                                root_work_dir=config.WORK_DIR)
             print('init home page success!')
-        if ifid == 'preprocess':
+        if ifid == 'preprocess' and args.tab in ["all", ifid]:
             from scepter.studio.preprocess.preprocess import PreprocessUI
 
             interface = PreprocessUI(info['CONFIG'],
@@ -104,7 +111,7 @@ if __name__ == '__main__':
                                      language=args.language,
                                      root_work_dir=config.WORK_DIR)
             print('init preprocess success!')
-        if ifid == 'self_train':
+        if ifid == 'self_train'  and args.tab in ["all", ifid]:
             from scepter.studio.self_train.self_train import SelfTrainUI
 
             interface = SelfTrainUI(info['CONFIG'],
@@ -112,14 +119,14 @@ if __name__ == '__main__':
                                     language=args.language,
                                     root_work_dir=config.WORK_DIR)
             print('init self-train success!')
-        if ifid == 'tuner_manager':
+        if ifid == 'tuner_manager'  and args.tab in ["all", ifid]:
             from scepter.studio.tuner_manager.tuner_manager import TunerManagerUI
             interface = TunerManagerUI(info['CONFIG'],
                                        is_debug=args.debug,
                                        language=args.language,
                                        root_work_dir=config.WORK_DIR)
             print('init tuner-manager success!')
-        if ifid == 'inference':
+        if ifid == 'inference'  and args.tab in ["all", ifid]:
             from scepter.studio.inference.inference import InferenceUI
 
             interface = InferenceUI(info['CONFIG'],
@@ -127,7 +134,7 @@ if __name__ == '__main__':
                                     language=args.language,
                                     root_work_dir=config.WORK_DIR)
             print('init inference success!')
-        if ifid == 'ChatBot':
+        if ifid == 'chatbot' and args.tab in ["all", ifid]:
             from scepter.studio.chatbot.chatbot import ChatBotUI
 
             interface = ChatBotUI(info['CONFIG'],
@@ -177,10 +184,13 @@ if __name__ == '__main__':
         if len(auth_info) > 0:
             demo.load(init_value, outputs=[tab_manager.user_name])
 
+    allowed_paths = [config['WORK_DIR']]
+    allowed_paths.extend(list(set([fs_cfg['TEMP_DIR'] for fs_cfg in config['FILE_SYSTEM']])) if 'FILE_SYSTEM' in config else [])
     demo.queue(status_update_rate=1).launch(
         server_name=args.host if args.host else config['HOST'],
         server_port=int(args.port) if args.port else config['PORT'],
         root_path=config['ROOT'],
         show_error=True,
         debug=True,
-        auth=check_auth if len(auth_info) > 0 else None)
+        auth=check_auth if len(auth_info) > 0 else None,
+        allowed_paths=allowed_paths)

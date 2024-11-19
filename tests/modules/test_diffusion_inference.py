@@ -4,6 +4,7 @@
 import os
 import unittest
 
+import imageio
 import numpy as np
 import torchvision.transforms as TT
 import torchvision.transforms.functional as TF
@@ -13,13 +14,15 @@ from torchvision.utils import save_image
 from scepter.modules.annotator.registry import ANNOTATORS
 from scepter.modules.inference.ace_inference import ACEInference
 from scepter.modules.inference.diffusion_inference import DiffusionInference
-from scepter.modules.inference.flux_inference import FluxInference
 from scepter.modules.inference.sd3_inference import SD3Inference
+from scepter.modules.inference.flux_inference import FluxInference
 from scepter.modules.inference.stylebooth_inference import StyleboothInference
+from scepter.modules.inference.cogvideox_inference import CogVideoXInference
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger
+from torchvision.utils import save_image
 
 
 class DiffusionInferenceTest(unittest.TestCase):
@@ -235,10 +238,12 @@ class DiffusionInferenceTest(unittest.TestCase):
         cfg = Config(cfg_file=config_file)
         diff_infer = SD3Inference(logger=self.logger)
         diff_infer.init_from_cfg(cfg)
-        output = diff_infer({
-            'prompt': 'a cat holds a blackboard that writes "hello world"',
+        input_params = {
             'seed': 2024
-        })
+        }
+        output = diff_infer({
+            'prompt': 'a cat holds a blackboard that writes "hello world"'
+        }, **input_params)
         save_path = os.path.join(self.tmp_dir, 'sd3_cat.png')
         save_image(output['images'], save_path)
         print(save_path)
@@ -249,12 +254,17 @@ class DiffusionInferenceTest(unittest.TestCase):
         cfg = Config(cfg_file=config_file)
         diff_infer = FluxInference(logger=self.logger)
         diff_infer.init_from_cfg(cfg)
-        output = diff_infer({'prompt': '1 girl', 'seed': 2024})
+        input_params = {
+            'seed': 2024
+        }
+        output = diff_infer({
+            'prompt': '1 girl'
+        }, **input_params)
         save_path = os.path.join(self.tmp_dir, 'flux_dev_1girl.png')
         save_image(output['images'], save_path)
         print(save_path)
 
-    # @unittest.skip('')
+    @unittest.skip('')
     def test_ace(self):
         config_file = 'scepter/methods/studio/chatbot/models/ace_0.6b_512.yaml'
         cfg = Config(cfg_file=config_file)
@@ -263,6 +273,27 @@ class DiffusionInferenceTest(unittest.TestCase):
         output = diff_infer(prompt='1 girl', seed=2024)
         save_path = os.path.join(self.tmp_dir, 'ace_1girl.png')
         output[0].save(save_path, format='PNG')
+        print(save_path)
+
+
+    # @unittest.skip('')
+    def test_cogvideox_2b(self):
+        config_file = 'scepter/methods/studio/inference/dit/cogvideox_2b_pro.yaml'
+        cfg = Config(cfg_file=config_file)
+        diff_infer = CogVideoXInference(logger=self.logger)
+        diff_infer.init_from_cfg(cfg)
+        input_params = {
+            'seed': 42
+        }
+        output = diff_infer({
+            'prompt': 'A girl riding a bike.'
+        }, **input_params)
+        frames = (output['videos'][0].permute(1, 2, 3, 0).cpu().numpy() * 255).astype(np.uint8)
+        save_path = os.path.join(self.tmp_dir, 'cogvideox_2b_girlbike.mp4')
+        writer = imageio.get_writer(save_path, fps=8)
+        for frame in frames:
+            writer.append_data(np.array(frame))
+        writer.close()
         print(save_path)
 
 

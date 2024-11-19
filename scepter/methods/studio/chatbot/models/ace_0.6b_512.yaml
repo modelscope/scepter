@@ -39,7 +39,7 @@ DEFAULT_PARAS:
     #
     COND_STAGE_MODEL:
       FUNCTION:
-        - NAME: encode_list
+        - NAME: encode_list_of_list
           DTYPE: bfloat16
           INPUT: ["PROMPT"]
 #

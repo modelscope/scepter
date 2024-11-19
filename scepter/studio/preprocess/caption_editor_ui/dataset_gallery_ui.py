@@ -5,6 +5,7 @@ from __future__ import annotations
 import os.path
 import time
 
+import cv2
 import gradio as gr
 import imagehash
 # from gradio.processing_utils import encode_pil_to_base64
@@ -34,7 +35,14 @@ class DatasetGalleryUI(UIBase):
         self.processors_manager = ProcessorsManager(cfg.PROCESSORS,
                                                     language=language)
 
+        self.video_processors_manager = ProcessorsManager(cfg.VIDEO_PROCESSORS,
+                                                          language=language)
+
+        self.trans_processors_manager = ProcessorsManager(cfg.TRANSLATION_PROCESSORS,
+                                                          language=language)
+
         self.component_names = DatasetGalleryUIName(language)
+        self.translation_name = self.component_names.preprocess_choices[2]
         if create_ins is not None:
             self.default_dataset = create_ins.default_dataset
             current_info = self.default_dataset.current_record
@@ -236,10 +244,15 @@ class DatasetGalleryUI(UIBase):
                         with gr.Column(scale=1, min_width=0):
                             self.btn_reset_edit = gr.Button(
                                 value=self.component_names.btn_reset_edit)
-                    with gr.Row():
+                    with gr.Row() as self.mode_select_edit:
                         self.preprocess_checkbox = gr.CheckboxGroup(
                             show_label=False,
                             choices=self.component_names.preprocess_choices,
+                            value=None)
+                    with gr.Row(visible=False) as self.mode_select_video:
+                        self.upload_preprocess_video = gr.CheckboxGroup(
+                            show_label=False,
+                            choices=self.component_names.preprocess_choices_video,
                             value=None)
             with gr.Column(variant='panel',
                            visible=False,
@@ -269,7 +282,8 @@ class DatasetGalleryUI(UIBase):
                                 type='pil',
                                 height=240,
                                 interactive=False)
-                with gr.Row():
+                # upload image
+                with gr.Row() as self.upload_image_row:
                     with gr.Column(scale=1):
                         self.upload_image = gr.Image(
                             label=self.component_names.upload_image,
@@ -282,6 +296,23 @@ class DatasetGalleryUI(UIBase):
                             placeholder='',
                             value='',
                             lines=8)
+                # upload video
+                with gr.Row():
+                    with gr.Row(variant='panel',
+                                visible=self.default_dataset_type ==
+                                        'scepter_img2video') as self.upload_src_video:
+                        with gr.Column(scale=1):
+                            self.upload_video = gr.Video(
+                                label=self.component_names.upload_video,
+                                sources=['upload']
+                            )
+                        with gr.Column(scale=1):
+                            self.upload_caption = gr.Textbox(
+                                label=self.component_names.video_caption,
+                                autoscroll=True,
+                                placeholder='',
+                                value='',
+                                lines=8)
                 with gr.Row():
                     with gr.Column(min_width=0):
                         self.upload_button = gr.Button(
@@ -289,7 +320,8 @@ class DatasetGalleryUI(UIBase):
                     with gr.Column(min_width=0):
                         self.cancel_button = gr.Button(
                             value=self.component_names.cancel_upload_btn)
-                with gr.Row():
+                # mode_select
+                with gr.Row() as self.mode_select_add:
                     self.upload_preprocess_checkbox = gr.CheckboxGroup(
                         show_label=False,
                         choices=self.component_names.preprocess_choices,
@@ -321,7 +353,7 @@ class DatasetGalleryUI(UIBase):
                             interactive=True)
                         self.preview_src_mask_image_tool = gr.State(
                             value='sketch')
-                    with gr.Column(scale=1):
+                    with gr.Column(scale=1) as self.preview_target_image_panel:
                         self.preview_taget_image = gr.ImageMask(
                             label=self.component_names.preview_target_image,
                             sources=[],
@@ -331,6 +363,12 @@ class DatasetGalleryUI(UIBase):
                             interactive=True)
                         self.preview_taget_image_tool = gr.State(
                             value='sketch')
+                    with gr.Column(scale=1, visible=False) as self.preview_target_video_panel:
+                        self.preview_target_video = gr.Video(
+                            label=self.component_names.preview_target_video,
+                            sources=['upload'],
+                            interactive=True)
+                        self.preview_target_video_tool = gr.State(value='sketch')
                     with gr.Column(scale=1):
                         self.preview_caption = gr.Textbox(
                             label=self.component_names.preview_caption,
@@ -431,7 +469,7 @@ class DatasetGalleryUI(UIBase):
                                     'caption')
                                 default_processor_ins = self.processors_manager.get_processor(
                                     'caption', default_processor_method)
-                                with gr.Column(scale=1, min_width=0):
+                                with gr.Column(scale=1, min_width=0) as self.caption_language_panel:
                                     self.caption_language = gr.Dropdown(
                                         label=self.component_names.
                                         caption_language,
@@ -450,7 +488,7 @@ class DatasetGalleryUI(UIBase):
                                         if len(self.component_names.
                                                caption_update_choices) > 0 else
                                         None)
-                            with gr.Row():
+                            with gr.Row() as self.default_use_local_panel:
                                 default_use_local = default_processor_ins.get_para_by_language(
                                     default_processor_ins.get_language_default
                                 ).get('USE_LOCAL', False)
@@ -461,7 +499,7 @@ class DatasetGalleryUI(UIBase):
                                     interactive=True)
                             with gr.Accordion(
                                     label=self.component_names.advance_setting,
-                                    open=False):
+                                    open=False) as self.advance_setting_panel:
                                 with gr.Row():
                                     self.sys_prompt = gr.Text(
                                         label=self.component_names.
@@ -933,11 +971,28 @@ class DatasetGalleryUI(UIBase):
                                  queue=False)
 
         def view_mode():
-            return gr.Text(value='view')
+            return (gr.Text(value='view'),
+                    gr.Column(visible=False),
+                    gr.Column(visible=True),
+                    gr.Dropdown(choices=self.processors_manager.
+                                get_choices('caption'),
+                                value=self.processors_manager.
+                                get_default('caption')),
+                    gr.Column(visible=True),
+                    gr.Row(visible=True),
+                    gr.Accordion(visible=True),
+                    gr.CheckboxGroup(value=None))
 
         self.btn_cancel_edit.click(view_mode,
                                    inputs=[],
-                                   outputs=[self.mode_state],
+                                   outputs=[self.mode_state,
+                                            self.preview_target_video_panel,
+                                            self.preview_target_image_panel,
+                                            self.caption_preprocess_method,
+                                            self.caption_language_panel,
+                                            self.default_use_local_panel,
+                                            self.advance_setting_panel,
+                                            self.upload_preprocess_video],
                                    queue=False)
 
         # reset edit information to clean the status of editing
@@ -1056,12 +1111,31 @@ class DatasetGalleryUI(UIBase):
                 return (gr.Gallery(), gr.Gallery(), gr.Image(), gr.Textbox(),
                         gr.Text(), gr.Text(), gr.Text(),
                         self.component_names.system_log.format('None'),
-                        gr.Text())
+                        gr.Text(), gr.Column(visible=False),
+                        gr.Column(visible=True),
+                        gr.Dropdown(choices=self.processors_manager.
+                                    get_choices('caption'),
+                                    value=self.processors_manager.
+                                    get_default('caption')),
+                        gr.Column(visible=True),
+                        gr.Row(visible=True),
+                        gr.Accordion(visible=True),
+                        gr.CheckboxGroup())
             is_flg, msg = dataset_ins.apply_changes()
             if not is_flg:
                 return (gr.Gallery(), gr.Gallery(), gr.Image(), gr.Textbox(),
                         gr.Text(), gr.Text(), gr.Text(),
-                        self.component_names.system_log.format(msg), gr.Text())
+                        self.component_names.system_log.format(msg), gr.Text(),
+                        gr.Column(visible=False),
+                        gr.Column(visible=True),
+                        gr.Dropdown(choices=self.processors_manager.
+                                    get_choices('caption'),
+                                    value=self.processors_manager.
+                                    get_default('caption')),
+                        gr.Column(visible=True),
+                        gr.Row(visible=True),
+                        gr.Accordion(visible=True),
+                        gr.Checkboxgroup())
             image_list = [
                 os.path.join(dataset_ins.local_work_dir, v['relative_path'])
                 for v in dataset_ins.data
@@ -1102,7 +1176,16 @@ class DatasetGalleryUI(UIBase):
                     ret_src_image_gl, ret_mask,
                     gr.Textbox(value=current_record.get('caption', '')),
                     image_info, self.component_names.system_log.format(''),
-                    gr.Text(value='view'))
+                    gr.Text(value='view'), gr.Column(visible=False),
+                    gr.Column(visible=True),
+                    gr.Dropdown(choices=self.processors_manager.
+                                get_choices('caption'),
+                                value=self.processors_manager.
+                                get_default('caption')),
+                    gr.Column(visible=True),
+                    gr.Row(visible=True),
+                    gr.Accordion(visible=True),
+                    gr.CheckboxGroup(value=None))
 
         self.btn_confirm_edit.click(
             confirm_edit,
@@ -1110,15 +1193,19 @@ class DatasetGalleryUI(UIBase):
             outputs=[
                 self.gl_dataset_images, self.src_gl_dataset_images,
                 self.src_mask, self.ori_caption, self.image_info, self.sys_log,
-                self.mode_state
+                self.mode_state, self.preview_target_video_panel,
+                self.preview_target_image_panel,
+                self.caption_preprocess_method,
+                self.caption_language_panel,
+                self.default_use_local_panel,
+                self.advance_setting_panel,
+                self.upload_preprocess_video
             ],
             queue=False)
 
         def preprocess_box_change(preprocess_checkbox, dataset_name,
-                                  dataset_type, preview_src_image_tool,
-                                  preview_src_mask_image_tool,
-                                  preview_taget_image_tool):
-            image_proc_status, caption_proc_status = False, False
+                                  dataset_type):
+            image_proc_status, caption_proc_status, translation_proc_status = False, False, False
             reverse_status = {
                 v: id
                 for id, v in enumerate(self.component_names.preprocess_choices)
@@ -1129,7 +1216,9 @@ class DatasetGalleryUI(UIBase):
                     image_proc_status = True
                 elif hit_status == 1:
                     caption_proc_status = True
-            if image_proc_status or caption_proc_status:
+                elif hit_status == 2:
+                    translation_proc_status = True
+            if image_proc_status or caption_proc_status or translation_proc_status:
                 dataset_type = create_dataset.get_trans_dataset_type(
                     dataset_type)
                 dataset_ins = create_dataset.dataset_dict.get(
@@ -1143,27 +1232,11 @@ class DatasetGalleryUI(UIBase):
                     src_image_path = os.path.join(
                         dataset_ins.local_work_dir,
                         one_data['edit_src_relative_path'])
-                    # if preview_src_image_tool == 'sketch':
-                    #     image = Image.open(src_image_path)
-                    #     w, h = image.size
-                    #     ret_src_image = gr.Image(value={
-                    #         'image': encode_pil_to_base64(image),
-                    #         'mask': default_mask(w, h)
-                    #     }, visible=True)
-                    # else:
                     ret_src_image = gr.Image(value=src_image_path,
                                              visible=True)
                     src_mask_path = os.path.join(
                         dataset_ins.local_work_dir,
                         one_data['edit_src_mask_relative_path'])
-                    # if preview_src_mask_image_tool == 'sketch':
-                    #     image = Image.open(src_mask_path)
-                    #     w, h = image.size
-                    #     ret_src_mask = gr.Image(value={
-                    #         'image': encode_pil_to_base64(image),
-                    #         'mask': default_mask(w, h)
-                    #     }, visible=True)
-                    # else:
                     ret_src_mask = gr.Image(value=src_mask_path, visible=True)
                     ret_src_panel = gr.Column(visible=True)
                     ret_src_mask_panel = gr.Column(visible=True)
@@ -1174,17 +1247,34 @@ class DatasetGalleryUI(UIBase):
                     ret_src_mask_panel = gr.Column(visible=False)
                 image_path = os.path.join(dataset_ins.local_work_dir,
                                           one_data['edit_relative_path'])
-                # if preview_taget_image_tool == 'sketch':
-                #     image = Image.open(image_path)
-                #     w, h = image.size
-                #     ret_target_image = gr.Image(value={
-                #         'image': encode_pil_to_base64(image),
-                #         'mask': default_mask(w, h)
-                #     })
-                # else:
                 ret_target_image = gr.Image(value=image_path)
                 ret_caption = gr.Textbox(value=one_data['edit_caption'])
                 ret_panel = gr.Row(visible=True)
+
+                if translation_proc_status and not caption_proc_status:
+                    ret_preprocess_method = gr.Dropdown(choices=self.trans_processors_manager.
+                                                        get_choices('caption'),
+                                                        value=self.trans_processors_manager.get_default
+                                                        ('caption'))
+                    ret_use_device = gr.Text(value=self.trans_processors_manager.
+                                             get_default_device('caption'))
+                    ret_use_memory = gr.Text(value=self.trans_processors_manager.
+                                             get_default_memory('caption'))
+                    ret_caption_language = gr.Column(visible=False)
+                    ret_use_local = gr.Row(visible=False)
+                    ret_advance_setting = gr.Accordion(visible=False)
+                else:
+                    ret_caption_language = gr.Column(visible=True)
+                    ret_preprocess_method = gr.Dropdown(choices=self.processors_manager.
+                                                        get_choices('caption'),
+                                                        value=self.processors_manager.get_default
+                                                        ('caption'))
+                    ret_use_device = gr.Text(value=self.processors_manager.
+                                             get_default_device('caption'))
+                    ret_use_memory = gr.Text(value=self.processors_manager.
+                                             get_default_memory('caption'))
+                    ret_use_local = gr.Row(visible=True)
+                    ret_advance_setting = gr.Accordion(visible=True)
             else:
                 ret_src_image = gr.Image()
                 ret_src_mask = gr.Image()
@@ -1193,22 +1283,29 @@ class DatasetGalleryUI(UIBase):
                 ret_panel = gr.Row(visible=False)
                 ret_src_panel = gr.Column(visible=False)
                 ret_src_mask_panel = gr.Column(visible=False)
+                ret_caption_language = gr.Column()
+                ret_preprocess_method = gr.Dropdown()
+                ret_use_device = gr.Text()
+                ret_use_memory = gr.Text()
+                ret_use_local = gr.Row()
+                ret_advance_setting = gr.Accordion()
             ret_image_preprocess_method = gr.Dropdown(
                 visible=image_proc_status)
             return (gr.Column(
-                visible=image_proc_status or caption_proc_status),
+                    visible=image_proc_status or caption_proc_status or translation_proc_status),
                     gr.Row(visible=image_proc_status),
-                    gr.Row(visible=caption_proc_status), ret_panel,
+                    gr.Row(visible=caption_proc_status or translation_proc_status), ret_panel,
                     ret_src_image, ret_src_panel, ret_src_mask,
                     ret_src_mask_panel, ret_target_image, ret_caption,
+                    ret_caption_language, ret_preprocess_method,
+                    ret_use_device, ret_use_memory, ret_use_local, ret_advance_setting,
                     ret_image_preprocess_method)
 
         self.preprocess_checkbox.change(
             preprocess_box_change,
             inputs=[
                 self.preprocess_checkbox, create_dataset.dataset_name,
-                create_dataset.dataset_type, self.preview_src_image_tool,
-                self.preview_src_mask_image_tool, self.preview_taget_image_tool
+                create_dataset.dataset_type
             ],
             outputs=[
                 self.preprocess_panel,
@@ -1228,6 +1325,15 @@ class DatasetGalleryUI(UIBase):
                 self.preview_taget_image,
                 # gr.TextBox()
                 self.preview_caption,
+                # gr.Column()
+                self.caption_language_panel,
+                self.caption_preprocess_method,
+                self.caption_use_device,
+                self.caption_use_memory,
+                # gr.Row()
+                self.default_use_local_panel,
+                # gr.Accordion()
+                self.advance_setting_panel,
                 self.image_preprocess_method
             ],
             queue=False)
@@ -1236,8 +1342,7 @@ class DatasetGalleryUI(UIBase):
             preprocess_box_change,
             inputs=[
                 self.preprocess_checkbox, create_dataset.dataset_name,
-                create_dataset.dataset_type, self.preview_src_image_tool,
-                self.preview_src_mask_image_tool, self.preview_taget_image_tool
+                create_dataset.dataset_type
             ],
             outputs=[
                 self.preprocess_panel,
@@ -1257,8 +1362,141 @@ class DatasetGalleryUI(UIBase):
                 self.preview_taget_image,
                 # gr.TextBox()
                 self.preview_caption,
+                # gr.Column()
+                self.caption_language_panel,
+                self.caption_preprocess_method,
+                self.caption_use_device,
+                self.caption_use_memory,
+                # gr.Row()
+                self.default_use_local_panel,
+                # gr.Accordion()
+                self.advance_setting_panel,
                 self.image_preprocess_method
             ],
+        )
+
+        def preprocess_box_change_video(preprocess_checkbox, dataset_name, dataset_type):
+            translation_proc_status, caption_proc_status = False, False
+            reverse_status = {
+                v: id
+                for id, v in enumerate(self.component_names.preprocess_choices_video)
+            }
+            for value in preprocess_checkbox:
+                hit_status = reverse_status[value]
+                if hit_status == 0:
+                    caption_proc_status = True
+                elif hit_status == 1:
+                    translation_proc_status = True
+            if translation_proc_status or caption_proc_status:
+                dataset_type = create_dataset.get_trans_dataset_type(
+                    dataset_type)
+                dataset_ins = create_dataset.dataset_dict.get(
+                    dataset_type, {}).get(dataset_name, None)
+                edit_index_list = dataset_ins.edit_list
+                if len(edit_index_list) > 0:
+                    one_data = dataset_ins.data[edit_index_list[0]]
+                else:
+                    one_data = {}
+
+                ret_src_image = gr.Image(visible=False)
+                ret_src_mask = gr.Image(visible=False)
+                ret_src_panel = gr.Column(visible=False)
+                ret_src_mask_panel = gr.Column(visible=False)
+
+                video_path = os.path.join(dataset_ins.local_work_dir,
+                                          one_data['relative_path'])
+                ret_target_video = gr.Video(value=video_path)
+                ret_target_video_panel = gr.Column(visible=True)
+                ret_target_image = gr.Column(visible=False)
+                ret_caption_language = gr.Column(visible=False)
+                ret_use_local = gr.Row(visible=False)
+                ret_advance_setting = gr.Accordion(visible=False)
+                ret_caption = gr.Textbox(value=one_data['caption'])
+                ret_panel = gr.Row(visible=True)
+                if translation_proc_status:
+                    ret_preprocess_method = gr.Dropdown(choices=self.trans_processors_manager.
+                                                        get_choices('caption'),
+                                                        value=self.trans_processors_manager.get_default
+                                                        ('caption'))
+                    ret_use_device = gr.Text(value=self.trans_processors_manager.
+                                             get_default_device('caption'))
+                    ret_use_memory = gr.Text(value=self.trans_processors_manager.
+                                             get_default_memory('caption'))
+                elif caption_proc_status:
+                    ret_preprocess_method = gr.Dropdown(choices=self.video_processors_manager.
+                                                        get_choices('caption'),
+                                                        value=self.video_processors_manager.get_default
+                                                        ('caption'))
+                    ret_use_device = gr.Text(value=self.video_processors_manager.
+                                             get_default_device('caption'))
+                    ret_use_memory = gr.Text(value=self.video_processors_manager.
+                                             get_default_memory('caption'))
+            else:
+                ret_src_image = gr.Image()
+                ret_src_mask = gr.Image()
+                ret_target_video = gr.Video()
+                ret_target_video_panel = gr.Column()
+                ret_target_image = gr.Column()
+                ret_caption = gr.Textbox()
+                ret_panel = gr.Row(visible=False)
+                ret_caption_language = gr.Column()
+                ret_use_local = gr.Row()
+                ret_advance_setting = gr.Accordion()
+                ret_src_panel = gr.Column(visible=False)
+                ret_preprocess_method = gr.Dropdown()
+                ret_src_mask_panel = gr.Column(visible=False)
+                ret_use_device = gr.Text()
+                ret_use_memory = gr.Text()
+
+            ret_image_preprocess_method = gr.Dropdown(
+                visible=caption_proc_status)
+            return (gr.Column(
+                    visible=caption_proc_status or translation_proc_status),
+                    gr.Row(visible=False),
+                    gr.Row(visible=caption_proc_status or translation_proc_status),
+                    ret_panel, ret_src_image, ret_src_panel, ret_src_mask,
+                    ret_src_mask_panel, ret_target_video, ret_target_video_panel,
+                    ret_target_image, ret_caption, ret_caption_language,
+                    ret_use_local, ret_advance_setting, ret_preprocess_method,
+                    ret_use_device, ret_use_memory, ret_image_preprocess_method)
+
+        self.upload_preprocess_video.change(
+            preprocess_box_change_video,
+            inputs=[self.upload_preprocess_video,
+                    create_dataset.dataset_name,
+                    create_dataset.dataset_type],
+            outputs=[self.preprocess_panel,
+                     self.image_preprocess_panel,
+                     self.caption_preprocess_panel,
+                     # gr.Row()
+                     self.preview_panel,
+                     # gr.Image()
+                     self.preview_src_image,
+                     # gr.Column()
+                     self.preview_src_panel,
+                     # gr.Image()
+                     self.preview_src_mask_image,
+                     # gr.Column()
+                     self.preview_src_mask_panel,
+                     # gr.Video()
+                     self.preview_target_video,
+                     # gr.Column()
+                     self.preview_target_video_panel,
+                     # gr.Column()
+                     self.preview_target_image_panel,
+                     # gr.TextBox()
+                     self.preview_caption,
+                     # gr.Column()
+                     self.caption_language_panel,
+                     # gr.Row()
+                     self.default_use_local_panel,
+                     # gr.Accordion()
+                     self.advance_setting_panel,
+                     self.caption_preprocess_method,
+                     self.caption_use_device,
+                     self.caption_use_memory,
+                     self.image_preprocess_method
+            ]
         )
 
         def upload_preprocess_box_change(preprocess_checkbox, dataset_type,
@@ -1749,24 +1987,28 @@ class DatasetGalleryUI(UIBase):
             ],
             queue=False)
 
-        def caption_preprocess_method_change(caption_preprocess_method):
-            processor_ins = self.processors_manager.get_processor(
-                'caption', caption_preprocess_method)
+        def caption_preprocess_method_change(caption_preprocess_method, dataset_type):
+            dataset_type = create_dataset.get_trans_dataset_type(dataset_type)
+            if dataset_type == 'scepter_txt2vid':
+                processor_ins = self.video_processors_manager.get_processor(
+                    'caption', caption_preprocess_method)
+            else:
+                processor_ins = self.processors_manager.get_processor(
+                    'caption', caption_preprocess_method)
             if processor_ins is None:
-                return (gr.Text(), gr.Text(), gr.Dropdown(),
-                        self.component_names.system_log.format(
-                            'Load processor failed, processor is None.'))
+                return (gr.Text(),
+                        gr.Text(),
+                        gr.Dropdown())
             language_choice = processor_ins.get_language_choice
             language_default = processor_ins.get_language_default
             return (gr.Text(value=processor_ins.use_device),
                     gr.Text(value=f'{processor_ins.use_memory}M'),
                     gr.Dropdown(choices=language_choice,
-                                value=language_default),
-                    self.component_names.system_log.format(''))
+                                value=language_default))
 
         self.caption_preprocess_method.change(
             caption_preprocess_method_change,
-            inputs=[self.caption_preprocess_method],
+            inputs=[self.caption_preprocess_method, create_dataset.dataset_type],
             outputs=[
                 self.caption_use_device, self.caption_use_memory,
                 self.caption_language
@@ -1774,9 +2016,15 @@ class DatasetGalleryUI(UIBase):
             queue=False)
 
         def caption_language_change(caption_language,
-                                    caption_preprocess_method):
-            processor_ins = self.processors_manager.get_processor(
-                'caption', caption_preprocess_method)
+                                    caption_preprocess_method,
+                                    dataset_type):
+            dataset_type = create_dataset.get_trans_dataset_type(dataset_type)
+            if dataset_type == 'scepter_txt2vid':
+                processor_ins = self.video_processors_manager.get_processor(
+                    'caption', caption_preprocess_method)
+            else:
+                processor_ins = self.processors_manager.get_processor(
+                    'caption', caption_preprocess_method)
             para = processor_ins.get_para_by_language(caption_language)
             system_prompt = para.get('PROMPT', '')
             ret_system_prompt = gr.Text(value=system_prompt,
@@ -1824,7 +2072,7 @@ class DatasetGalleryUI(UIBase):
 
         self.caption_language.change(
             caption_language_change,
-            inputs=[self.caption_language, self.caption_preprocess_method],
+            inputs=[self.caption_language, self.caption_preprocess_method, create_dataset.dataset_type],
             outputs=[
                 self.sys_prompt, self.max_new_tokens, self.min_new_tokens,
                 self.num_beams, self.repetition_penalty, self.temperature
@@ -1836,18 +2084,25 @@ class DatasetGalleryUI(UIBase):
                                repetition_penalty, temperature, use_local,
                                caption_update_mode, upload_image,
                                upload_src_image, upload_src_mask,
-                               upload_caption, dataset_type, dataset_name):
-
+                               upload_caption, dataset_type, dataset_name,
+                               preprocess_name, preprocess_name_txt2vid):
             reverse_update_mode = {
                 v: idx
                 for idx, v in enumerate(
                     self.component_names.caption_update_choices)
             }
-
+            dataset_type = create_dataset.get_trans_dataset_type(dataset_type)
+            trans_status = get_trans_status(dataset_type, preprocess_name, preprocess_name_txt2vid)
             update_mode = reverse_update_mode.get(caption_update_mode, -1)
-
-            processor_ins = self.processors_manager.get_processor(
-                'caption', preprocess_method)
+            if dataset_type == 'scepter_txt2vid' and not trans_status:
+                processor_ins = self.video_processors_manager.get_processor(
+                    'caption', preprocess_method)
+            elif trans_status:
+                processor_ins = self.trans_processors_manager.get_processor(
+                    'caption', preprocess_method)
+            else:
+                processor_ins = self.processors_manager.get_processor(
+                    'caption', preprocess_method)
             if processor_ins is None:
                 sys_log = 'Current processor is illegal'
                 return gr.Textbox(), gr.Textbox(
@@ -1858,58 +2113,70 @@ class DatasetGalleryUI(UIBase):
                 sys_log = f'Load processor failed: {msg}'
                 return gr.Textbox(), gr.Textbox(
                 ), self.component_names.system_log.format(sys_log)
-            dataset_type = create_dataset.get_trans_dataset_type(dataset_type)
             dataset_ins = create_dataset.dataset_dict.get(
                 dataset_type, {}).get(dataset_name, None)
             if dataset_ins is None:
                 return gr.Textbox(), gr.Textbox(
                 ), self.component_names.system_log.format('None')
+
             if mode_state == 'edit':
                 edit_index_list = dataset_ins.edit_list
                 for index in edit_index_list:
                     one_data = dataset_ins.data[index]
-                    relative_image_path = one_data.get(
-                        'edit_relative_path', one_data['relative_path'])
-                    target_image = Image.open(
-                        os.path.join(dataset_ins.meta['local_work_dir'],
-                                     relative_image_path))
-
-                    if dataset_type == 'scepter_img2img':
+                    if (dataset_type == 'scepter_txt2vid' and
+                            not trans_status):
+                        video_path = one_data.get('video_path', None)
+                        kwargs = {
+                            'video_path': video_path
+                        }
+                    elif trans_status:
+                        caption = one_data.get('caption', None)
+                        kwargs = {
+                            'caption': caption
+                        }
+                    else:
                         relative_image_path = one_data.get(
-                            'edit_relative_path',
-                            one_data['src_relative_path'])
-                        src_image = Image.open(
+                            'edit_relative_path', one_data['relative_path'])
+                        target_image = Image.open(
                             os.path.join(dataset_ins.meta['local_work_dir'],
                                          relative_image_path))
-                        relative_src_mask_path = one_data.get(
-                            'edit_relative_path',
-                            one_data['src_mask_relative_path'])
-                        src_mask_image = Image.open(
-                            os.path.join(dataset_ins.meta['local_work_dir'],
-                                         relative_src_mask_path))
-                    else:
-                        src_image = None
-                        src_mask_image = None
 
-                    kwargs = {
-                        'src_image': src_image,
-                        'src_mask': src_mask_image,
-                        'target_image': target_image,
-                        'caption': one_data.get('edit_caption', ''),
-                        'preview_src_image': None,
-                        'preview_src_mask': None,
-                        'preview_target_image': None,
-                        'preview_caption': None,
-                        'use_preview': False,
-                        'use_local': use_local,
-                        'sys_prompt': sys_prompt,
-                        'max_new_tokens': max_new_tokens,
-                        'min_new_tokens': min_new_tokens,
-                        'num_beams': num_beams,
-                        'repetition_penalty': repetition_penalty,
-                        'temperature': temperature,
-                        'cache': self.cache
-                    }
+                        if dataset_type == 'scepter_img2img':
+                            relative_image_path = one_data.get(
+                                'edit_relative_path',
+                                one_data['src_relative_path'])
+                            src_image = Image.open(
+                                os.path.join(dataset_ins.meta['local_work_dir'],
+                                             relative_image_path))
+                            relative_src_mask_path = one_data.get(
+                                'edit_relative_path',
+                                one_data['src_mask_relative_path'])
+                            src_mask_image = Image.open(
+                                os.path.join(dataset_ins.meta['local_work_dir'],
+                                             relative_src_mask_path))
+                        else:
+                            src_image = None
+                            src_mask_image = None
+
+                        kwargs = {
+                            'src_image': src_image,
+                            'src_mask': src_mask_image,
+                            'target_image': target_image,
+                            'caption': one_data.get('edit_caption', ''),
+                            'preview_src_image': None,
+                            'preview_src_mask': None,
+                            'preview_target_image': None,
+                            'preview_caption': None,
+                            'use_preview': False,
+                            'use_local': use_local,
+                            'sys_prompt': sys_prompt,
+                            'max_new_tokens': max_new_tokens,
+                            'min_new_tokens': min_new_tokens,
+                            'num_beams': num_beams,
+                            'repetition_penalty': repetition_penalty,
+                            'temperature': temperature,
+                            'cache': self.cache
+                        }
                     response = processor_ins(**kwargs)
 
                     if update_mode == 0:
@@ -1999,7 +2266,8 @@ class DatasetGalleryUI(UIBase):
                 self.use_local, self.caption_update_mode, self.upload_image,
                 self.upload_src_image, self.upload_src_mask,
                 self.upload_caption, create_dataset.dataset_type,
-                create_dataset.dataset_name
+                create_dataset.dataset_name, self.preprocess_checkbox,
+                self.upload_preprocess_video
             ],
             outputs=[self.edit_caption, self.upload_caption, self.sys_log],
             queue=False)
@@ -2070,7 +2338,8 @@ class DatasetGalleryUI(UIBase):
                 preprocess_method, dataset_type, sys_prompt, max_new_tokens,
                 min_new_tokens, num_beams, repetition_penalty, temperature,
                 use_local, caption_update_mode, preview_src_image,
-                preview_src_mask_image, preview_target_image, preview_caption):
+                preview_src_mask_image, preview_target_image, preview_caption,
+                video_path, preprocess_name, preprocess_name_txt2vid):
             reverse_update_mode = {
                 v: idx
                 for idx, v in enumerate(
@@ -2078,60 +2347,68 @@ class DatasetGalleryUI(UIBase):
             }
 
             update_mode = reverse_update_mode.get(caption_update_mode, -1)
+            dataset_type = create_dataset.get_trans_dataset_type(dataset_type)
+            trans_status = get_trans_status(dataset_type, preprocess_name, preprocess_name_txt2vid)
+            if dataset_type == 'scepter_txt2vid' and not trans_status:
+                processor_ins = self.video_processors_manager.get_processor(
+                    'caption', preprocess_method)
+                kwargs = {
+                    'video_path': video_path
+                }
+            elif trans_status:
+                processor_ins = self.trans_processors_manager.get_processor(
+                    'caption', preprocess_method)
+                kwargs = {
+                    'caption': preview_caption
+                }
+            else:
+                processor_ins = self.processors_manager.get_processor(
+                    'caption', preprocess_method)
+                if isinstance(preview_target_image, dict):
+                    prev_target_image = preview_target_image['background']
+                else:
+                    prev_target_image = preview_target_image
 
-            processor_ins = self.processors_manager.get_processor(
-                'caption', preprocess_method)
-            if processor_ins is None:
-                sys_log = 'Current processor is illegal'
-                return gr.Textbox(), gr.Textbox(
-                ), self.component_names.system_log.format(sys_log)
+                if dataset_type == 'scepter_img2img':
+                    if isinstance(preview_src_image, dict):
+                        prev_src_image = preview_src_image['background']
+                    else:
+                        prev_src_image = preview_src_image
+
+                    if isinstance(preview_src_mask_image, dict):
+                        prev_src_mask = preview_src_mask_image['layers'][0]
+                    else:
+                        prev_src_mask = preview_src_mask_image
+
+                else:
+                    prev_src_image = None
+                    prev_src_mask = None
+
+                kwargs = {
+                    'src_image': None,
+                    'src_mask': None,
+                    'target_image': None,
+                    'caption': None,
+                    'preview_src_image': prev_src_image,
+                    'preview_src_mask': prev_src_mask,
+                    'preview_target_image': prev_target_image,
+                    'preview_caption': preview_caption,
+                    'use_preview': True,
+                    'use_local': use_local,
+                    'sys_prompt': sys_prompt,
+                    'max_new_tokens': max_new_tokens,
+                    'min_new_tokens': min_new_tokens,
+                    'num_beams': num_beams,
+                    'repetition_penalty': repetition_penalty,
+                    'temperature': temperature,
+                    'cache': self.cache
+                }
 
             is_flag, msg = processor_ins.load_model()
             if not is_flag:
                 sys_log = f'Load processor failed: {msg}'
                 return gr.Textbox(), self.component_names.system_log.format(
                     sys_log)
-            dataset_type = create_dataset.get_trans_dataset_type(dataset_type)
-
-            if isinstance(preview_target_image, dict):
-                prev_target_image = preview_target_image['background']
-            else:
-                prev_target_image = preview_target_image
-
-            if dataset_type == 'scepter_img2img':
-                if isinstance(preview_src_image, dict):
-                    prev_src_image = preview_src_image['background']
-                else:
-                    prev_src_image = preview_src_image
-
-                if isinstance(preview_src_mask_image, dict):
-                    prev_src_mask = preview_src_mask_image['layers'][0]
-                else:
-                    prev_src_mask = preview_src_mask_image
-
-            else:
-                prev_src_image = None
-                prev_src_mask = None
-
-            kwargs = {
-                'src_image': None,
-                'src_mask': None,
-                'target_image': None,
-                'caption': None,
-                'preview_src_image': prev_src_image,
-                'preview_src_mask': prev_src_mask,
-                'preview_target_image': prev_target_image,
-                'preview_caption': preview_caption,
-                'use_preview': True,
-                'use_local': use_local,
-                'sys_prompt': sys_prompt,
-                'max_new_tokens': max_new_tokens,
-                'min_new_tokens': min_new_tokens,
-                'num_beams': num_beams,
-                'repetition_penalty': repetition_penalty,
-                'temperature': temperature,
-                'cache': self.cache
-            }
             response = processor_ins(**kwargs)
 
             if update_mode == 0:
@@ -2156,7 +2433,9 @@ class DatasetGalleryUI(UIBase):
                 self.num_beams, self.repetition_penalty, self.temperature,
                 self.use_local, self.caption_update_mode,
                 self.preview_src_image, self.preview_src_mask_image,
-                self.preview_taget_image, self.preview_caption
+                self.preview_taget_image, self.preview_caption,
+                self.preview_target_video, self.preprocess_checkbox,
+                self.upload_preprocess_video
             ],
             outputs=[self.preview_caption, self.sys_log])
 
@@ -2169,9 +2448,10 @@ class DatasetGalleryUI(UIBase):
                 if dataset_ins is None or len(dataset_ins) < 1:
                     return (gr.Gallery(), gr.Gallery(),
                             gr.Image(), gr.Column(), gr.Row(visible=True),
-                            gr.Column(), gr.Column(), gr.Image(), gr.Row(), '',
-                            gr.Markdown(), gr.Textbox(), gr.CheckboxGroup(),
-                            gr.Column(), gr.Row(), gr.Row(), gr.Column(),
+                            gr.Column(), gr.Column(), gr.Image(), gr.Row(),
+                            gr.Row(), '', gr.Markdown(), gr.Textbox(),
+                            gr.CheckboxGroup(), gr.Column(), gr.Row(),
+                            gr.Row(), gr.Column(),
                             gr.Gallery(), gr.Textbox(), gr.Gallery(),
                             gr.Image(), gr.Column(), gr.Dropdown(),
                             gr.Dropdown(value=[]),
@@ -2229,7 +2509,12 @@ class DatasetGalleryUI(UIBase):
                     ret_edit_mask = gr.Image(visible=False)
                 return (gr.Gallery(), gr.Gallery(), gr.Image(), gr.Column(),
                         gr.Row(visible=True), gr.Column(visible=True),
-                        gr.Column(visible=False), gr.Image(), gr.Row(), '',
+                        gr.Column(visible=False), gr.Image(), gr.Row(), gr.Row(),
+                        gr.Row(), gr.Row(),
+                        gr.Row(visible=False) if dataset_type
+                        == 'scepter_txt2vid' else gr.Row(visible=True),
+                        gr.Row(visible=True) if dataset_type
+                        == 'scepter_txt2vid' else gr.Row(visible=False), '',
                         gr.Markdown(visible=False), gr.Textbox(),
                         gr.CheckboxGroup(value=None), gr.Column(visible=False),
                         gr.Row(visible=False), gr.Row(visible=False),
@@ -2246,7 +2531,17 @@ class DatasetGalleryUI(UIBase):
                         gr.Row(visible=False), gr.Column(visible=False),
                         gr.Column(visible=True), gr.Image(),
                         gr.Row(visible=True) if dataset_type
-                        == 'scepter_img2img' else gr.Column(visible=False), '',
+                        == 'scepter_img2img' else gr.Column(visible=False),
+                        gr.Row(visible=True) if dataset_type
+                        == 'scepter_txt2vid' else gr.Column(visible=False),
+                        gr.Row(visible=False) if dataset_type
+                        == 'scepter_txt2vid' else gr.Column(visible=True),
+                        gr.Row(visible=False) if dataset_type
+                        == 'scepter_txt2vid' else gr.Row(visible=True),
+                        gr.Row(visible=False) if dataset_type
+                        == 'scepter_txt2vid' else gr.Row(visible=True),
+                        gr.Row(visible=True) if dataset_type
+                        == 'scepter_txt2vid' else gr.Row(visible=False), '',
                         gr.Markdown(visible=True) if dataset_type
                         == 'scepter_img2img' else gr.Markdown(visible=False),
                         gr.Textbox(value=''), gr.CheckboxGroup(),
@@ -2263,11 +2558,12 @@ class DatasetGalleryUI(UIBase):
                 if dataset_ins is None:
                     return (gr.Gallery(), gr.Gallery(),
                             gr.Image(), gr.Column(), gr.Row(visible=True),
-                            gr.Column(), gr.Column(), gr.Image(), gr.Row(), '',
+                            gr.Column(), gr.Column(), gr.Image(), gr.Row(),
+                            gr.Row(), gr.Row(), gr.Row(), gr.Row(), gr.Row(), '',
                             gr.Markdown(), gr.Textbox(), gr.CheckboxGroup(),
-                            gr.Column(), gr.Row(), gr.Row(), gr.Column(),
-                            gr.Gallery(), gr.Textbox(), gr.Gallery(),
-                            gr.Image(), gr.Column(), gr.Dropdown(),
+                            gr.Column(), gr.Row(),
+                            gr.Row(), gr.Column(), gr.Gallery(), gr.Textbox(),
+                            gr.Gallery(), gr.Image(), gr.Column(), gr.Dropdown(),
                             gr.Dropdown(value=[]),
                             self.component_names.system_log.format(
                                 self.component_names.illegal_blank_dataset))
@@ -2328,7 +2624,8 @@ class DatasetGalleryUI(UIBase):
                 return (ret_gl_gallery, ret_src_gallery, ret_mask,
                         ret_src_panel, gr.Row(visible=False),
                         gr.Column(visible=False), gr.Column(visible=False),
-                        gr.Image(), gr.Row(), '', gr.Markdown(visible=False),
+                        gr.Image(), gr.Row(), gr.Row(), gr.Row(), gr.Row(),
+                        gr.Row(), gr.Row(), '', gr.Markdown(visible=False),
                         gr.Textbox(value=''), gr.CheckboxGroup(value=None),
                         gr.Column(visible=False), gr.Row(visible=False),
                         gr.Row(visible=False), gr.Column(visible=False),
@@ -2362,6 +2659,16 @@ class DatasetGalleryUI(UIBase):
                 self.upload_image,
                 # gr.Row
                 self.upload_src_image_panel,
+                # gr.Row
+                self.upload_src_video,
+                # gr.Row
+                self.upload_image_row,
+                # gr.Row
+                self.mode_select_add,
+                # gr.Row
+                self.mode_select_edit,
+                # gr.Row
+                self.mode_select_video,
                 # gr.Markdown
                 self.upload_image_info,
                 # gr.Markdown
@@ -2698,6 +3005,22 @@ class DatasetGalleryUI(UIBase):
                                  outputs=[self.upload_image_info],
                                  queue=False)
 
+        def video_upload(upload_video):
+            if isinstance(upload_video, dict):
+                video = upload_video['video']
+            else:
+                video = upload_video
+            cap = cv2.VideoCapture(video)
+            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            cap.release()
+            return self.component_names.upload_image_info.format(h, w)
+
+        self.upload_video.upload(video_upload,
+                                 inputs=[self.upload_video],
+                                 outputs=[self.upload_image_info],
+                                 queue=False)
+
         def image_src_upload(upload_image):
             if isinstance(upload_image, dict):
                 image = upload_image['image']
@@ -2744,7 +3067,7 @@ class DatasetGalleryUI(UIBase):
         )
 
         def add_file(dataset_type, dataset_name, upload_image,
-                     upload_src_image, upload_src_mask, caption):
+                     upload_src_image, upload_src_mask, upload_video, caption):
             dataset_type = create_dataset.get_trans_dataset_type(dataset_type)
             dataset_ins = create_dataset.dataset_dict.get(
                 dataset_type, {}).get(dataset_name, None)
@@ -2770,7 +3093,7 @@ class DatasetGalleryUI(UIBase):
             if dataset_type == 'scepter_img2img' and src_image is not None and image is None:
                 w, h = src_image.size
                 image = Image.new('RGB', (w, h), (0, 0, 0))
-            if image is None:
+            if image is None and dataset_type != 'scepter_txt2vid':
                 return (gr.Image(value=None), gr.Image(value=None),
                         gr.Image(value=None), gr.Text(value=''), '', '',
                         gr.Text(value='view'))
@@ -2783,10 +3106,15 @@ class DatasetGalleryUI(UIBase):
                 return (gr.Image(value=None), gr.Image(value=None),
                         gr.Image(value=None), gr.Text(value=''), '', '',
                         gr.Text(value='view'))
-            dataset_ins.add_record(image,
-                                   caption,
-                                   src_image=src_image,
-                                   src_mask=src_mask)
+
+            if dataset_type == 'scepter_txt2vid':
+                dataset_ins.add_record(upload_video,
+                                       caption)
+            else:
+                dataset_ins.add_record(image,
+                                       caption,
+                                       src_image=src_image,
+                                       src_mask=src_mask)
             return (gr.Image(value=None), gr.Image(value=None),
                     gr.Image(value=None), gr.Text(value=''), '', '',
                     gr.Text(value='view'))
@@ -2796,7 +3124,8 @@ class DatasetGalleryUI(UIBase):
                                      create_dataset.dataset_type,
                                      create_dataset.dataset_name,
                                      self.upload_image, self.upload_src_image,
-                                     self.upload_src_mask, self.upload_caption
+                                     self.upload_src_mask, self.upload_video,
+                                     self.upload_caption
                                  ],
                                  outputs=[
                                      self.upload_image, self.upload_src_image,
@@ -2830,3 +3159,16 @@ class DatasetGalleryUI(UIBase):
                                      self.edit_caption
                                  ],
                                  queue=False)
+
+        def get_trans_status(dataset_type, preprocess_name, preprocess_name_txt2vid):
+            if dataset_type == 'scepter_txt2vid':
+                choices = self.component_names.preprocess_choices_video
+                operation = preprocess_name_txt2vid[0]
+                hit_index = 1
+            else:
+                choices = self.component_names.preprocess_choices
+                operation = preprocess_name[0]
+                hit_index = 2
+
+            reverse_status = {v: id for id, v in enumerate(choices)}
+            return reverse_status.get(operation, -1) == hit_index

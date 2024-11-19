@@ -13,8 +13,10 @@ TRAIN_PARAS:
     VALUES: [[256, 256], [320, 180], [180, 320],
              [512, 512], [640, 360], [360, 640],
              [768, 768], [960, 540], [540, 960],
-             [1024, 1024], [1280, 720], [720, 1280]]
+             [1024, 1024], [1280, 720], [720, 1280],
+             [720, 480], [480, 720]]
     DEFAULT: [1024, 1024]
   EVAL_PROMPTS:
     - a boy wearing a jacket
     - a dog running on the lawn
+SAVE_FILE_LOCAL_PATH: "cache/scepter_ui/datasets/train_data_from_list"

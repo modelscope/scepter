@@ -59,6 +59,18 @@ BASE_MODELS:
       FIRST_STAGE_MODEL: ACE_0.6B_512_AutoencoderKL
       COND_STAGE_MODEL: ACE_0.6B_512_T5EmbedderHF
       CONFIG: config/ace_0.6b_512_pro.yaml
+    -
+      NAME: ACE_0.6B_1024
+      DIFFUSION_MODEL: ACE_0.6B_1024_ACE
+      FIRST_STAGE_MODEL: ACE_0.6B_1024_AutoencoderKL
+      COND_STAGE_MODEL: ACE_0.6B_1024_T5EmbedderHF
+      CONFIG: config/ace_0.6b_1024_pro.yaml
+    -
+      NAME: ACE_0.6B_1024_REFINER
+      DIFFUSION_MODEL: ACE_0.6B_1024_REFINER_ACE
+      FIRST_STAGE_MODEL: ACE_0.6B_1024_REFINER_AutoencoderKL
+      COND_STAGE_MODEL: ACE_0.6B_1024_REFINER_T5EmbedderHF
+      CONFIG: config/ace_0.6b_1024_refiner_pro.yaml
 
 MODEL_SOURCE:
   - "ModelScope"
@@ -83,7 +95,7 @@ BASE_PARAMETERS:
       - "dpmpp_2m_karras"
       - "dpmpp_sde_karras"
       - "dpmpp_2m_sde_karras"
-      - "flow_eluer"
+      - "flow_euler"
 
     DISCRETIZATION:
       - "trailing"

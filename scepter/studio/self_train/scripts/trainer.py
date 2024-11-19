@@ -44,18 +44,22 @@ def kill_job(pid):
 
 
 class Trainer():
-    def __init__(self, run_script, status_message):
+    def __init__(self, run_script, status_message, visible_gpus):
         self.run_script = run_script
         self.status_message = status_message
+        self.visible_gpus = visible_gpus
         self.proc = None
 
     def __call__(self, task_name):
         torch.cuda.empty_cache()
         error_folder = './error_logs'
         os.makedirs(error_folder, exist_ok=True)
+
         self.status_message.error_log = f'{error_folder}/{int(time.time())}.log'
         cmd = f'PYTHONPATH=. python {self.run_script} ' \
               f'--cfg={task_name}/train.yaml 2> {self.status_message.error_log}'
+        if self.visible_gpus is not None and len(self.visible_gpus) > 0:
+            cmd = f'CUDA_VISIBLE_DEVICES={",".join([str(i) for i in self.visible_gpus])} ' + cmd
         # cmd = [f"python {self.run_script}"]
         print(cmd)
         try:
@@ -87,6 +91,7 @@ class TrainManager():
         self.runing_tasks = {}
         self.run_script = run_script
         self.work_dir = work_dir
+        self.visible_gpus = list(range(torch.cuda.device_count()))
 
         def task_dispatch():
             while True:
@@ -143,7 +148,7 @@ class TrainManager():
                     task_name = self.task_queue.pop(0)
                     print(f'start task {task_name}')
                     status_message = TaskStatus()
-                    train_ins = Trainer(self.run_script, status_message)
+                    train_ins = Trainer(self.run_script, status_message, self.visible_gpus)
                     train_thread = threading.Thread(target=train_ins,
                                                     args=(os.path.join(
                                                         self.work_dir,
@@ -174,11 +179,18 @@ class TrainManager():
         self.task_manage = threading.Thread(target=task_dispatch, daemon=True)
         self.task_manage.start()
 
+    def set_gpus(self, gpus=None):
+        if gpus is None:
+            self.visible_gpus = list(range(torch.cuda.device_count()))
+        else:
+            self.visible_gpus = list(gpus)
+
     def check_memory(self):
         # Check Cuda Memory
+        visible_gpus = self.visible_gpus
         mem_msg = ''
         if torch.cuda.is_available():
-            for device_id in range(torch.cuda.device_count()):
+            for device_id in visible_gpus:
                 free_mem, total_mem = torch.cuda.mem_get_info(device_id)
                 free_mem = free_mem / (1024**3)
                 total_mem = total_mem / (1024**3)

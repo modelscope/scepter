@@ -19,10 +19,6 @@ class BaseDiffusion(object):
     para_dict = {
         'NOISE_SCHEDULER': {},
         'SAMPLER_SCHEDULER': {},
-        'MIN_SNR_GAMMA': {
-            'value': None,
-            'description': 'The minimum SNR gamma value for the loss function.'
-        },
         'PREDICTION_TYPE': {
             'value': 'eps',
             'description':
@@ -37,7 +33,6 @@ class BaseDiffusion(object):
         self.init_params()
 
     def init_params(self):
-        self.min_snr_gamma = self.cfg.get('MIN_SNR_GAMMA', None)
         self.prediction_type = self.cfg.get('PREDICTION_TYPE', 'eps')
         self.noise_scheduler = NOISE_SCHEDULERS.build(self.cfg.NOISE_SCHEDULER,
                                                       logger=self.logger)
@@ -67,17 +62,19 @@ class BaseDiffusion(object):
                show_progress=False,
                return_intermediate=None,
                intermediate_callback=None,
+               reverse_scale = -1.,
+               x = None,
                **kwargs):
         assert isinstance(steps, (int, torch.LongTensor))
         assert return_intermediate in (None, 'x0', 'xt')
         assert isinstance(sampler, (str, dict, Config))
         intermediates = []
 
-        def callback_fn(x_t, t, sigma=None, alpha=None):
+        def callback_fn(x_t, t, sigma=None, alpha_bar=None):
             timestamp = t
             t = t.repeat(len(x_t)).round().long().to(x_t.device)
             sigma = sigma.repeat(len(x_t), *([1] * (len(sigma.shape) - 1)))
-            alpha = alpha.repeat(len(x_t), *([1] * (len(alpha.shape) - 1)))
+            alpha_bar = alpha_bar.repeat(len(x_t), *([1] * (len(alpha_bar.shape) - 1)))
 
             if guide_scale is None or guide_scale == 1.0:
                 out = model(x=x_t, t=t, **model_kwargs)
@@ -101,15 +98,12 @@ class BaseDiffusion(object):
             if self.prediction_type == 'x0':
                 x0 = out
             elif self.prediction_type == 'eps':
-                x0 = (x_t - sigma * out) / alpha
+                x0 = (x_t - sigma * out) / alpha_bar
             elif self.prediction_type == 'v':
-                x0 = alpha * x_t - sigma * out
+                x0 = alpha_bar * x_t - sigma * out
             else:
                 raise NotImplementedError(
                     f'prediction_type {self.prediction_type} not implemented')
-
-            # print("torch.sum(y_out):", torch.sum(y_out), "torch.sum(u_out):", torch.sum(u_out), "torch.sum(out):",
-            #       torch.sum(out), "torch.sum(x0):", torch.sum(x0), "sigmas", sigma, "alphas", alpha)
             return x0
 
         sampler_ins = self.get_sampler(sampler)
@@ -117,12 +111,14 @@ class BaseDiffusion(object):
         # this is ignored for schnell
         sampler_output = sampler_ins.preprare_sampler(
             noise,
+            x = x,
             steps=steps,
+            reverse_scale= reverse_scale,
             prediction_type=self.prediction_type,
             scheduler_ins=self.sampler_scheduler,
             callback_fn=callback_fn)
 
-        for _ in trange(steps, disable=not show_progress):
+        for _ in trange(sampler_output.steps, disable=not show_progress):
             trange.desc = sampler_output.msg
             sampler_output = sampler_ins.step(sampler_output)
             if return_intermediate == 'x_0':
@@ -145,30 +141,19 @@ class BaseDiffusion(object):
         if noise is None:
             noise = torch.randn_like(x_0)
         schedule_output = self.noise_scheduler.add_noise(x_0, noise, **kwargs)
-        x_t, t, sigma, alpha = schedule_output.x_t, schedule_output.t, schedule_output.sigma, schedule_output.alpha
+        x_t, t, sigma, alpha_bar = schedule_output.x_t, schedule_output.t, schedule_output.sigma, schedule_output.alpha_bar
         out = model(x=x_t, t=t, **model_kwargs)
 
         # mse loss
         target = {
             'eps': noise,
             'x0': x_0,
-            'v': alpha * noise - sigma * x_0
+            'v': alpha_bar * noise - sigma * x_0
         }[self.prediction_type]
 
         loss = (out - target).pow(2)
         if reduction == 'mean':
             loss = loss.flatten(1).mean(dim=1)
-
-        if self.min_snr_gamma is not None:
-            alphas = self.noise_scheduler.alphas.to(x_0.device)[t]
-            sigmas = self.noise_scheduler.sigmas.pow(2).to(x_0.device)[t]
-            snrs = (alphas / sigmas).clamp(min=1e-20)
-            min_snrs = snrs.clamp(max=self.min_snr_gamma)
-            weights = min_snrs / snrs
-        else:
-            weights = 1
-
-        loss = loss * weights
         return loss
 
     def get_sampler(self, sampler):
@@ -248,17 +233,6 @@ class DiffusionFluxRF(BaseDiffusion):
         loss = (target - out)**2
         if reduction == 'mean':
             loss = loss.flatten(1).mean(dim=1)
-
-        if self.min_snr_gamma is not None:
-            alphas = self.noise_scheduler.alphas.to(x_0.device)[t]
-            sigmas = self.noise_scheduler.sigmas.pow(2).to(x_0.device)[t]
-            snrs = (alphas / sigmas).clamp(min=1e-20)
-            min_snrs = snrs.clamp(max=self.min_snr_gamma)
-            weights = min_snrs / snrs
-        else:
-            weights = 1
-
-        loss = loss * weights
         return loss
 
     @torch.no_grad()
@@ -271,6 +245,8 @@ class DiffusionFluxRF(BaseDiffusion):
                show_progress=False,
                return_intermediate=None,
                intermediate_callback=None,
+               reverse_scale=-1.,
+               x=None,
                **kwargs):
         # sanity check
         assert isinstance(steps, (int, torch.LongTensor))
@@ -278,7 +254,7 @@ class DiffusionFluxRF(BaseDiffusion):
         assert isinstance(sampler, (str, dict, Config))
         intermediates = []
 
-        def callback_fn(x_t, t, sigma=None, alpha=None):
+        def callback_fn(x_t, t, sigma=None, alpha_bar=None):
             sigma = torch.full((x_t.shape[0], ),
                                sigma,
                                dtype=x_t.dtype,
@@ -291,12 +267,14 @@ class DiffusionFluxRF(BaseDiffusion):
         # this is ignored for schnell
         sampler_output = sampler_ins.preprare_sampler(
             noise,
+            x=x,
             steps=steps,
+            reverse_scale=reverse_scale,
             prediction_type=self.prediction_type,
             scheduler_ins=self.sampler_scheduler,
             callback_fn=callback_fn)
 
-        for _ in trange(steps, disable=not show_progress):
+        for _ in trange(sampler_output.steps, disable=not show_progress):
             trange.desc = sampler_output.msg
             sampler_output = sampler_ins.step(sampler_output)
             if return_intermediate == 'x_0':

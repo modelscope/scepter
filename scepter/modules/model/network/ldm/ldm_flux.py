@@ -4,13 +4,17 @@ import copy
 import math
 import numbers
 import random
+from contextlib import nullcontext
+
 import torch
 from scepter.modules.model.network.ldm import LatentDiffusion
 from scepter.modules.model.registry import MODELS, BACKBONES, LOSSES, TOKENIZERS, EMBEDDERS, DIFFUSIONS
-from scepter.modules.model.utils.basic_utils import disabled_train
+from scepter.modules.model.utils.basic_utils import disabled_train, check_list_of_list, to_device, \
+    pack_imagelist_into_tensor, unpack_tensor_into_imagelist, limit_batch_data
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import we
 from scepter.modules.model.utils.basic_utils import count_params
+
 
 
 @MODELS.register_class()
@@ -137,7 +141,7 @@ class LatentDiffusionFlux(LatentDiffusion):
     def forward_test(self,
                      image=None,
                      prompt=None,
-                     sampler='flow_eluer',
+                     sampler='flow_euler',
                      sample_steps=20,
                      seed=2023,
                      guide_scale=4.5,
@@ -218,3 +222,164 @@ class LatentDiffusionFlux(LatentDiffusion):
     @torch.no_grad()
     def decode_first_stage(self, z):
         return self.first_stage_model.decode(z)
+
+@MODELS.register_class()
+class LatentDiffusionFluxMR(LatentDiffusionFlux):
+    para_dict = {
+    }
+    para_dict.update(LatentDiffusion.para_dict)
+    def forward_train(self,
+                      image=None,
+                      noise=None,
+                      prompt=[],
+                      **kwargs):
+        if check_list_of_list(prompt):
+            prompt = [pp[0] for pp in prompt]
+        assert self.cond_stage_model is not None
+        gc_seg = kwargs.pop("gc_seg", [])
+        gc_seg = int(gc_seg[0]) if len(gc_seg) > 0 else 0
+        context = getattr(self.cond_stage_model, 'encode')(prompt)
+
+        image = to_device(image)
+        x_start = self.encode_first_stage(image, **kwargs)
+        loss_mask, _ = pack_imagelist_into_tensor(tuple(torch.ones_like(ix, dtype=torch.bool, device=ix.device) for ix in x_start))
+        x_start, x_shapes = pack_imagelist_into_tensor(x_start)
+        context['x_shapes'] = x_shapes
+        guide_scale = self.guide_scale
+        if guide_scale is not None:
+            guide_scale = torch.full((x_start.shape[0],), guide_scale, device=x_start.device, dtype=x_start.dtype)
+        else:
+            guide_scale = None
+        loss = self.diffusion.loss(x_0=x_start,
+                                   model=self.model,
+                                   model_kwargs={"cond": context,
+                                                 "gc_seg": gc_seg,
+                                                 "guidance": guide_scale},
+                                   noise=None,
+                                   reduction='none',
+                                   **kwargs)
+        loss = loss[loss_mask].mean()
+        ret = {'loss': loss, 'probe_data': {'prompt': prompt}}
+        return ret
+
+    @torch.no_grad()
+    def forward_sample(self,
+                       noise = None,
+                       prompt=None,
+                       sampler='flow_euler',
+                       sample_steps=20,
+                       guide_scale=3.5,
+                       show_process=True,
+                       x = None,
+                       reverse_scale = 0.,
+                       **kwargs
+                       ):
+        noise, x_shapes = pack_imagelist_into_tensor(noise)
+        if x is not None:
+            x, _ = pack_imagelist_into_tensor(x)
+        context = getattr(self.cond_stage_model, 'encode')(prompt)
+        context["x_shapes"] = x_shapes
+        guide_scale = guide_scale or self.guide_scale
+        if guide_scale is not None:
+            guide_scale = torch.full((noise.shape[0],), guide_scale, device=noise.device, dtype=noise.dtype)
+        else:
+            guide_scale = None
+        # UNet use input n_prompt
+        model = self.model_ema if self.use_ema and self.eval_ema else self.model
+        embedding_context = model.no_sync if isinstance(model, torch.distributed.fsdp.FullyShardedDataParallel) \
+            else nullcontext
+        with embedding_context():
+            x_samples = self.diffusion.sample(
+                noise=noise,
+                sampler=sampler,
+                model=self.model,
+                model_kwargs={"cond": context, "guidance": guide_scale, "gc_seg": -1},
+                steps=sample_steps,
+                show_progress=True,
+                guide_scale=guide_scale,
+                return_intermediate=None,
+                reverse_scale = reverse_scale,
+                x = x,
+                **kwargs).float()
+        x_samples = unpack_tensor_into_imagelist(x_samples, x_shapes)
+        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+            x_samples = self.decode_first_stage(x_samples)
+        return x_samples
+    @torch.no_grad()
+    def forward_test(self,
+                     image=None,
+                     prompt=[],
+                     sampler='flow_euler',
+                     sample_steps=20,
+                     seed=2023,
+                     guide_scale=3.5,
+                     guide_rescale=0.0,
+                     show_process=True,
+                     log_num = -1,
+                     **kwargs):
+
+        if check_list_of_list(prompt):
+            prompt = [pp[0] for pp in prompt]
+        assert self.cond_stage_model is not None
+        # gc_seg is unused
+        prompt, image = limit_batch_data([prompt, image], log_num)
+        seed = seed if seed >= 0 else random.randint(0, 2**32 - 1)
+
+        if 'index' in kwargs:
+            kwargs.pop('index')
+        if image is not None:
+            noise = [self.noise_sample(1, ix.shape[1], ix.shape[2], seed) for ix in image]
+        else:
+            image_size = None
+            if 'meta' in kwargs:
+                meta = kwargs.pop('meta')
+                if 'image_size' in meta:
+                    h = int(meta['image_size'][0][0])
+                    w = int(meta['image_size'][1][0])
+                    image_size = [h, w]
+            if 'image_size' in kwargs:
+                image_size = kwargs.pop('image_size')
+            if isinstance(image_size, numbers.Number):
+                image_size = [image_size, image_size]
+            if image_size is None:
+                image_size = [1024, 1024]
+            height, width = image_size
+            noise = [self.noise_sample(1, height, width, seed) for _ in prompt]
+
+        x_samples = self.forward_sample(
+            prompt=prompt,
+            sampler=sampler,
+            sample_steps=sample_steps,
+            guide_scale=guide_scale,
+            show_process=show_process,
+            noise=noise,
+        )
+
+
+        outputs = list()
+        for i in range(len(prompt)):
+            rec_img = torch.clamp((x_samples[i].float() + 1.0) / 2.0, min=0.0, max=1.0)
+            rec_img = rec_img.squeeze(0)
+            one_tup = {'prompt': prompt[i], 'n_prompt': '', 'image': rec_img}
+            outputs.append(one_tup)
+        return outputs
+    @staticmethod
+    def get_config_template():
+        return dict_to_yaml('MODEL',
+                            __class__.__name__,
+                            LatentDiffusionFlux.para_dict,
+                            set_name=True)
+    @torch.no_grad()
+    def encode_first_stage(self, x, **kwargs):
+        def run_one_image(u):
+            zu = self.first_stage_model.encode(u)
+            if isinstance(zu, (tuple, list)):
+                zu = zu[0]
+            return zu
+
+        z = [run_one_image(u.unsqueeze(0) if u.dim == 3 else u) for u in x]
+        return z
+
+    @torch.no_grad()
+    def decode_first_stage(self, z):
+        return [self.first_stage_model.decode(zu) for zu in z]

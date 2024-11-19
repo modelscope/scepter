@@ -117,6 +117,7 @@ class LogHook(Hook):
         super(LogHook, self).__init__(cfg, logger=logger)
         self.priority = cfg.get('PRIORITY', _DEFAULT_LOG_PRIORITY)
         self.log_interval = cfg.get('LOG_INTERVAL', 10)
+        self.interval = cfg.get('INTERVAL', self.log_interval)
         self.show_gpu_mem = cfg.get('SHOW_GPU_MEM', False)
         self.log_agg_dict = defaultdict(LogAgg)
 
@@ -147,18 +148,18 @@ class LogHook(Hook):
         outputs['time'] = iter_time
         outputs['data_time'] = self.data_time
         if solver.mode in self.batch_size:
-            outputs['throughput'] = int(self.batch_size[solver.mode] * we.world_size / iter_time * 86400)
+            outputs['throughput'] = int(self.batch_size[solver.mode] * we.data_group_world_size / iter_time * 86400)
         log_agg.update(outputs, 1)
-        log_agg = log_agg.aggregate(self.log_interval)
+        log_agg = log_agg.aggregate(self.interval)
         if 'throughput' in log_agg:
             log_agg['throughput'] = f"{int(log_agg['throughput'][-1])}/day"
         if solver.mode in self.batch_size:
-            log_agg['all_throughput'] = (solver.iter + 1) * we.world_size * self.batch_size[solver.mode]
+            log_agg['all_throughput'] = (solver.iter + 1) * we.data_group_world_size * self.batch_size[solver.mode]
 
         if self.show_gpu_mem:
             log_agg['nvidia-smi'] = str(print_memory_status()) +"MiB"
 
-        if (solver.iter + 1) % self.log_interval == 0:
+        if (solver.iter + 1) % self.interval == 0:
             _print_iter_log(solver,
                             log_agg,
                             start_time=self.start_time,
@@ -206,7 +207,7 @@ class LogHook(Hook):
             solver.logger.info(f'Current Epoch {mode} Summary:')
             log_agg = self.log_agg_dict[mode]
             _print_iter_log(solver,
-                            log_agg.aggregate(self.log_interval),
+                            log_agg.aggregate(self.interval),
                             start_time=self.start_time,
                             mode=mode)
             if not mode == 'train':
@@ -242,6 +243,7 @@ class TensorboardLogHook(Hook):
         self.priority = cfg.get('PRIORITY', _DEFAULT_LOG_PRIORITY)
         self.log_dir = cfg.get('LOG_DIR', None)
         self.log_interval = cfg.get('LOG_INTERVAL', 1000)
+        self.interval = cfg.get('INTERVAL', self.log_interval)
         self._local_log_dir = None
         self.writer: Optional[SummaryWriter] = None
 
@@ -286,7 +288,7 @@ class TensorboardLogHook(Hook):
             self.writer.add_scalar(f'{mode}/iter/{key}',
                                    value,
                                    global_step=solver.total_iter)
-        if solver.total_iter % self.log_interval:
+        if solver.total_iter % self.interval:
             self.writer.flush()
             # Put to remote file systems every epoch
             FS.put_dir_from_local_dir(self._local_log_dir, self.log_dir)

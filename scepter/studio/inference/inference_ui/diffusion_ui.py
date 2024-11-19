@@ -26,7 +26,7 @@ class DiffusionUI(UIBase):
         self.default_resolutions = pipe_manager.pipeline_level_modules[
             now_pipeline].paras.RESOLUTIONS
         self.default_input = pipe_manager.pipeline_level_modules[
-            now_pipeline].input
+            now_pipeline].input_cfg
 
         self.diffusion_paras = self.load_all_paras()
         # deal with resolution
@@ -66,7 +66,6 @@ class DiffusionUI(UIBase):
                     if value is not None and cur_default.get(
                             key.lower()) not in value:
                         value.append(cur_default.get(key.lower()))
-
         return diffusion_paras
 
     def load_all_paras(self):
@@ -115,22 +114,15 @@ class DiffusionUI(UIBase):
                     label=self.component_names.resolutions_height,
                     choices=[key for key in self.cur_h_level_dict.keys()],
                     value=default_res[0],
+                    allow_custom_value=True,
                     interactive=True)
             with gr.Column(scale=1):
                 self.output_width = gr.Dropdown(
                     label=self.component_names.resolutions_width,
                     choices=self.cur_h_level_dict[default_res[0]],
                     value=default_res[1],
+                    allow_custom_value=True,
                     interactive=True)
-        with gr.Row(equal_height=True):
-            self.image_number = gr.Slider(
-                label=self.component_names.image_number,
-                minimum=self.cur_paras.SAMPLES.get('MIN', 1),
-                maximum=self.cur_paras.SAMPLES.get('MAX', 4),
-                step=1,
-                value=self.cur_paras.SAMPLES.get('DEFAULT', 1),
-                visible=self.cur_paras.SAMPLES.get('VISIBLE', True),
-                interactive=True)
         with gr.Row(equal_height=True):
             self.sample_steps = gr.Slider(
                 label=self.component_names.sample_steps,
@@ -139,7 +131,6 @@ class DiffusionUI(UIBase):
                 step=1,
                 value=self.cur_paras.SAMPLE_STEPS.get('DEFAULT', 30),
                 interactive=True)
-
             self.guide_scale = gr.Slider(
                 label=self.component_names.guide_scale,
                 minimum=self.cur_paras.GUIDE_SCALE.get('MIN', 1),
@@ -155,6 +146,32 @@ class DiffusionUI(UIBase):
                 step=0.1,
                 value=self.cur_paras.GUIDE_RESCALE.get('DEFAULT', 0.5),
                 visible=self.cur_paras.GUIDE_RESCALE.get('VISIBLE', True),
+                interactive=True)
+        with gr.Row(equal_height=True):
+            self.fps = gr.Slider(
+                label=self.component_names.fps,
+                minimum=self.cur_paras.FPS.get('MIN', 1),
+                maximum=self.cur_paras.FPS.get('MAX', 50),
+                step=1,
+                value=self.cur_paras.FPS.get('DEFAULT', 8),
+                visible=self.cur_paras.FPS.get('VISIBLE', True),
+                interactive=True)
+            self.num_frames = gr.Slider(
+                label=self.component_names.num_frames,
+                minimum=self.cur_paras.NUM_FRAMES.get('MIN', 1),
+                maximum=self.cur_paras.NUM_FRAMES.get('MAX', 100),
+                step=1,
+                value=self.cur_paras.NUM_FRAMES.get('DEFAULT', 49),
+                visible=self.cur_paras.NUM_FRAMES.get('VISIBLE', True),
+                interactive=True)
+        with gr.Row(equal_height=True):
+            self.image_number = gr.Slider(
+                label=self.component_names.image_number,
+                minimum=self.cur_paras.SAMPLES.get('MIN', 1),
+                maximum=self.cur_paras.SAMPLES.get('MAX', 4),
+                step=1,
+                value=self.cur_paras.SAMPLES.get('DEFAULT', 1),
+                visible=self.cur_paras.SAMPLES.get('VISIBLE', True),
                 interactive=True)
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
@@ -177,6 +194,8 @@ class DiffusionUI(UIBase):
             'output_height': self.output_height,
             'output_width': self.output_width,
             'image_number': self.image_number,
+            'num_frames': self.num_frames,
+            'fps': self.fps,
             'sample_steps': self.sample_steps,
             'guide_scale': self.guide_scale,
             'guide_rescale': self.guide_rescale,

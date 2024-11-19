@@ -35,7 +35,7 @@ META:
       SAVE_INTERVAL: 25
       EPSEC: 0.818
       LEARNING_RATE: 0.0001
-      IS_DEFAULT: False
+      IS_DEFAULT: True
       TUNER: LORA
   #
   TUNERS:

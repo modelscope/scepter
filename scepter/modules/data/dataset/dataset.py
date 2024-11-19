@@ -242,6 +242,8 @@ class Text2ImageDataset(BaseDataset):
         prompt_prefix = cfg.get('PROMPT_PREFIX', '')
         path_prefix = cfg.get('PATH_PREFIX', '')
         use_num = cfg.get('USE_NUM', -1)
+        meta_cfg = cfg.get('META_CFG', None)
+        meta_cfg = meta_cfg.get_lowercase_dict() if meta_cfg is not None else None
 
         image_size = cfg.get('IMAGE_SIZE', 1024)
         if isinstance(image_size, numbers.Number):
@@ -264,7 +266,12 @@ class Text2ImageDataset(BaseDataset):
 
         self.items = list()
         for i, row in enumerate(rows):
-            item = {'index': i, 'meta': {'image_size': image_size}}
+            if meta_cfg is not None:
+                meta_cfg_copy = copy.deepcopy(meta_cfg)
+                meta_cfg_copy['image_size'] = image_size
+                item = {'index': i, 'meta': meta_cfg_copy}
+            else:
+                item = {'index': i, 'meta': {'image_size': image_size}}
             for key, value in zip(fields, row):
                 if key in ['prompt', 'caption', 'text']:
                     item['ori_prompt'] = value

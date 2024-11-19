@@ -15,15 +15,18 @@ class SamplerOutput(object):
     callback_fn: callable
     prediction_type: str
     alphas: torch.Tensor
+    alphas_bar: torch.Tensor
     betas: torch.Tensor
     sigmas: torch.Tensor
     alphas_init: torch.Tensor
+    alphas_bar_init: torch.Tensor
     betas_init: torch.Tensor
     sigmas_init: torch.Tensor
     ts: torch.Tensor
     x_t: torch.Tensor
     x_0: torch.Tensor
     step: int
+    steps: int
     msg: str
 
     def add_custom_field(self, key: str, value) -> None:
@@ -49,7 +52,7 @@ class BaseDiffusionSampler(object):
         self.t_max = self.cfg.get('T_MAX', None)
         self.t_min = self.cfg.get('T_MIN', None)
 
-    def discretization(self, steps=20, num_timesteps=1000, **kwargs):
+    def discretization(self, steps=20, num_timesteps=1000, reverse_scale = -1., **kwargs):
         # get timesteps
         if isinstance(steps, int):
             steps += 1 if self.discard_penultimate_step else 0
@@ -74,17 +77,23 @@ class BaseDiffusionSampler(object):
             steps = steps.clamp_(t_min, t_max)
         elif isinstance(steps, list):
             steps = torch.tensor(steps)
-        timesteps = torch.as_tensor(steps, dtype=torch.float32)
-        return timesteps
+        if reverse_scale >=0:
+            img2img_step = int((1 - reverse_scale) * len(steps))
+            timesteps = torch.as_tensor(steps[img2img_step:], dtype=torch.float32)
+            return timesteps
+        return torch.as_tensor(steps, dtype=torch.float32)
 
     def preprare_sampler(self,
                          noise,
+                         x=None,
                          steps=20,
+                         reverse_scale=-1.,
                          scheduler_ins=None,
                          prediction_type='',
                          sigmas=None,
                          betas=None,
                          alphas=None,
+                         alphas_bar=None,
                          callback_fn=None,
                          **kwargs):
         '''
@@ -96,36 +105,52 @@ class BaseDiffusionSampler(object):
             4. To ensure the safety of threading, use the instance of SamplerOutput as the manager,
             which manage all necessary information.
         '''
+        if reverse_scale >= 0:
+            assert x is not None
         num_timesteps = scheduler_ins.num_timesteps if scheduler_ins is not None else 1000
         timestamps = self.discretization(steps,
                                          num_timesteps=num_timesteps,
+                                         reverse_scale=reverse_scale,
                                          **kwargs)
         alphas = scheduler_ins.t_to_alpha(
             timestamps, **kwargs) if scheduler_ins is not None else alphas
+        alphas_bar = scheduler_ins.t_to_alpha_bar(
+            timestamps, **kwargs) if scheduler_ins is not None else alphas_bar
         betas = scheduler_ins.t_to_beta(
             timestamps, **kwargs) if scheduler_ins is not None else betas
         sigmas = scheduler_ins.t_to_sigma(
             timestamps, **kwargs) if scheduler_ins is not None else sigmas
         alphas_init = scheduler_ins.t_to_alpha_init(
             timestamps, **kwargs) if scheduler_ins is not None else alphas
+
+        alphas_bar_init = scheduler_ins.t_to_alpha_bar_init(
+            timestamps, **kwargs) if scheduler_ins is not None else alphas_bar
+
         betas_init = scheduler_ins.t_to_beta_init(
             timestamps, **kwargs) if scheduler_ins is not None else betas
         sigmas_init = scheduler_ins.t_to_sigma_init(
             timestamps, **kwargs) if scheduler_ins is not None else sigmas
-
+        if reverse_scale >= 0:
+            x_t = x_0 = scheduler_ins.add_noise(x, noise=noise, t=timestamps[0].repeat(x.size(0)).to(x.device)).x_t if len(timestamps) > 0 else x
+        else:
+            x_t = x_0 = noise
+        # Consider the sigma's list is from sigma_ to zero. the steps equal to len(timestamps)
         output = SamplerOutput(callback_fn=callback_fn,
                                prediction_type=prediction_type,
                                alphas=alphas,
+                               alphas_bar=alphas_bar,
                                betas=betas,
                                sigmas=sigmas,
                                alphas_init=alphas_init,
+                               alphas_bar_init=alphas_bar_init,
                                betas_init=betas_init,
                                sigmas_init=sigmas_init,
                                ts=timestamps,
-                               x_t=noise,
-                               x_0=noise,
+                               x_t=x_t,
+                               x_0=x_0,
                                step=0,
-                               msg='step 0')
+                               msg='step 0',
+                               steps=len(timestamps) - 1)
         return output
 
     def step(self, sampler_ouput):
@@ -159,22 +184,35 @@ class DDIMSampler(BaseDiffusionSampler):
 
     def preprare_sampler(self,
                          noise,
+                         x=None,
                          steps=20,
+                         reverse_scale = -1.,
                          scheduler_ins=None,
                          prediction_type='',
                          sigmas=None,
                          betas=None,
                          alphas=None,
+                         alphas_bar=None,
                          callback_fn=None,
                          **kwargs):
-        output = super().preprare_sampler(noise, steps, scheduler_ins,
-                                          prediction_type, sigmas, betas,
-                                          alphas, callback_fn, **kwargs)
+        output = super().preprare_sampler(noise,
+                                          x = x,
+                                          steps = steps,
+                                          reverse_scale = reverse_scale,
+                                          scheduler_ins = scheduler_ins,
+                                          prediction_type = prediction_type,
+                                          sigmas = sigmas,
+                                          betas = betas,
+                                          alphas = alphas,
+                                          alphas_bar = alphas_bar,
+                                          callback_fn = callback_fn,
+                                          **kwargs)
         sigmas = output.sigmas
         sigmas = torch.cat([sigmas, sigmas.new_zeros([1])])
         sigmas_vp = (sigmas**2 / (1 + sigmas**2))**0.5
         sigmas_vp[sigmas == float('inf')] = 1.
         output.add_custom_field('sigmas_vp', sigmas_vp)
+        output.steps += 1
         return output
 
     def step(self, sampler_output):
@@ -182,10 +220,10 @@ class DDIMSampler(BaseDiffusionSampler):
         step = sampler_output.step
         t = sampler_output.ts[step]
         sigmas_vp = sampler_output.sigmas_vp.to(x_t.device)
-        alpha_init = _i(sampler_output.alphas_init, step, x_t[:1])
+        alpha_bar_init = _i(sampler_output.alphas_bar_init, step, x_t[:1])
         sigma_init = _i(sampler_output.sigmas_init, step, x_t[:1])
 
-        x = sampler_output.callback_fn(x_t, t, sigma_init, alpha_init)
+        x = sampler_output.callback_fn(x_t, t, sigma_init, alpha_bar_init)
         noise_factor = self.eta * (sigmas_vp[step + 1]**2 /
                                    sigmas_vp[step]**2 *
                                    (1 - (1 - sigmas_vp[step]**2) /
@@ -202,16 +240,19 @@ class DDIMSampler(BaseDiffusionSampler):
         return sampler_output
 
 
-@DIFFUSION_SAMPLERS.register_class('flow_eluer')
+@DIFFUSION_SAMPLERS.register_class('flow_euler')
 class FlowEluerSampler(BaseDiffusionSampler):
     def preprare_sampler(self,
                          noise,
+                         x=None,
                          steps=20,
+                         reverse_scale = -1.,
                          scheduler_ins=None,
                          prediction_type='',
                          sigmas=None,
                          betas=None,
                          alphas=None,
+                         alphas_bar=None,
                          callback_fn=None,
                          **kwargs):
         if noise.ndim == 3:
@@ -220,9 +261,18 @@ class FlowEluerSampler(BaseDiffusionSampler):
             n, _, h, w = noise.shape
             seq_len = (h // 2 * w // 2)
         kwargs['seq_len'] = seq_len
-        output = super().preprare_sampler(noise, steps, scheduler_ins,
-                                          prediction_type, sigmas, betas,
-                                          alphas, callback_fn, **kwargs)
+        output = super().preprare_sampler(noise,
+                                          x = x,
+                                          steps = steps,
+                                          reverse_scale = reverse_scale,
+                                          scheduler_ins = scheduler_ins,
+                                          prediction_type = prediction_type,
+                                          sigmas = sigmas,
+                                          betas = betas,
+                                          alphas = alphas,
+                                          alphas_bar = alphas_bar,
+                                          callback_fn = callback_fn,
+                                          **kwargs)
         return output
 
     def step(self, sampler_output):
@@ -241,9 +291,13 @@ class FlowEluerSampler(BaseDiffusionSampler):
         sampler_output.msg = f'step {step}, sigma_curr: {sigma_curr}, sigma_prev: {sigma_prev}'
         return sampler_output
 
-    def discretization(self, steps=20, num_timesteps=1000, **kwargs):
+    def discretization(self, steps=20, num_timesteps=1000, reverse_scale=-1., **kwargs):
         # extra step for zero
         timesteps = torch.linspace(num_timesteps, 0, steps + 1)
+        if reverse_scale >= 0:
+            img2img_step = int((1 - reverse_scale) * len(timesteps))
+            timesteps = timesteps[img2img_step:]
+            return timesteps
         return timesteps
 
     @staticmethod

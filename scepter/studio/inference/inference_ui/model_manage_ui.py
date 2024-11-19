@@ -188,10 +188,11 @@ class ModelManageUI(UIBase):
             diffusion_ui.cur_h_level_dict = h_level_dict
 
             default_input = self.pipe_manager.pipeline_level_modules[
-                now_pipeline].input
+                now_pipeline].input_cfg
             cur_paras = diffusion_ui.get_default(diffusion_ui.diffusion_paras,
                                                  default_input)
             diffusion_ui.cur_paras = cur_paras
+
             return (
                 diffusion_model,
                 gr.Dropdown(value=all_module_name['first_stage_model']),
@@ -224,7 +225,11 @@ class ModelManageUI(UIBase):
                 gr.Slider(value=cur_paras.GUIDE_SCALE.get('DEFAULT', 7.5),
                           visible=cur_paras.GUIDE_SCALE.get('VISIBLE', True)),
                 gr.Slider(value=cur_paras.GUIDE_RESCALE.get('DEFAULT', 0.5),
-                          visible=cur_paras.GUIDE_RESCALE.get('VISIBLE', True)))
+                          visible=cur_paras.GUIDE_RESCALE.get('VISIBLE', True)),
+                gr.Slider(value=cur_paras.NUM_FRAMES.get('DEFAULT', 49),
+                          visible=cur_paras.NUM_FRAMES.get('VISIBLE', False)),
+                gr.Slider(value=cur_paras.FPS.get('DEFAULT', 8),
+                          visible=cur_paras.FPS.get('VISIBLE', False)))
 
         self.diffusion_model.change(
             diffusion_model_change,
@@ -240,6 +245,7 @@ class ModelManageUI(UIBase):
                 diffusion_ui.prompt_prefix, diffusion_ui.output_height,
                 diffusion_ui.sampler, diffusion_ui.discretization,
                 diffusion_ui.sample_steps, diffusion_ui.guide_scale,
-                diffusion_ui.guide_rescale
+                diffusion_ui.guide_rescale, diffusion_ui.num_frames,
+                diffusion_ui.fps
             ],
             queue=True)

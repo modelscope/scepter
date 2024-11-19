@@ -100,6 +100,7 @@ class ControlUI(UIBase):
                             label=self.component_names.control_model,
                             choices=self.controller_choices,
                             value=self.controller_default,
+                            allow_custom_value=True,
                             interactive=True)
                 with gr.Column(scale=1, min_width=0):
                     self.cond_button = gr.Button('Extract')

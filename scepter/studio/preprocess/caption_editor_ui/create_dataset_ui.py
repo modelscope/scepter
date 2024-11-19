@@ -15,6 +15,8 @@ from scepter.studio.preprocess.utils.img2img_data_card import \
     Image2ImageDataCard
 from scepter.studio.preprocess.utils.txt2img_data_card import \
     Text2ImageDataCard
+from scepter.studio.preprocess.utils.txt2vid_data_card import \
+    Text2VideoDataCard
 from scepter.studio.utils.uibase import UIBase
 from tqdm import tqdm
 
@@ -44,7 +46,9 @@ class CreateDatasetUI(UIBase):
             'scepter_txt2img':
             Text2ImageDataCard,
             'scepter_img2img':
-            Image2ImageDataCard
+            Image2ImageDataCard,
+            'scepter_txt2vid':
+            Text2VideoDataCard
         })
         self.components_name = CreateDatasetUIName(language)
         self.default_dataset_type = list(self.dataset_type_dict.keys())[0]
@@ -466,8 +470,7 @@ class CreateDatasetUI(UIBase):
         ], [
             self.panel_state, self.dataset_name, self.user_dataset_name,
             self.sys_log
-        ],
-                                       queue=False)
+        ], queue=False)
 
         def show_edit_panel(panel_state, data_name):
             if panel_state:
@@ -599,10 +602,9 @@ class CreateDatasetUI(UIBase):
                     trans_dataset_type, [])
             else:
                 dataset_list = []
-            return gr.Dropdown(
-                value=dataset_list[-1] if len(dataset_list) > 0 else '',
-                choices=dataset_list), self.components_name.system_log.format(
-                    '')
+            return (gr.Dropdown(
+                value=dataset_list[-1] if len(dataset_list) > 0 else '', choices=dataset_list),
+                self.components_name.system_log.format(''))
 
         manager.user_name.change(dataset_type_change,
                                  inputs=[self.dataset_type, manager.user_name],

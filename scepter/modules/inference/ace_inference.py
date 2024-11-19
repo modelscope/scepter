@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 from PIL import Image
-
+import torchvision.transforms as T
 from scepter.modules.model.registry import DIFFUSIONS
 from scepter.modules.model.utils.basic_utils import check_list_of_list
 from scepter.modules.model.utils.basic_utils import \
@@ -85,6 +85,134 @@ class TextEmbedding(nn.Module):
         super().__init__()
         self.pos = nn.Parameter(data=torch.zeros(embedding_shape))
 
+class RefinerInference(DiffusionInference):
+    def init_from_cfg(self, cfg):
+        super().init_from_cfg(cfg)
+        self.diffusion = DIFFUSIONS.build(cfg.MODEL.DIFFUSION, logger=self.logger) \
+            if cfg.MODEL.have('DIFFUSION') else None
+        self.max_seq_length = cfg.MODEL.get("MAX_SEQ_LENGTH", 4096)
+        assert self.diffusion is not None
+
+    @torch.no_grad()
+    def encode_first_stage(self, x, **kwargs):
+        _, dtype = self.get_function_info(self.first_stage_model, 'encode')
+        with torch.autocast('cuda',
+                            enabled=dtype in ('float16', 'bfloat16'),
+                            dtype=getattr(torch, dtype)):
+            def run_one_image(u):
+                zu = get_model(self.first_stage_model).encode(u)
+                if isinstance(zu, (tuple, list)):
+                    zu = zu[0]
+                return zu
+            z = [run_one_image(u.unsqueeze(0) if u.dim == 3 else u) for u in x]
+            return z
+    def upscale_resize(self, image, interpolation=T.InterpolationMode.BILINEAR):
+        c, H, W = image.shape
+        scale = max(1.0, math.sqrt(self.max_seq_length / ((H / 16) * (W / 16))))
+        rH = int(H * scale) // 16 * 16  # ensure divisible by self.d
+        rW = int(W * scale) // 16 * 16
+        image = T.Resize((rH, rW), interpolation=interpolation, antialias=True)(image)
+        return image
+    @torch.no_grad()
+    def decode_first_stage(self, z):
+        _, dtype = self.get_function_info(self.first_stage_model, 'decode')
+        with torch.autocast('cuda',
+                            enabled=dtype in ('float16', 'bfloat16'),
+                            dtype=getattr(torch, dtype)):
+            return [get_model(self.first_stage_model).decode(zu) for zu in z]
+
+    def noise_sample(self, num_samples, h, w, seed, device = None, dtype = torch.bfloat16):
+        noise = torch.randn(
+            num_samples,
+            16,
+            # allow for packing
+            2 * math.ceil(h / 16),
+            2 * math.ceil(w / 16),
+            device=device,
+            dtype=dtype,
+            generator=torch.Generator(device=device).manual_seed(seed),
+        )
+        return noise
+    def refine(self,
+               x_samples=None,
+               prompt=None,
+               reverse_scale=-1.,
+               seed = 2024,
+               **kwargs
+               ):
+        print(prompt)
+        value_input = copy.deepcopy(self.input)
+        x_samples = [self.upscale_resize(x) for x in x_samples]
+
+        noise = []
+        for i, x in enumerate(x_samples):
+            noise_ = self.noise_sample(1, x.shape[1],
+                                       x.shape[2], seed,
+                                       device = x.device)
+            noise.append(noise_)
+        noise, x_shapes = pack_imagelist_into_tensor(noise)
+        if reverse_scale > 0:
+            self.dynamic_load(self.first_stage_model, 'first_stage_model')
+            x_samples = [x.unsqueeze(0) for x in x_samples]
+            x_start = self.encode_first_stage(x_samples, **kwargs)
+            self.dynamic_unload(self.first_stage_model,
+                                'first_stage_model',
+                                skip_loaded=True)
+            x_start, _ = pack_imagelist_into_tensor(x_start)
+        else:
+            x_start = None
+        # cond stage
+        self.dynamic_load(self.cond_stage_model, 'cond_stage_model')
+        function_name, dtype = self.get_function_info(self.cond_stage_model)
+        with torch.autocast('cuda',
+                            enabled=dtype == 'float16',
+                            dtype=getattr(torch, dtype)):
+            ctx = getattr(get_model(self.cond_stage_model),
+                          function_name)(prompt)
+            ctx["x_shapes"] = x_shapes
+        self.dynamic_unload(self.cond_stage_model,
+                            'cond_stage_model',
+                            skip_loaded=True)
+
+
+        self.dynamic_load(self.diffusion_model, 'diffusion_model')
+        # UNet use input n_prompt
+        function_name, dtype = self.get_function_info(
+            self.diffusion_model)
+        with torch.autocast('cuda',
+                            enabled=dtype in ('float16', 'bfloat16'),
+                            dtype=getattr(torch, dtype)):
+            solver_sample = value_input.get('sample', 'flow_euler')
+            sample_steps = value_input.get('sample_steps', 20)
+            guide_scale = value_input.get('guide_scale', 3.5)
+            if guide_scale is not None:
+                guide_scale = torch.full((noise.shape[0],), guide_scale, device=noise.device,
+                                         dtype=noise.dtype)
+            else:
+                guide_scale = None
+            latent = self.diffusion.sample(
+                noise=noise,
+                sampler=solver_sample,
+                model=get_model(self.diffusion_model),
+                model_kwargs={"cond": ctx, "guidance": guide_scale},
+                steps=sample_steps,
+                show_progress=True,
+                guide_scale=guide_scale,
+                return_intermediate=None,
+                reverse_scale=reverse_scale,
+                x=x_start,
+                **kwargs).float()
+        latent = unpack_tensor_into_imagelist(latent, x_shapes)
+        self.dynamic_unload(self.diffusion_model,
+                            'diffusion_model',
+                            skip_loaded=True)
+        self.dynamic_load(self.first_stage_model, 'first_stage_model')
+        x_samples = self.decode_first_stage(latent)
+        self.dynamic_unload(self.first_stage_model,
+                            'first_stage_model',
+                            skip_loaded=True)
+        return x_samples
+
 
 class ACEInference(DiffusionInference):
     def __init__(self, logger=None):
@@ -116,8 +244,20 @@ class ACEInference(DiffusionInference):
             module_paras.get(
                 'COND_STAGE_MODEL',
                 None)) if cfg.MODEL.have('COND_STAGE_MODEL') else None
+
+        self.refiner_model_cfg = cfg.get('REFINER_MODEL', None)
+        # self.refiner_scale = cfg.get('REFINER_SCALE', 0.)
+        # self.refiner_prompt = cfg.get('REFINER_PROMPT', "")
+        self.ace_prompt = cfg.get("ACE_PROMPT", [])
+        if self.refiner_model_cfg:
+            self.refiner_module = RefinerInference(self.logger)
+            self.refiner_module.init_from_cfg(self.refiner_model_cfg)
+        else:
+            self.refiner_module = None
+
         self.diffusion = DIFFUSIONS.build(cfg.MODEL.DIFFUSION,
                                           logger=self.logger)
+
 
         self.interpolate_func = lambda x: (F.interpolate(
             x.unsqueeze(0),
@@ -163,6 +303,8 @@ class ACEInference(DiffusionInference):
             ]
         return x
 
+
+
     @torch.no_grad()
     def __call__(self,
                  image=None,
@@ -184,7 +326,6 @@ class ACEInference(DiffusionInference):
         g = torch.Generator(device=we.device_id)
         seed = seed if seed >= 0 else random.randint(0, 2**32 - 1)
         g.manual_seed(int(seed))
-
         if input_image is not None:
             # assert isinstance(input_image, list) and isinstance(input_mask, list)
             if task is None:
@@ -237,118 +378,141 @@ class ACEInference(DiffusionInference):
             assert isinstance(nn_p, list)
             n_prompt[nn_p_id][-1] = negative_prompt
 
-        ctx, null_ctx = {}, {}
-
-        # Get Noise Shape
-        self.dynamic_load(self.first_stage_model, 'first_stage_model')
+        is_txt_image = sum([len(e_i) for e_i in edit_image]) < 1
         image = to_device(image)
-        x = self.encode_first_stage(image)
-        self.dynamic_unload(self.first_stage_model,
-                            'first_stage_model',
-                            skip_loaded=True)
-        noise = [
-            torch.empty(*i.shape, device=we.device_id).normal_(generator=g)
-            for i in x
-        ]
-        noise, x_shapes = pack_imagelist_into_tensor(noise)
-        ctx['x_shapes'] = null_ctx['x_shapes'] = x_shapes
 
-        image_mask = to_device(image_mask, strict=False)
-        cond_mask = [self.interpolate_func(i) for i in image_mask
-                     ] if image_mask is not None else [None] * len(image)
-        ctx['x_mask'] = null_ctx['x_mask'] = cond_mask
+        refiner_scale = kwargs.pop("refiner_scale", 0.0)
+        refiner_prompt = kwargs.pop("refiner_prompt", "")
+        use_ace = kwargs.pop("use_ace", True)
+        # <= 0 use ace as the txt2img generator.
+        if use_ace and (not is_txt_image or refiner_scale <= 0):
+            ctx, null_ctx = {}, {}
+            # Get Noise Shape
+            self.dynamic_load(self.first_stage_model, 'first_stage_model')
+            x = self.encode_first_stage(image)
+            self.dynamic_unload(self.first_stage_model,
+                                'first_stage_model',
+                                skip_loaded=True)
+            noise = [
+                torch.empty(*i.shape, device=we.device_id).normal_(generator=g)
+                for i in x
+            ]
+            noise, x_shapes = pack_imagelist_into_tensor(noise)
+            ctx['x_shapes'] = null_ctx['x_shapes'] = x_shapes
 
-        # Encode Prompt
-        self.dynamic_load(self.cond_stage_model, 'cond_stage_model')
-        function_name, dtype = self.get_function_info(self.cond_stage_model)
-        cont, cont_mask = getattr(get_model(self.cond_stage_model),
-                                  function_name)(prompt)
-        cont, cont_mask = self.cond_stage_embeddings(prompt, edit_image, cont,
-                                                     cont_mask)
-        null_cont, null_cont_mask = getattr(get_model(self.cond_stage_model),
-                                            function_name)(n_prompt)
-        null_cont, null_cont_mask = self.cond_stage_embeddings(
-            prompt, edit_image, null_cont, null_cont_mask)
-        self.dynamic_unload(self.cond_stage_model,
-                            'cond_stage_model',
-                            skip_loaded=False)
-        ctx['crossattn'] = cont
-        null_ctx['crossattn'] = null_cont
+            image_mask = to_device(image_mask, strict=False)
+            cond_mask = [self.interpolate_func(i) for i in image_mask
+                         ] if image_mask is not None else [None] * len(image)
+            ctx['x_mask'] = null_ctx['x_mask'] = cond_mask
 
-        # Encode Edit Images
-        self.dynamic_load(self.first_stage_model, 'first_stage_model')
-        edit_image = [to_device(i, strict=False) for i in edit_image]
-        edit_image_mask = [to_device(i, strict=False) for i in edit_image_mask]
-        e_img, e_mask = [], []
-        for u, m in zip(edit_image, edit_image_mask):
-            if u is None:
-                continue
-            if m is None:
-                m = [None] * len(u)
-            e_img.append(self.encode_first_stage(u, **kwargs))
-            e_mask.append([self.interpolate_func(i) for i in m])
-        self.dynamic_unload(self.first_stage_model,
-                            'first_stage_model',
-                            skip_loaded=True)
-        null_ctx['edit'] = ctx['edit'] = e_img
-        null_ctx['edit_mask'] = ctx['edit_mask'] = e_mask
+            # Encode Prompt
+            self.dynamic_load(self.cond_stage_model, 'cond_stage_model')
+            function_name, dtype = self.get_function_info(self.cond_stage_model)
+            cont, cont_mask = getattr(get_model(self.cond_stage_model),
+                                      function_name)(prompt)
+            cont, cont_mask = self.cond_stage_embeddings(prompt, edit_image, cont,
+                                                         cont_mask)
+            null_cont, null_cont_mask = getattr(get_model(self.cond_stage_model),
+                                                function_name)(n_prompt)
+            null_cont, null_cont_mask = self.cond_stage_embeddings(
+                prompt, edit_image, null_cont, null_cont_mask)
+            self.dynamic_unload(self.cond_stage_model,
+                                'cond_stage_model',
+                                skip_loaded=False)
+            ctx['crossattn'] = cont
+            null_ctx['crossattn'] = null_cont
 
-        # Diffusion Process
-        self.dynamic_load(self.diffusion_model, 'diffusion_model')
-        function_name, dtype = self.get_function_info(self.diffusion_model)
-        with torch.autocast('cuda',
-                            enabled=dtype in ('float16', 'bfloat16'),
-                            dtype=getattr(torch, dtype)):
-            latent = self.diffusion.sample(
-                noise=noise,
-                sampler=sampler,
-                model=get_model(self.diffusion_model),
-                model_kwargs=[{
-                    'cond':
-                    ctx,
-                    'mask':
-                    cont_mask,
-                    'text_position_embeddings':
-                    self.text_position_embeddings.pos if hasattr(
-                        self.text_position_embeddings, 'pos') else None
-                }, {
-                    'cond':
-                    null_ctx,
-                    'mask':
-                    null_cont_mask,
-                    'text_position_embeddings':
-                    self.text_position_embeddings.pos if hasattr(
-                        self.text_position_embeddings, 'pos') else None
-                }] if guide_scale is not None and guide_scale > 1 else {
-                    'cond':
-                    null_ctx,
-                    'mask':
-                    cont_mask,
-                    'text_position_embeddings':
-                    self.text_position_embeddings.pos if hasattr(
-                        self.text_position_embeddings, 'pos') else None
-                },
-                steps=sample_steps,
-                show_progress=True,
-                seed=seed,
-                guide_scale=guide_scale,
-                guide_rescale=guide_rescale,
-                return_intermediate=None,
-                **kwargs)
-        self.dynamic_unload(self.diffusion_model,
-                            'diffusion_model',
-                            skip_loaded=False)
+            # Encode Edit Images
+            self.dynamic_load(self.first_stage_model, 'first_stage_model')
+            edit_image = [to_device(i, strict=False) for i in edit_image]
+            edit_image_mask = [to_device(i, strict=False) for i in edit_image_mask]
+            e_img, e_mask = [], []
+            for u, m in zip(edit_image, edit_image_mask):
+                if u is None:
+                    continue
+                if m is None:
+                    m = [None] * len(u)
+                e_img.append(self.encode_first_stage(u, **kwargs))
+                e_mask.append([self.interpolate_func(i) for i in m])
+            self.dynamic_unload(self.first_stage_model,
+                                'first_stage_model',
+                                skip_loaded=True)
+            null_ctx['edit'] = ctx['edit'] = e_img
+            null_ctx['edit_mask'] = ctx['edit_mask'] = e_mask
 
-        # Decode to Pixel Space
-        self.dynamic_load(self.first_stage_model, 'first_stage_model')
-        samples = unpack_tensor_into_imagelist(latent, x_shapes)
-        x_samples = self.decode_first_stage(samples)
-        self.dynamic_unload(self.first_stage_model,
-                            'first_stage_model',
-                            skip_loaded=False)
+            # Diffusion Process
+            self.dynamic_load(self.diffusion_model, 'diffusion_model')
+            function_name, dtype = self.get_function_info(self.diffusion_model)
+            with torch.autocast('cuda',
+                                enabled=dtype in ('float16', 'bfloat16'),
+                                dtype=getattr(torch, dtype)):
+                latent = self.diffusion.sample(
+                    noise=noise,
+                    sampler=sampler,
+                    model=get_model(self.diffusion_model),
+                    model_kwargs=[{
+                        'cond':
+                        ctx,
+                        'mask':
+                        cont_mask,
+                        'text_position_embeddings':
+                        self.text_position_embeddings.pos if hasattr(
+                            self.text_position_embeddings, 'pos') else None
+                    }, {
+                        'cond':
+                        null_ctx,
+                        'mask':
+                        null_cont_mask,
+                        'text_position_embeddings':
+                        self.text_position_embeddings.pos if hasattr(
+                            self.text_position_embeddings, 'pos') else None
+                    }] if guide_scale is not None and guide_scale > 1 else {
+                        'cond':
+                        null_ctx,
+                        'mask':
+                        cont_mask,
+                        'text_position_embeddings':
+                        self.text_position_embeddings.pos if hasattr(
+                            self.text_position_embeddings, 'pos') else None
+                    },
+                    steps=sample_steps,
+                    show_progress=True,
+                    seed=seed,
+                    guide_scale=guide_scale,
+                    guide_rescale=guide_rescale,
+                    return_intermediate=None,
+                    **kwargs)
+            self.dynamic_unload(self.diffusion_model,
+                                'diffusion_model',
+                                skip_loaded=False)
+
+            # Decode to Pixel Space
+            self.dynamic_load(self.first_stage_model, 'first_stage_model')
+            samples = unpack_tensor_into_imagelist(latent, x_shapes)
+            x_samples = self.decode_first_stage(samples)
+            self.dynamic_unload(self.first_stage_model,
+                                'first_stage_model',
+                                skip_loaded=False)
+            x_samples = [x.squeeze(0) for x in x_samples]
+        else:
+            x_samples = image
+        if self.refiner_module and refiner_scale > 0:
+            if is_txt_image:
+                random.shuffle(self.ace_prompt)
+                input_refine_prompt = [self.ace_prompt[0] + refiner_prompt if p[0] == "" else p[0] for p in prompt]
+                input_refine_scale = -1.
+            else:
+                input_refine_prompt = [p[0].replace("{image}", "") + " " + refiner_prompt for p in prompt]
+                input_refine_scale = refiner_scale
+                print(input_refine_prompt)
+
+            x_samples = self.refiner_module.refine(x_samples,
+                                                   reverse_scale = input_refine_scale,
+                                                   prompt= input_refine_prompt,
+                                                   seed=seed)
 
         imgs = [
-            torch.clamp((x_i + 1.0) / 2.0 + self.decoder_bias / 255,
+            torch.clamp((x_i.float() + 1.0) / 2.0 + self.decoder_bias / 255,
                         min=0.0,
                         max=1.0).squeeze(0).permute(1, 2, 0).cpu().numpy()
             for x_i in x_samples

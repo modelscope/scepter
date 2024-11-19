@@ -9,6 +9,7 @@ class Media(Enum):
     VIDEO = 3
     AUDIO = 4
     IMAGE_PAIR = 5
+    VIDEO_PAIR = 6
 
 
 class HtmlVisualization(object):
@@ -52,24 +53,27 @@ class HtmlVisualization(object):
                     height: 100%; \n
                     transition: 0.4s ease; \n
                 }\n
-                .image img {
+                .image img { \n
                     width: 100%; \n
                     height: 100%; \n
                     object-fit: contain; \n
                 } \n
+
+                .video { \n
+                    display:flex; \n
+                    position:absolute; \n
+                    width:100%; \n
+                    height:100%; \n
+                    transition:0.4s ease; \n
+                    object-fit:contain; \n
+                } \n
+
                 .slider {
                     position: absolute; \n
                     cursor: ew-resize; \n
                     height: 100%; \n
                     background-color: rgba(255, 255, 255, 0.5); \n
                     z-index: 10; \n
-                } \n
-                video { \n
-                    width: auto;
-                    height: 100%;
-                    margin: 0px; \n
-                    border: 0px solid #ccc; \n
-                    padding: 0px; \n
                 } \n
                 textarea { \n
                     margin: 0px; \n
@@ -89,12 +93,11 @@ class HtmlVisualization(object):
                     containers.forEach(container => {\n
                         let isDragging = true;\n
                         const slider = container.querySelector('.slider')\n
-                        const image2 = container.querySelector('#image2')\n
+                        const media2 = container.querySelector('#media2')\n
 
                         container.addEventListener('mousedown', () => {\n
                             isDragging = true;\n
                         });\n
-
 
                         container.addEventListener('mouseup', () => {\n
                             isDragging = true;\n
@@ -108,52 +111,18 @@ class HtmlVisualization(object):
 
                             let percentage = (clientX - left) / width * 100;\n
 
-
-                            // 限制百分比在0到100之间\n
-
                             percentage = Math.max(0, Math.min(100, percentage));\n
 
-                            image2.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;\n
+                            media2.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;\n
 
                             slider.style.left = `${percentage}%`;\n
 
                             console.info(slider.style.left);\n
 
                         });\n
-                        // 初始化滑块位置\n
                         slider.style.left = '50%';\n
                     });\n
                 </script>\n
-                <script> \n
-                    const videos = document.querySelectorAll('video'); \n
-                    \n
-                    const observer = new IntersectionObserver((entries) => { \n
-                        entries.forEach(entry => { \n
-                            if (entry.isIntersecting) { \n
-                                const video = entry.target; \n
-                                video.src = video.dataset.src; \n
-                                video.load(); \n
-                                observer.unobserve(video); \n
-                            } \n
-                        }); \n
-                    }); \n
-                    \n
-                    videos.forEach(video => { \n
-                        observer.observe(video); \n
-                    }); \n
-                    \n
-                    function adjustHeight() { \n
-                        const textareas = document.querySelectorAll('textarea'); \n
-                        textareas.forEach(textarea => { \n
-                        const td = textarea.parentNode; \n
-                        const tdHeight = td.clientHeight; \n
-                        textarea.style.height = tdHeight + 'px'; \n
-                        }); \n
-                    } \n
-                    window.onload = adjustHeight; \n
-                    window.onresize = adjustHeight; \n
-                </script> \n
-
         '''
 
         self.html_body = '<body>{BODY}\n' + self.html_body_script + '</body>\n'
@@ -196,7 +165,7 @@ class HtmlVisualization(object):
         if type == Media.TEXT:
             ret_str = '<textarea'  # noqa: E501
             if self.height is not None:
-                rows = f"rows={self.height//30}"
+                rows = f"rows={self.height // 30}"
                 ret_str += f" {rows}"
             if self.width is not None:
                 cols = f"cols={self.text_cols * cols_span}"
@@ -221,7 +190,7 @@ class HtmlVisualization(object):
             if self.width is not None:
                 width = f'width="{self.width}"'
                 ret_str += f" {width}"
-            ret_str += ' preload="none" controls>'
+            ret_str += ' preload="none" autoplay muted loop>'
             ret_str += f'<source src="{content}" type="video/mp4"></video>'
             sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         elif type == Media.AUDIO:
@@ -229,18 +198,29 @@ class HtmlVisualization(object):
             sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         elif type == Media.IMAGE_PAIR:
             assert isinstance(content, (list, tuple)) and len(content) == 2
-            ret_str = '\n'
-            ret_str += '       <div class="container"'
+            ret_str = f'\n'  # noqa
+            ret_str += f'       <div class="container"'  # noqa
             ret_str += (
                 f'> \n'
-                f'      <div class="image" id="image1">'  # noqa
+                f'      <div class="image" id="media1">'  # noqa
                 f'          <img src="{content[1]}" alt="before">\n'  # noqa
                 f'      </div>\n'  # noqa
-                f'      <div class="image" id="image2" style="clip-path: inset(0 50% 0 0);">\n'  # noqa
+                f'      <div class="image" id="media2" style="clip-path: inset(0 50% 0 0);">\n'  # noqa
                 f'            <img src="{content[0]}" alt="after">\n'  # noqa
                 f'      </div>\n'  # noqa
                 f'      <div class="slider" id="slider"></div>\n'  # noqa
                 f'')
+            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
+        elif type == Media.VIDEO_PAIR:
+            assert isinstance(content, (list, tuple)) and len(content) == 2
+            ret_str = f'\n'  # noqa
+            ret_str += f'       <div class="container"'  # noqa
+            ret_str += (
+                f'> \n'
+                f'      <video autoplay muted loop class="video" id="media1"><source src="{content[1]}" type="video/mp4"></video>\n'  # noqa
+                f'      <video autoplay muted loop class="video" id="media2" style="clip-path: inset(0 50% 0 0);"><source src="{content[0]}" type="video/mp4"></video>\n'  # noqa
+                f'      <div class="slider" id="slider"></div>\n'  # noqa
+                f'</div>')
             sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         else:
             raise NotImplementedError

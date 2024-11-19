@@ -13,8 +13,8 @@ DEFAULT_PARAS:
       VISIBLE: False
     PROMPT_PREFIX: ""
     SAMPLE:
-      VALUES: ["flow_eluer"]
-      DEFAULT: "flow_eluer"
+      VALUES: ["flow_euler"]
+      DEFAULT: "flow_euler"
     SAMPLE_STEPS: 4
     GUIDE_SCALE: 3.5
     GUIDE_RESCALE:
