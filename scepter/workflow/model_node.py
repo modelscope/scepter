@@ -94,13 +94,13 @@ class ModelNode:
             elif source == 'Local':
                 cfg_new = copy.deepcopy(cfg)
                 cfg_new.MODEL = cfg_new.MODEL_LOCAL
-                if hasattr(cfg_new, 'EFINER_MODEL_LOCAL'):
+                if hasattr(cfg_new, 'REFINER_MODEL_LOCAL'):
                     cfg_new.REFINER_MODEL = cfg_new.REFINER_MODEL_LOCAL
                 return cfg_new
             elif source == 'HuggingFace':
                 cfg_new = copy.deepcopy(cfg)
                 cfg_new.MODEL = cfg_new.MODEL_HF
-                if hasattr(cfg_new, 'EFINER_MODEL_HF'):
+                if hasattr(cfg_new, 'REFINER_MODEL_HF'):
                     cfg_new.REFINER_MODEL = cfg_new.REFINER_MODEL_HF
                 return cfg_new
             else:
