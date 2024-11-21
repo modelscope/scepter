@@ -55,8 +55,10 @@ class ChatBotUI(object):
             from diffusers.utils import export_to_video
         except Exception as e:
             print(f"Import diffusers failed, please install or upgrade diffusers. Error information: {e}")
-
-        cfg = Config(cfg_file=cfg_general_file)
+        if isinstance(cfg_general_file, str):
+            cfg = Config(cfg_file=cfg_general_file)
+        else:
+            cfg = cfg_general_file
         cfg.WORK_DIR = os.path.join(root_work_dir, cfg.WORK_DIR)
         if not FS.exists(cfg.WORK_DIR):
             FS.make_dir(cfg.WORK_DIR)
@@ -75,7 +77,7 @@ class ChatBotUI(object):
             self.model_choices[model_name] = model_cfg
         print('Models: ', self.model_choices.keys())
         assert len(self.model_choices) > 0
-        if self.default_model_name == "": self.default_model_name = self.model_choices.keys()[0]
+        if self.default_model_name == "": self.default_model_name = list(self.model_choices.keys())[0]
         self.model_name = self.default_model_name
         self.pipe = ACEInference()
         self.pipe.init_from_cfg(self.model_choices[self.default_model_name])
@@ -383,7 +385,7 @@ class ChatBotUI(object):
                                                          label='Rescale')
                                 self.refiner_scale = gr.Slider(minimum=-0.1,
                                                          maximum=1.0,
-                                                         value=self.pipe.input.get("refiner_scale", 0.5),
+                                                         value=self.pipe.input.get("refiner_scale", -1),
                                                          visible=self.pipe.input.get("refiner_scale", None) is not None,
                                                          label='Refiner Scale')
                                 self.seed = gr.Slider(minimum=-1,
@@ -530,6 +532,7 @@ class ChatBotUI(object):
                 lock.acquire()
                 del self.pipe
                 torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
                 self.pipe = ACEInference()
                 self.pipe.init_from_cfg(self.model_choices[model_name])
                 self.model_name = model_name
@@ -555,7 +558,7 @@ class ChatBotUI(object):
                         value=self.pipe.input.get("refiner_prompt", ""),
                         visible=self.pipe.input.get("refiner_prompt", None) is not None),
                     gr.Slider(
-                              value=self.pipe.input.get("refiner_scale", 0.5),
+                              value=self.pipe.input.get("refiner_scale", -1),
                               visible=self.pipe.input.get("refiner_scale", None) is not None
                         ),
                     gr.Checkbox(
@@ -996,9 +999,13 @@ class ChatBotUI(object):
                     w = int(w / ratio)
                 img = img.resize((w, h))
                 edit_image.append(img)
+                if img_mask is not None:
+                    img_mask = img_mask if np.sum(np.array(img_mask)) > 0 else None
                 edit_image_mask.append(
                     img_mask if img_mask is not None else None)
                 edit_task.append(task)
+                if ref1 is not None:
+                    ref1 = ref1 if np.sum(np.array(ref1)) > 0 else None
                 if ref1 is not None:
                     edit_image.append(ref1)
                     edit_image_mask.append(None)
@@ -1034,8 +1041,13 @@ class ChatBotUI(object):
             img_str = f'<img src="data:image/png;base64,{img_b64}" style="pointer-events: none;">'
             history = [(prompt,
                         f'{pre_info} The generated image is:\n {img_str}')]
+
+            img_id = get_md5(img_b64)[:12]
+            save_path = os.path.join(self.cache_dir, f'{img_id}.png')
+            img.convert('RGB').save(save_path)
+
             return self.get_history(history), gr.update(value=''), gr.update(
-                visible=False), gr.update(value=-1)
+                visible=False), gr.Image(value=save_path), gr.update(value=-1)
 
         with self.eg:
             self.example_task = gr.Text(label='Task Name',
@@ -1061,8 +1073,9 @@ class ChatBotUI(object):
                     self.example_task, self.example_image, self.example_mask,
                     self.example_ref_im1, self.text, self.seed
                 ],
-                outputs=[self.chatbot, self.text, self.gallery, self.seed],
+                outputs=[self.chatbot, self.text, self.gallery, self.legacy_image_viewer, self.seed],
                 examples_per_page=4,
+                cache_examples=False,
                 run_on_click=True)
 
         ########################################
@@ -1390,7 +1403,7 @@ class ChatBotUI(object):
 def run_gr(cfg):
     with gr.Blocks() as demo:
         chatbot = ChatBotUI(cfg)
-        chatbot.create_bot_ui()
+        chatbot.create_ui()
         chatbot.set_callbacks()
         demo.launch(server_name='0.0.0.0',
                     server_port=cfg.args.server_port,
@@ -1402,6 +1415,7 @@ if __name__ == '__main__':
     parser.add_argument('--server_port',
                         dest='server_port',
                         help='',
+                        type=int,
                         default=2345)
     parser.add_argument('--root_path', dest='root_path', help='', default='')
     cfg = Config(load=True, parser_ins=parser)

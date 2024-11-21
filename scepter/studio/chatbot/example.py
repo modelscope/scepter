@@ -3,6 +3,7 @@
 import os
 
 from scepter.modules.utils.file_system import FS
+from PIL import Image
 
 
 def download_image(image, local_path=None):
@@ -10,44 +11,56 @@ def download_image(image, local_path=None):
         local_path = FS.get_from(image, local_path=local_path)
     return local_path
 
+def blank_image():
+    return Image.new('RGBA', (128, 128), (0, 0, 0, 0))
+
+
 
 def get_examples(cache_dir):
     print('Downloading Examples ...')
+    bl_img = blank_image()
     examples = [
         [
             'Facial Editing',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/e33edc106953.png?raw=true',
-                os.path.join(cache_dir, 'examples/e33edc106953.png')), None,
-            None, '{image} let the man smile', 6666
+                os.path.join(cache_dir, 'examples/e33edc106953.png')), bl_img,
+                bl_img, '{image} let the man smile', 6666
         ],
         [
             'Facial Editing',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/5d2bcc91a3e9.png?raw=true',
-                os.path.join(cache_dir, 'examples/5d2bcc91a3e9.png')), None,
-            None, 'let the man in {image} wear sunglasses', 9999
+                os.path.join(cache_dir, 'examples/5d2bcc91a3e9.png')), bl_img,
+                bl_img, 'let the man in {image} wear sunglasses', 9999
+        ],
+        [
+            'Facial Editing',
+            download_image(
+                'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/5d2bcc91a3e9.png?raw=true',
+                os.path.join(cache_dir, 'examples/5d2bcc91a3e9.png')), bl_img,
+            bl_img, 'let the man in {image} wear sunglasses', 9999
         ],
         [
             'Facial Editing',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/3a52eac708bd.png?raw=true',
-                os.path.join(cache_dir, 'examples/3a52eac708bd.png')), None,
-            None, '{image} red hair', 9999
+                os.path.join(cache_dir, 'examples/3a52eac708bd.png')), bl_img,
+            bl_img, '{image} red hair', 9999
         ],
         [
             'Facial Editing',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/3f4dc464a0ea.png?raw=true',
-                os.path.join(cache_dir, 'examples/3f4dc464a0ea.png')), None,
-            None, '{image} let the man serious', 99999
+                os.path.join(cache_dir, 'examples/3f4dc464a0ea.png')), bl_img,
+            bl_img, '{image} let the man serious', 99999
         ],
         [
             'Controllable Generation',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/131ca90fd2a9.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/131ca90fd2a9.png')), None, None,
+                             'examples/131ca90fd2a9.png')), bl_img, bl_img,
             '"A person sits contemplatively on the ground, surrounded by falling autumn leaves. Dressed in a green sweater and dark blue pants, they rest their chin on their hand, exuding a relaxed demeanor. Their stylish checkered slip-on shoes add a touch of flair, while a black purse lies in their lap. The backdrop of muted brown enhances the warm, cozy atmosphere of the scene." , generate the image that corresponds to the given scribble {image}.',
             613725
         ],
@@ -59,7 +72,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/33e9f27c2c48_mask.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/33e9f27c2c48_mask.png')), None,
+                             'examples/33e9f27c2c48_mask.png')), bl_img,
             'Put the text "C A T" at the position marked by mask in the {image}',
             6666
         ],
@@ -67,7 +80,7 @@ def get_examples(cache_dir):
             'Style Transfer',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/9e73e7eeef55.png?raw=true',
-                os.path.join(cache_dir, 'examples/9e73e7eeef55.png')), None,
+                os.path.join(cache_dir, 'examples/9e73e7eeef55.png')), bl_img,
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/2e02975293d6.png?raw=true',
                 os.path.join(cache_dir, 'examples/2e02975293d6.png')),
@@ -81,7 +94,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/f2b22c08be3f_mask.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/f2b22c08be3f_mask.png')), None,
+                             'examples/f2b22c08be3f_mask.png')), bl_img,
             'Could the {image} be widened within the space designated by mask, while retaining the original?',
             6666
         ],
@@ -89,57 +102,57 @@ def get_examples(cache_dir):
             'Image Segmentation',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/db3ebaa81899.png?raw=true',
-                os.path.join(cache_dir, 'examples/db3ebaa81899.png')), None,
-            None, '{image} Segmentation', 6666
+                os.path.join(cache_dir, 'examples/db3ebaa81899.png')), bl_img,
+            bl_img, '{image} Segmentation', 6666
         ],
         [
             'Depth Estimation',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/f1927c4692ba.png?raw=true',
-                os.path.join(cache_dir, 'examples/f1927c4692ba.png')), None,
-            None, '{image} Depth Estimation', 6666
+                os.path.join(cache_dir, 'examples/f1927c4692ba.png')), bl_img,
+            bl_img, '{image} Depth Estimation', 6666
         ],
         [
             'Pose Estimation',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/014e5bf3b4d1.png?raw=true',
-                os.path.join(cache_dir, 'examples/014e5bf3b4d1.png')), None,
-            None, '{image} distinguish the poses of the figures', 999999
+                os.path.join(cache_dir, 'examples/014e5bf3b4d1.png')), bl_img,
+            bl_img, '{image} distinguish the poses of the figures', 999999
         ],
         [
             'Scribble Extraction',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/5f59a202f8ac.png?raw=true',
-                os.path.join(cache_dir, 'examples/5f59a202f8ac.png')), None,
-            None, 'Generate a scribble of {image}, please.', 6666
+                os.path.join(cache_dir, 'examples/5f59a202f8ac.png')), bl_img,
+            bl_img, 'Generate a scribble of {image}, please.', 6666
         ],
         [
             'Mosaic',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/3a2f52361eea.png?raw=true',
-                os.path.join(cache_dir, 'examples/3a2f52361eea.png')), None,
-            None, 'Adapt {image} into a mosaic representation.', 6666
+                os.path.join(cache_dir, 'examples/3a2f52361eea.png')), bl_img,
+            bl_img, 'Adapt {image} into a mosaic representation.', 6666
         ],
         [
             'Edge map Extraction',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/b9d1e519d6e5.png?raw=true',
-                os.path.join(cache_dir, 'examples/b9d1e519d6e5.png')), None,
-            None, 'Get the edge-enhanced result for {image}.', 6666
+                os.path.join(cache_dir, 'examples/b9d1e519d6e5.png')), bl_img,
+            bl_img, 'Get the edge-enhanced result for {image}.', 6666
         ],
         [
             'Grayscale',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/c4ebbe2ba29b.png?raw=true',
-                os.path.join(cache_dir, 'examples/c4ebbe2ba29b.png')), None,
-            None, 'transform {image} into a black and white one', 6666
+                os.path.join(cache_dir, 'examples/c4ebbe2ba29b.png')), bl_img,
+            bl_img, 'transform {image} into a black and white one', 6666
         ],
         [
             'Contour Extraction',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/19652d0f6c4b.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/19652d0f6c4b.png')), None, None,
+                             'examples/19652d0f6c4b.png')), bl_img, bl_img,
             'Would you be able to make a contour picture from {image} for me?',
             6666
         ],
@@ -148,7 +161,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/249cda2844b7.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/249cda2844b7.png')), None, None,
+                             'examples/249cda2844b7.png')), bl_img, bl_img,
             'Following the segmentation outcome in mask of {image}, develop a real-life image using the explanatory note in "a mighty cat lying on the bed”.',
             6666
         ],
@@ -157,7 +170,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/411f6c4b8e6c.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/411f6c4b8e6c.png')), None, None,
+                             'examples/411f6c4b8e6c.png')), bl_img, bl_img,
             'use the depth map {image} and the text caption "a cut white cat" to create a corresponding graphic image',
             999999
         ],
@@ -166,7 +179,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/a35c96ed137a.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/a35c96ed137a.png')), None, None,
+                             'examples/a35c96ed137a.png')), bl_img, bl_img,
             'help translate this posture schema {image} into a colored image based on the context I provided "A beautiful woman Climbing the climbing wall, wearing a harness and climbing gear, skillfully maneuvering up the wall with her back to the camera, with a safety rope."',
             3599999
         ],
@@ -175,7 +188,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/dcb2fc86f1ce.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/dcb2fc86f1ce.png')), None, None,
+                             'examples/dcb2fc86f1ce.png')), bl_img, bl_img,
             'Transform and generate an image using mosaic {image} and "Monarch butterflies gracefully perch on vibrant purple flowers, showcasing their striking orange and black wings in a lush garden setting." description',
             6666
         ],
@@ -184,7 +197,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/4cd4ee494962.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/4cd4ee494962.png')), None, None,
+                             'examples/4cd4ee494962.png')), bl_img, bl_img,
             'make this {image} colorful as per the "beautiful sunflowers"',
             6666
         ],
@@ -193,7 +206,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/a47e3a9cd166.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/a47e3a9cd166.png')), None, None,
+                             'examples/a47e3a9cd166.png')), bl_img, bl_img,
             'Take the edge conscious {image} and the written guideline "A whimsical animated character is depicted holding a delectable cake adorned with blue and white frosting and a drizzle of chocolate. The character wears a yellow headband with a bow, matching a cozy yellow sweater. Her dark hair is styled in a braid, tied with a yellow ribbon. With a golden fork in hand, she stands ready to enjoy a slice, exuding an air of joyful anticipation. The scene is creatively rendered with a charming and playful aesthetic." and produce a realistic image.',
             613725
         ],
@@ -202,7 +215,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/d890ed8a3ac2.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/d890ed8a3ac2.png')), None, None,
+                             'examples/d890ed8a3ac2.png')), bl_img, bl_img,
             'creating a vivid image based on {image} and description "This image features a delicious rectangular tart with a flaky, golden-brown crust. The tart is topped with evenly sliced tomatoes, layered over a creamy cheese filling. Aromatic herbs are sprinkled on top, adding a touch of green and enhancing the visual appeal. The background includes a soft, textured fabric and scattered white flowers, creating an elegant and inviting presentation. Bright red tomatoes in the upper right corner hint at the fresh ingredients used in the dish."',
             6666
         ],
@@ -211,7 +224,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/0844a686a179.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/0844a686a179.png')), None, None,
+                             'examples/0844a686a179.png')), bl_img, bl_img,
             'Eliminate noise interference in {image} and maximize the crispness to obtain superior high-definition quality',
             6666
         ],
@@ -223,7 +236,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/fa91b6b7e59b_mask.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/fa91b6b7e59b_mask.png')), None,
+                             'examples/fa91b6b7e59b_mask.png')), bl_img,
             'Ensure to overhaul the parts of the {image} indicated by the mask.',
             6666
         ],
@@ -235,7 +248,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/632899695b26_mask.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/632899695b26_mask.png')), None,
+                             'examples/632899695b26_mask.png')), bl_img,
             'Refashion the mask portion of {image} in accordance with "A yellow egg with a smiling face painted on it"',
             6666
         ],
@@ -244,7 +257,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/354d17594afe.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/354d17594afe.png')), None, None,
+                             'examples/354d17594afe.png')), bl_img, bl_img,
             '{image} change the dog\'s posture to walking in the water, and change the background to green plants and a pond.',
             6666
         ],
@@ -253,7 +266,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/38946455752b.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/38946455752b.png')), None, None,
+                             'examples/38946455752b.png')), bl_img, bl_img,
             '{image} change the color of the dress from white to red and the model\'s hair color red brown to blonde.Other parts remain unchanged',
             6669
         ],
@@ -262,7 +275,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/3ba5202f0cd8.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/3ba5202f0cd8.png')), None, None,
+                             'examples/3ba5202f0cd8.png')), bl_img, bl_img,
             'Keep the same facial feature in @3ba5202f0cd8, change the woman\'s clothing from a Blue denim jacket to a white turtleneck sweater and adjust her posture so that she is supporting her chin with both hands. Other aspects, such as background, hairstyle, facial expression, etc, remain unchanged.',
             99999
         ],
@@ -270,22 +283,22 @@ def get_examples(cache_dir):
             'Facial Editing',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/369365b94725.png?raw=true',
-                os.path.join(cache_dir, 'examples/369365b94725.png')), None,
-            None, '{image} Make her looking at the camera', 6666
+                os.path.join(cache_dir, 'examples/369365b94725.png')), bl_img,
+            bl_img, '{image} Make her looking at the camera', 6666
         ],
         [
             'Facial Editing',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/92751f2e4a0e.png?raw=true',
-                os.path.join(cache_dir, 'examples/92751f2e4a0e.png')), None,
-            None, '{image} Remove the smile from his face', 9899999
+                os.path.join(cache_dir, 'examples/92751f2e4a0e.png')), bl_img,
+            bl_img, '{image} Remove the smile from his face', 9899999
         ],
         [
             'Remove Text',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/8530a6711b2e.png?raw=true',
-                os.path.join(cache_dir, 'examples/8530a6711b2e.png')), None,
-            None, 'Aim to remove any textual element in {image}', 6666
+                os.path.join(cache_dir, 'examples/8530a6711b2e.png')), bl_img,
+            bl_img, 'Aim to remove any textual element in {image}', 6666
         ],
         [
             'Remove Text',
@@ -295,7 +308,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/c4d7fb28f8f6_mask.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/c4d7fb28f8f6_mask.png')), None,
+                             'examples/c4d7fb28f8f6_mask.png')), bl_img,
             'Rub out any text found in the mask sector of the {image}.', 6666
         ],
         [
@@ -303,7 +316,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/e2f318fa5e5b.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/e2f318fa5e5b.png')), None, None,
+                             'examples/e2f318fa5e5b.png')), bl_img, bl_img,
             'Remove the unicorn in this {image}, ensuring a smooth edit.',
             99999
         ],
@@ -315,7 +328,7 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/1ae96d8aca00_mask.png?raw=true',
                 os.path.join(cache_dir, 'examples/1ae96d8aca00_mask.png')),
-            None, 'Discard the contents of the mask area from {image}.', 99999
+            bl_img, 'Discard the contents of the mask area from {image}.', 99999
         ],
         [
             'Add Object',
@@ -325,22 +338,22 @@ def get_examples(cache_dir):
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/80289f48e511_mask.png?raw=true',
                 os.path.join(cache_dir,
-                             'examples/80289f48e511_mask.png')), None,
+                             'examples/80289f48e511_mask.png')), bl_img,
             'add a Hot Air Balloon into the {image}, per the mask', 613725
         ],
         [
             'Style Transfer',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/d725cb2009e8.png?raw=true',
-                os.path.join(cache_dir, 'examples/d725cb2009e8.png')), None,
-            None, 'Change the style of {image} to colored pencil style', 99999
+                os.path.join(cache_dir, 'examples/d725cb2009e8.png')), bl_img,
+            bl_img, 'Change the style of {image} to colored pencil style', 99999
         ],
         [
             'Style Transfer',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/e0f48b3fd010.png?raw=true',
-                os.path.join(cache_dir, 'examples/e0f48b3fd010.png')), None,
-            None, 'make {image} to Walt Disney Animation style', 99999
+                os.path.join(cache_dir, 'examples/e0f48b3fd010.png')), bl_img,
+            bl_img, 'make {image} to Walt Disney Animation style', 99999
         ],
         [
             'Try On',
@@ -359,8 +372,8 @@ def get_examples(cache_dir):
             'Workflow',
             download_image(
                 'https://github.com/ali-vilab/ace-page/blob/main/assets/examples/cb85353c004b.png?raw=true',
-                os.path.join(cache_dir, 'examples/cb85353c004b.png')), None,
-            None, '<workflow> ice cream {image}', 99999
+                os.path.join(cache_dir, 'examples/cb85353c004b.png')), bl_img,
+            bl_img, '<workflow> ice cream {image}', 99999
         ],
     ]
     print('Finish. Start building UI ...')
