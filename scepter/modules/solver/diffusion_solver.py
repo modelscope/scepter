@@ -197,7 +197,7 @@ class LatentDiffusionSolver(BaseSolver):
         else:
             self.logger.info('Use default backend.')
         self.use_scaler = cfg.get('USE_SCALER', True)
-        self.enable_gradscaler = cfg.get('ENABLE_GRADSCALER', True)
+        self.enable_gradscaler = cfg.get('ENABLE_GRADSCALER', False)
         self.use_orig_params = cfg.get('USE_ORIG_PARAMS', False)
         self.model_shard = cfg.get('SHARDING_STRATEGY', 'full_shard')
         self.sharding_size = cfg.get('SHARDING_SIZE', None)
@@ -422,8 +422,10 @@ class LatentDiffusionSolver(BaseSolver):
                                                     process_group=None)
                 else:
                     self.scaler = amp.GradScaler(enabled=self.enable_gradscaler)
-            else:
+            elif self.cfg.DTYPE in ['float16']:
                 self.scaler = amp.GradScaler()
+            else:
+                self.scaler = None
         else:
             self.scaler = None
 
