@@ -166,7 +166,7 @@ class ModelNode:
             input_data.update({'mask': mask})
 
         if parameters:
-            seed = parameters.pop('seed', -1)
+            seed = parameters.get('random_seed', -1)
             input_params.update({'seed': seed})
             input_data.update(parameters)
 
