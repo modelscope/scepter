@@ -4,24 +4,66 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-
+from torch import Tensor, nn
 import torch
 from einops import rearrange, repeat
-from torch import Tensor, nn
+from torch import Tensor
+from torch.nn.utils.rnn import pad_sequence
 
+try:
+    from flash_attn import (
+        flash_attn_varlen_func
+    )
+    FLASHATTN_IS_AVAILABLE = True
+except ImportError:
+    FLASHATTN_IS_AVAILABLE = False
+    flash_attn_varlen_func = None
 
-def attention(q: Tensor,
-              k: Tensor,
-              v: Tensor,
-              pe: Tensor,
-              mask: Tensor | None = None) -> Tensor:
+def attention(q: Tensor, k: Tensor, v: Tensor, pe: Tensor, mask: Tensor | None = None, backend = 'pytorch') -> Tensor:
     q, k = apply_rope(q, k, pe)
-    x = torch.nn.functional.scaled_dot_product_attention(q,
-                                                         k,
-                                                         v,
-                                                         attn_mask=mask)
-    x = torch.nan_to_num(x, nan=0.0, posinf=1e10, neginf=-1e10)
-    x = rearrange(x, 'B H L D -> B L (H D)')
+    if backend == 'pytorch':
+        if mask is not None and mask.dtype == torch.bool:
+            mask = torch.zeros_like(mask).to(q).masked_fill_(mask.logical_not(), -1e20)
+        x = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+        # x = torch.nan_to_num(x, nan=0.0, posinf=1e10, neginf=-1e10)
+        x = rearrange(x, "B H L D -> B L (H D)")
+    elif backend == 'flash_attn':
+        # q: (B, H, L, D)
+        # k: (B, H, S, D) now L = S
+        # v: (B, H, S, D)
+        b, h, lq, d = q.shape
+        _, _, lk, _ = k.shape
+        q = rearrange(q, "B H L D -> B L H D")
+        k = rearrange(k, "B H S D -> B S H D")
+        v = rearrange(v, "B H S D -> B S H D")
+        if mask is None:
+            q_lens = torch.tensor([lq] * b, dtype=torch.int32).to(q.device, non_blocking=True)
+            k_lens = torch.tensor([lk] * b, dtype=torch.int32).to(k.device, non_blocking=True)
+        else:
+            q_lens = torch.sum(mask[:, 0, :, 0], dim=1).int()
+            k_lens = torch.sum(mask[:, 0, 0, :], dim=1).int()
+        q = torch.cat([q_v[:q_l] for q_v, q_l in zip(q, q_lens)])
+        k = torch.cat([k_v[:k_l] for k_v, k_l in zip(k, k_lens)])
+        v = torch.cat([v_v[:v_l] for v_v, v_l in zip(v, k_lens)])
+        cu_seqlens_q = torch.cat([q_lens.new_zeros([1]), q_lens]).cumsum(0, dtype=torch.int32)
+        cu_seqlens_k = torch.cat([k_lens.new_zeros([1]), k_lens]).cumsum(0, dtype=torch.int32)
+        max_seqlen_q = q_lens.max()
+        max_seqlen_k = k_lens.max()
+
+        x = flash_attn_varlen_func(
+            q,
+            k,
+            v,
+            cu_seqlens_q=cu_seqlens_q,
+            cu_seqlens_k=cu_seqlens_k,
+            max_seqlen_q=max_seqlen_q,
+            max_seqlen_k=max_seqlen_k
+        )
+        x_list = [x[cu_seqlens_q[i]:cu_seqlens_q[i+1]] for i in range(b)]
+        x = pad_sequence(tuple(x_list), batch_first=True)
+        x = rearrange(x, "B L H D -> B L (H D)")
+    else:
+        raise NotImplementedError
     return x
 
 
@@ -173,11 +215,8 @@ class Modulation(nn.Module):
         self.multiplier = 6 if double else 3
         self.lin = nn.Linear(dim, self.multiplier * dim, bias=True)
 
-    def forward(self,
-                vec: Tensor) -> tuple[ModulationOut, ModulationOut | None]:
-        out = self.lin(nn.functional.silu(vec))[:,
-                                                None, :].chunk(self.multiplier,
-                                                               dim=-1)
+    def forward(self, vec: Tensor) -> tuple[ModulationOut, ModulationOut | None]:
+        out = self.lin(nn.functional.silu(vec))[:, None, :].chunk(self.multiplier, dim=-1)
 
         return (
             ModulationOut(*out[:3]),
@@ -186,56 +225,37 @@ class Modulation(nn.Module):
 
 
 class DoubleStreamBlock(nn.Module):
-    def __init__(self,
-                 hidden_size: int,
-                 num_heads: int,
-                 mlp_ratio: float,
-                 qkv_bias: bool = False):
+    def __init__(self, hidden_size: int, num_heads: int, mlp_ratio: float, qkv_bias: bool = False, backend = 'pytorch'):
         super().__init__()
 
         mlp_hidden_dim = int(hidden_size * mlp_ratio)
         self.num_heads = num_heads
         self.hidden_size = hidden_size
         self.img_mod = Modulation(hidden_size, double=True)
-        self.img_norm1 = nn.LayerNorm(hidden_size,
-                                      elementwise_affine=False,
-                                      eps=1e-6)
-        self.img_attn = SelfAttention(dim=hidden_size,
-                                      num_heads=num_heads,
-                                      qkv_bias=qkv_bias)
+        self.img_norm1 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
+        self.img_attn = SelfAttention(dim=hidden_size, num_heads=num_heads, qkv_bias=qkv_bias)
 
-        self.img_norm2 = nn.LayerNorm(hidden_size,
-                                      elementwise_affine=False,
-                                      eps=1e-6)
+        self.img_norm2 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
         self.img_mlp = nn.Sequential(
             nn.Linear(hidden_size, mlp_hidden_dim, bias=True),
-            nn.GELU(approximate='tanh'),
+            nn.GELU(approximate="tanh"),
             nn.Linear(mlp_hidden_dim, hidden_size, bias=True),
         )
+
+        self.backend = backend
 
         self.txt_mod = Modulation(hidden_size, double=True)
-        self.txt_norm1 = nn.LayerNorm(hidden_size,
-                                      elementwise_affine=False,
-                                      eps=1e-6)
-        self.txt_attn = SelfAttention(dim=hidden_size,
-                                      num_heads=num_heads,
-                                      qkv_bias=qkv_bias)
+        self.txt_norm1 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
+        self.txt_attn = SelfAttention(dim=hidden_size, num_heads=num_heads, qkv_bias=qkv_bias)
 
-        self.txt_norm2 = nn.LayerNorm(hidden_size,
-                                      elementwise_affine=False,
-                                      eps=1e-6)
+        self.txt_norm2 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
         self.txt_mlp = nn.Sequential(
             nn.Linear(hidden_size, mlp_hidden_dim, bias=True),
-            nn.GELU(approximate='tanh'),
+            nn.GELU(approximate="tanh"),
             nn.Linear(mlp_hidden_dim, hidden_size, bias=True),
         )
 
-    def forward(self,
-                x: Tensor,
-                vec: Tensor,
-                pe: Tensor,
-                mask: Tensor = None,
-                txt_length=None):
+    def forward(self, x: Tensor, vec: Tensor, pe: Tensor, mask: Tensor = None, txt_length = None):
         img_mod1, img_mod2 = self.img_mod(vec)
         txt_mod1, txt_mod2 = self.txt_mod(vec)
 
@@ -245,19 +265,13 @@ class DoubleStreamBlock(nn.Module):
         img_modulated = self.img_norm1(img)
         img_modulated = (1 + img_mod1.scale) * img_modulated + img_mod1.shift
         img_qkv = self.img_attn.qkv(img_modulated)
-        img_q, img_k, img_v = rearrange(img_qkv,
-                                        'B L (K H D) -> K B H L D',
-                                        K=3,
-                                        H=self.num_heads)
+        img_q, img_k, img_v = rearrange(img_qkv, "B L (K H D) -> K B H L D", K=3, H=self.num_heads)
         img_q, img_k = self.img_attn.norm(img_q, img_k, img_v)
         # prepare txt for attention
         txt_modulated = self.txt_norm1(txt)
         txt_modulated = (1 + txt_mod1.scale) * txt_modulated + txt_mod1.shift
         txt_qkv = self.txt_attn.qkv(txt_modulated)
-        txt_q, txt_k, txt_v = rearrange(txt_qkv,
-                                        'B L (K H D) -> K B H L D',
-                                        K=3,
-                                        H=self.num_heads)
+        txt_q, txt_k, txt_v = rearrange(txt_qkv, "B L (K H D) -> K B H L D", K=3, H=self.num_heads)
         txt_q, txt_k = self.txt_attn.norm(txt_q, txt_k, txt_v)
 
         # run actual attention
@@ -266,18 +280,16 @@ class DoubleStreamBlock(nn.Module):
         v = torch.cat((txt_v, img_v), dim=2)
         if mask is not None:
             mask = repeat(mask, 'B L S->  B H L S', H=self.num_heads)
-        attn = attention(q, k, v, pe=pe, mask=mask)
-        txt_attn, img_attn = attn[:, :txt.shape[1]], attn[:, txt.shape[1]:]
+        attn = attention(q, k, v, pe=pe, mask = mask, backend = self.backend)
+        txt_attn, img_attn = attn[:, : txt.shape[1]], attn[:, txt.shape[1] :]
 
         # calculate the img bloks
         img = img + img_mod1.gate * self.img_attn.proj(img_attn)
-        img = img + img_mod2.gate * self.img_mlp(
-            (1 + img_mod2.scale) * self.img_norm2(img) + img_mod2.shift)
+        img = img + img_mod2.gate * self.img_mlp((1 + img_mod2.scale) * self.img_norm2(img) + img_mod2.shift)
 
         # calculate the txt bloks
         txt = txt + txt_mod1.gate * self.txt_attn.proj(txt_attn)
-        txt = txt + txt_mod2.gate * self.txt_mlp(
-            (1 + txt_mod2.scale) * self.txt_norm2(txt) + txt_mod2.shift)
+        txt = txt + txt_mod2.gate * self.txt_mlp((1 + txt_mod2.scale) * self.txt_norm2(txt) + txt_mod2.shift)
         x = torch.cat((txt, img), 1)
         return x
 
@@ -293,6 +305,7 @@ class SingleStreamBlock(nn.Module):
         num_heads: int,
         mlp_ratio: float = 4.0,
         qk_scale: float | None = None,
+        backend='pytorch'
     ):
         super().__init__()
         self.hidden_dim = hidden_size
@@ -317,6 +330,7 @@ class SingleStreamBlock(nn.Module):
 
         self.mlp_act = nn.GELU(approximate='tanh')
         self.modulation = Modulation(hidden_size, double=False)
+        self.backend = backend
 
     def forward(self,
                 x: Tensor,

@@ -14,6 +14,7 @@ from scepter.modules.model.registry import (BACKBONES, EMBEDDERS, MODELS,
                                             TOKENIZERS, DIFFUSIONS)
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.config import Config
 from scepter.studio.utils.env import get_available_memory
 
 from .control_inference import ControlInference
@@ -316,7 +317,8 @@ class DiffusionInference():
         module_paras = {}
         if cfg is not None:
             self.paras = cfg.PARAS
-            self.input = {k.lower(): dict(v).get('DEFAULT', None) if isinstance(v, (dict, OrderedDict)) else v for k, v in cfg.INPUT.items()}
+            self.input_cfg = {k.lower(): v for k, v in cfg.INPUT.items()}
+            self.input = {k.lower(): dict(v).get('DEFAULT', None) if isinstance(v, (dict, OrderedDict, Config)) else v for k, v in cfg.INPUT.items()}
             self.output = {k.lower(): v for k, v in cfg.OUTPUT.items()}
             module_paras = cfg.MODULES_PARAS
         return module_paras

@@ -1,5 +1,6 @@
 NAME: ACE_0.6B_512
-IS_DEFAULT: False
+IS_DEFAULT: True
+USE_DYNAMIC_MODEL: True
 DEFAULT_PARAS:
   PARAS:
   #
@@ -39,7 +40,7 @@ DEFAULT_PARAS:
     #
     COND_STAGE_MODEL:
       FUNCTION:
-        - NAME: encode_list
+        - NAME: encode_list_of_list
           DTYPE: bfloat16
           INPUT: ["PROMPT"]
 #

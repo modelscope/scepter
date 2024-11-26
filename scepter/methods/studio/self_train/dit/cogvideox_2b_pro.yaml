@@ -1,0 +1,315 @@
+ENV:
+  BACKEND: nccl
+  SEED: 42
+  TENSOR_PARALLEL_SIZE: 1
+  PIPELINE_PARALLEL_SIZE: 1
+  SYS_ENVS:
+    TORCH_CUDNN_V8_API_ENABLED: '1'
+    TOKENIZERS_PARALLELISM: 'false'
+    TF_CPP_MIN_LOG_LEVEL: '3'
+    PYTORCH_CUDA_ALLOC_CONF: 'expandable_segments:True'
+META:
+  VERSION: 'COGVIDEOX_2B'
+  DESCRIPTION: "cogvideox 2b"
+  IS_DEFAULT: False
+  IS_SHARE: True
+  INFERENCE_PARAS:
+    INFERENCE_BATCH_SIZE: 1
+    INFERENCE_PREFIX: ""
+    DEFAULT_SAMPLER: "ddim"
+    DEFAULT_SAMPLE_STEPS: 50
+    INFERENCE_N_PROMPT: ""
+    RESOLUTION: [ 480, 720 ]
+  PARAS:
+    - TRAIN_BATCH_SIZE: 1
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: [ 480, 720 ]
+      MEMORY: 89000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 4e-4
+      IS_DEFAULT: False
+      TUNER: FULL
+    - TRAIN_BATCH_SIZE: 1
+      TRAIN_PREFIX: ""
+      TRAIN_N_PROMPT: ""
+      RESOLUTION: [ 480, 720 ]
+      MEMORY: 89000
+      EPOCHS: 50
+      SAVE_INTERVAL: 25
+      EPSEC: 0.818
+      LEARNING_RATE: 4e-4
+      IS_DEFAULT: True
+      TUNER: LORA
+  #
+  TUNERS:
+    LORA:
+      - NAME: SwiftLoRA
+        R: 64
+        LORA_ALPHA: 64
+        LORA_DROPOUT: 0.0
+        BIAS: "none"
+        TARGET_MODULES: "model.*(.to_k|.to_q|.to_v|.to_out.0)$"
+#
+SOLVER:
+  NAME: LatentDiffusionVideoSolver
+  MAX_STEPS: 2000
+  USE_AMP: True
+  DTYPE: bfloat16
+  USE_FAIRSCALE: False
+  USE_FSDP: True
+  LOAD_MODEL_ONLY: False
+  ENABLE_GRADSCALER: False
+  USE_SCALER: False
+  RESUME_FROM:
+  WORK_DIR: ./cache/save_data/dit_cogvideox_2b_lora
+  LOG_FILE: std_log.txt
+  EVAL_INTERVAL: 100
+  LOG_TRAIN_NUM: 4
+  FPS: 8
+  SHARDING_STRATEGY: full_shard
+  FSDP_REDUCE_DTYPE: float32
+  FSDP_BUFFER_DTYPE: float32
+  FSDP_SHARD_MODULES: [ 'model', 'cond_stage_model.model']
+  SAVE_MODULES: [ 'model', 'cond_stage_model.model']
+  TRAIN_MODULES: ['model']
+  #
+  FILE_SYSTEM:
+    NAME: "ModelscopeFs"
+    TEMP_DIR: "./cache/cache_data"
+  #
+  TUNER:
+  #
+  MODEL:
+    NAME: LatentDiffusionCogVideoX
+    PRETRAINED_MODEL:
+    PARAMETERIZATION: v
+    TIMESTEPS: 1000
+    MIN_SNR_GAMMA: 3.0
+    ZERO_TERMINAL_SNR: True
+    SCALE_FACTOR_SPATIAL: 8
+    SCALE_FACTOR_TEMPORAL: 4
+    SCALING_FACTOR_IMAGE: 1.15258426
+    IGNORE_KEYS: [ ]
+    DEFAULT_N_PROMPT:
+    USE_EMA: False
+    EVAL_EMA: False
+    DIFFUSION:
+      NAME: BaseDiffusion
+      PREDICTION_TYPE: v
+      NOISE_SCHEDULER:
+        NAME: ScaledLinearScheduler
+        BETA_MIN: 0.00085
+        BETA_MAX: 0.012
+        SNR_SHIFT_SCALE: 3.0
+        RESCALE_BETAS_ZERO_SNR: True
+      DIFFUSION_SAMPLERS:
+        NAME: DDIMSampler
+        DISCRETIZATION_TYPE: trailing
+        ETA: 0.0
+    #
+    DIFFUSION_MODEL:
+      NAME: CogVideoXTransformer3DModel
+      DTYPE: bfloat16
+      PRETRAINED_MODEL: ms://AI-ModelScope/CogVideoX-2b@transformer/diffusion_pytorch_model.safetensors
+      NUM_ATTENTION_HEADS: 30
+      ATTENTION_HEAD_DIM: 64
+      IN_CHANNELS: 16
+      OUT_CHANNELS: 16
+      FLIP_SIN_TO_COS: True
+      FREQ_SHIFT: 0
+      TIME_EMBED_DIM: 512
+      TEXT_EMBED_DIM: 4096
+      NUM_LAYERS: 30
+      DROPOUT: 0.0
+      ATTENTION_BIAS: True
+      SAMPLE_WIDTH: 90
+      SAMPLE_HEIGHT: 60
+      SAMPLE_FRAMES: 49
+      PATCH_SIZE: 2
+      TEMPORAL_COMPRESSION_RATIO: 4
+      MAX_TEXT_SEQ_LENGTH: 226
+      ACTIVATION_FN: "gelu-approximate"
+      TIMESTEP_ACTIVATION_FN: "silu"
+      NORM_ELEMENTWISE_AFFINE: True
+      NORM_EPS: 1e-5
+      SPATIAL_INTERPOLATION_SCALE: 1.875
+      TEMPORAL_INTERPOLATION_SCALE: 1.0
+      USE_ROTARY_POSITIONAL_EMBEDDINGS: False
+      USE_LEARNED_POSITIONAL_EMBEDDINGS: False
+      GRADIENT_CHECKPOINTING: False
+    #
+    FIRST_STAGE_MODEL:
+      NAME: AutoencoderKLCogVideoX
+      DTYPE: bfloat16
+      PRETRAINED_MODEL: ms://AI-ModelScope/CogVideoX-2b@vae/diffusion_pytorch_model.safetensors
+      SAMPLE_HEIGHT: 480
+      SAMPLE_WIDTH: 720
+      USE_QUANT_CONV: False
+      USE_POST_QUANT_CONV: False
+      USE_SLICING: True
+      USE_TILING: True
+      GRADIENT_CHECKPOINTING: False
+      ENCODER:
+        NAME: CogVideoXEncoder3D
+        IN_CHANNELS: 3
+        OUT_CHANNELS: 16
+        UP_BLOCK_TYPES: [ "CogVideoXDownBlock3D", "CogVideoXDownBlock3D", "CogVideoXDownBlock3D", "CogVideoXDownBlock3D" ]
+        BLOCK_OUT_CHANNELS: [ 128, 256, 256, 512 ]
+        LAYERS_PER_BLOCK: 3
+        ACT_FN: "silu"
+        NORM_EPS: 1e-6
+        NORM_NUM_GROUPS: 32
+        DROPOUT: 0.0
+        PAD_MODE: "first"
+        TEMPORAL_COMPRESSION_RATIO: 4
+        GRADIENT_CHECKPOINTING: False
+      DECODER:
+        NAME: CogVideoXDecoder3D
+        IN_CHANNELS: 16
+        OUT_CHANNELS: 3
+        UP_BLOCK_TYPES: [ "CogVideoXUpBlock3D", "CogVideoXUpBlock3D", "CogVideoXUpBlock3D", "CogVideoXUpBlock3D" ]
+        BLOCK_OUT_CHANNELS: [ 128, 256, 256, 512 ]
+        LAYERS_PER_BLOCK: 3
+        ACT_FN: "silu"
+        NORM_EPS: 1e-6
+        NORM_NUM_GROUPS: 32
+        DROPOUT: 0.0
+        PAD_MODE: "first"
+        TEMPORAL_COMPRESSION_RATIO: 4
+        GRADIENT_CHECKPOINTING: False
+    #
+    COND_STAGE_MODEL:
+      NAME: T5EmbedderHF
+      PRETRAINED_MODEL: ms://AI-ModelScope/t5-v1_1-xxl
+      TOKENIZER_PATH: ms://AI-ModelScope/t5-v1_1-xxl
+      LENGTH: 226
+      CLEAN:
+      USE_GRAD: False
+    #
+    LOSS:
+      NAME: ReconstructLoss
+      LOSS_TYPE: l2
+  #
+  SAMPLE_ARGS:
+    SAMPLER: ddim
+    SAMPLE_STEPS: 50
+    SEED: 42
+    GUIDE_SCALE: 6.0
+    GUIDE_RESCALE: 0.0
+    NUM_FRAMES: 49
+  #
+  OPTIMIZER:
+    NAME: Adam
+    LEARNING_RATE: 1e-3
+    BETAS: [ 0.9, 0.95 ]
+    EPS: 1e-8
+    WEIGHT_DECAY: 0.0
+    AMSGRAD: False
+  #
+#  LR_SCHEDULER:
+#    NAME: StepAnnealingLR
+#    WARMUP_STEPS: 200
+#    TOTAL_STEPS: 2000
+#    DECAY_MODE: 'cosine'
+  #
+  TRAIN_DATA:
+    NAME: VideoGenDatasetOTF
+    MODE: train
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+    NUM_WORKERS: 4
+    PROMPT_PREFIX: ''
+    DELIMITER: '#;#'
+    FIELDS: [ 'video_path', 'width', 'height', 'prompt' ]
+    PATH_PREFIX:
+    DATA_FILE:
+    SAMPLER:
+      NAME: LoopSampler
+    TRANSFORMS:
+      - NAME: Select
+        KEYS: [ 'video', 'video_latent', "prompt" ]
+        META_KEYS: [ ]
+    MODEL:
+      NAME: AutoencoderKLCogVideoX
+      DTYPE: bfloat16
+      PRETRAINED_MODEL: ms://AI-ModelScope/CogVideoX-2b@vae/diffusion_pytorch_model.safetensors
+      SAMPLE_HEIGHT: 480
+      SAMPLE_WIDTH: 720
+      USE_QUANT_CONV: False
+      USE_POST_QUANT_CONV: False
+      USE_SLICING: True
+      USE_TILING: True
+      GRADIENT_CHECKPOINTING: True
+      ENCODER:
+        NAME: CogVideoXEncoder3D
+        IN_CHANNELS: 3
+        OUT_CHANNELS: 16
+        UP_BLOCK_TYPES: [ "CogVideoXDownBlock3D", "CogVideoXDownBlock3D", "CogVideoXDownBlock3D", "CogVideoXDownBlock3D" ]
+        BLOCK_OUT_CHANNELS: [ 128, 256, 256, 512 ]
+        LAYERS_PER_BLOCK: 3
+        ACT_FN: "silu"
+        NORM_EPS: 1e-6
+        NORM_NUM_GROUPS: 32
+        DROPOUT: 0.0
+        PAD_MODE: "first"
+        TEMPORAL_COMPRESSION_RATIO: 4
+        GRADIENT_CHECKPOINTING: True
+      DECODER:
+        NAME: CogVideoXDecoder3D
+        IN_CHANNELS: 16
+        OUT_CHANNELS: 3
+        UP_BLOCK_TYPES: [ "CogVideoXUpBlock3D", "CogVideoXUpBlock3D", "CogVideoXUpBlock3D", "CogVideoXUpBlock3D" ]
+        BLOCK_OUT_CHANNELS: [ 128, 256, 256, 512 ]
+        LAYERS_PER_BLOCK: 3
+        ACT_FN: "silu"
+        NORM_EPS: 1e-6
+        NORM_NUM_GROUPS: 32
+        DROPOUT: 0.0
+        PAD_MODE: "first"
+        TEMPORAL_COMPRESSION_RATIO: 4
+        GRADIENT_CHECKPOINTING: True
+  #
+  EVAL_DATA:
+    NAME: Text2ImageDataset
+    MODE: eval
+    PROMPT_FILE:
+    PROMPT_DATA: [ "A girl riding a bike.", "A panda, dressed in a small, red jacket and a tiny hat, sits on a wooden stool in a serene bamboo forest. The panda's fluffy paws strum a miniature acoustic guitar, producing soft, melodic tunes. Nearby, a few other pandas gather, watching curiously and some clapping in rhythm. Sunlight filters through the tall bamboo, casting a gentle glow on the scene. The panda's face is expressive, showing concentration and joy as it plays. The background includes a small, flowing stream and vibrant green foliage, enhancing the peaceful and magical atmosphere of this unique musical performance." ]
+    IMAGE_SIZE: [ 480, 720 ]
+    FIELDS: [ "prompt" ]
+    DELIMITER: '#;#'
+    PROMPT_PREFIX: ''
+    PIN_MEMORY: True
+    BATCH_SIZE: 1
+#    USE_NUM: 8
+    NUM_WORKERS: 4
+    TRANSFORMS:
+      - NAME: Select
+        KEYS: [ 'index', 'prompt' ]
+        META_KEYS: [ 'image_size' ]
+  #
+  TRAIN_HOOKS:
+    - NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+      PRIORITY: 0
+    - NAME: BackwardHook
+      PRIORITY: 10
+    - NAME: LogHook
+      LOG_INTERVAL: 10
+      PRIORITY: 20
+    - NAME: CheckpointHook
+      INTERVAL: 1000
+      PRIORITY: 40
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      DISABLE_SNAPSHOT: True
+  #
+  EVAL_HOOKS:
+    - NAME: ProbeDataHook
+      PROB_INTERVAL: 100
+      PRIORITY: 0
+      SAVE_LAST: True
+      SAVE_NAME_PREFIX: 'step'
+      SAVE_PROBE_PREFIX: 'image'

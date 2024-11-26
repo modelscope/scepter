@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
+import imageio
 from collections import OrderedDict
 
 import gradio as gr
@@ -183,8 +184,10 @@ class GalleryUI(UIBase):
                 'guide_scale':
                 args.pop('guide_scale'),
                 'guide_rescale':
-                args.pop('guide_rescale')
+                args.pop('guide_rescale'),
             }
+            if 'num_frames' in args:
+                pipeline_input.update({'num_frames': args['num_frames']})
             args.update({'input': pipeline_input})
 
         def appedix_init(args):
@@ -217,7 +220,7 @@ class GalleryUI(UIBase):
         load_init(args)
         results = current_pipeline(**args)
 
-        images = []
+        images, videos = [], []
         before_images = []
         if 'images' in results:
             images_tensor = results['images'] * 255
@@ -225,6 +228,11 @@ class GalleryUI(UIBase):
                 Image.fromarray(images_tensor[idx].permute(
                     1, 2, 0).cpu().numpy().astype(np.uint8))
                 for idx in range(images_tensor.shape[0])
+            ]
+        if 'videos' in results:
+            videos = [
+                (video.permute(1, 2, 3, 0).cpu().numpy() * 255).astype(np.uint8)
+                for video in results['videos']
             ]
         if 'before_refine_images' in results and results[
                 'before_refine_images'] is not None:
@@ -236,7 +244,7 @@ class GalleryUI(UIBase):
             ]
         if 'seed' in results:
             print(results['seed'])
-        print(images, before_images)
+        # print(images, before_images)
 
         if args['largen_state']:
             largen_history.extend(images)
@@ -250,12 +258,27 @@ class GalleryUI(UIBase):
                                           f'cur_gallery_{i}.jpg')
                 img.save(save_image)
                 save_list.append(save_image)
-            images = save_list
+            ret_data = save_list
+        else:
+            ret_data = images
+
+        if len(videos) > 0:
+            save_list = []
+            fps = args.get('fps', 8)
+            for i, video in enumerate(videos):
+                save_video_path = os.path.join(self.local_work_dir,
+                                          f'cur_gallery_{i}.mp4')
+                writer = imageio.get_writer(save_video_path, fps=fps)
+                for frame in video:
+                    writer.append_data(np.array(frame))
+                writer.close()
+                save_list.append(save_video_path)
+            ret_data = save_list
 
         return (
             gr.Column(visible=len(before_images) > 0),
             before_images,
-            images,
+            ret_data,
             largen_history,
             gr.update(value=largen_history),
         )

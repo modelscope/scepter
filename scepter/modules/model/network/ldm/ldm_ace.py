@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import copy
+import math
 import random
 from contextlib import nullcontext
 
@@ -10,6 +11,7 @@ from torch import nn
 
 from scepter.modules.model.network.ldm import LatentDiffusion
 from scepter.modules.model.registry import MODELS
+import torchvision.transforms as T
 from scepter.modules.model.utils.basic_utils import check_list_of_list
 from scepter.modules.model.utils.basic_utils import \
     pack_imagelist_into_tensor_v2 as pack_imagelist_into_tensor
@@ -67,10 +69,10 @@ class LatentDiffusionACE(LatentDiffusion):
         if self.use_text_pos_embeddings and not torch.sum(
                 self.text_position_embeddings.pos) > 0:
             identifier_cont, identifier_cont_mask = getattr(
-                self.cond_stage_model, 'encode')(self.text_indentifers,
+                self.cond_stage_model, 'encode_list_of_list')(self.text_indentifers,
                                                  return_mask=True)
             self.text_position_embeddings.load_state_dict(
-                {'pos': identifier_cont[:, 0, :]})
+                {'pos': torch.cat( [one_id[0][0, :].unsqueeze(0) for one_id in identifier_cont], dim=0)})
         cont_, cont_mask_ = [], []
         for pp, edit, c, cm in zip(prompt, edit_image, cont, cont_mask):
             if isinstance(pp, list):
@@ -138,7 +140,7 @@ class LatentDiffusionACE(LatentDiffusion):
         prompt_ = [[pp] if isinstance(pp, str) else pp for pp in prompt]
         try:
             cont, cont_mask = getattr(self.cond_stage_model,
-                                      'encode_list')(prompt_, return_mask=True)
+                                      'encode_list_of_list')(prompt_, return_mask=True)
         except Exception as e:
             print(e, prompt_)
         cont, cont_mask = self.cond_stage_embeddings(prompt, edit_image, cont,
@@ -240,11 +242,11 @@ class LatentDiffusionACE(LatentDiffusion):
         # with torch.autocast(device_type="cuda", enabled=True, dtype=torch.bfloat16):
         prompt_ = [[pp] if isinstance(pp, str) else pp for pp in prompt]
         cont, cont_mask = getattr(self.cond_stage_model,
-                                  'encode_list')(prompt_, return_mask=True)
+                                  'encode_list_of_list')(prompt_, return_mask=True)
         cont, cont_mask = self.cond_stage_embeddings(prompt, edit_image, cont,
                                                      cont_mask)
         null_cont, null_cont_mask = getattr(self.cond_stage_model,
-                                            'encode_list')(n_prompt,
+                                            'encode_list_of_list')(n_prompt,
                                                            return_mask=True)
         null_cont, null_cont_mask = self.cond_stage_embeddings(
             prompt, edit_image, null_cont, null_cont_mask)
@@ -348,4 +350,255 @@ class LatentDiffusionACE(LatentDiffusion):
         return dict_to_yaml('MODEL',
                             __class__.__name__,
                             LatentDiffusionACE.para_dict,
+                            set_name=True)
+
+@MODELS.register_class()
+class LatentDiffusionACERefiner(LatentDiffusionACE):
+    def init_params(self):
+        super().init_params()
+        self.enhence_model_cfg = self.cfg.get("ENHENCE_MODEL", None)
+        self.enhence_sampler_cfg = self.cfg.get("ENHENCE_SAMPLER_CFG", {})
+    def construct_network(self):
+        super().construct_network()
+        if self.enhence_model_cfg:
+            self.enhence_model = MODELS.build(self.enhence_model_cfg, logger=self.logger).eval().requires_grad_(False)
+            self.enhence_sampler_cfg = {key.lower(): value for key, value in self.enhence_sampler_cfg.items()}
+        else:
+            self.enhence_model = None
+            self.enhence_sampler_cfg = None
+
+    def forward_sample(self,
+                         edit_image=[],
+                         edit_mask=[],
+                         noise=None,
+                         cond_mask=[],
+                         x_shapes=[],
+                         prompt=[],
+                         n_prompt=[],
+                         sampler='ddim',
+                         sample_steps=20,
+                         seed=2023,
+                         guide_scale=4.5,
+                         guide_rescale=0.5,
+                         discretization='trailing',
+                         **kwargs
+                         ):
+        '''
+                Args:
+                    edit_image: list of list of edit_image
+                    edit_image_mask: list of list of edit_image_mask
+                    image: target image
+                    image_mask: target image mask
+                    prompt: list of list of text
+                    n_prompt: list of list of text
+                    sampler:
+                    sample_steps:
+                    seed:
+                    guide_scale:
+                    guide_rescale:
+                    discretization:
+                    log_num:
+                    **kwargs:
+
+                Returns:
+
+                '''
+
+        # prepare data
+        context, null_context = {}, {}
+        context['x_shapes'] = null_context['x_shapes'] = x_shapes
+        # process image mask
+
+        context['x_mask'] = null_context['x_mask'] = cond_mask
+        # process text
+        # with torch.autocast(device_type="cuda", enabled=True, dtype=torch.bfloat16):
+
+        cont, cont_mask = getattr(self.cond_stage_model, 'encode_list')(prompt, return_mask=True)
+        cont, cont_mask = self.cond_stage_embeddings(prompt, edit_image, cont, cont_mask)
+        null_cont, null_cont_mask = getattr(self.cond_stage_model, 'encode_list')(n_prompt, return_mask=True)
+        null_cont, null_cont_mask = self.cond_stage_embeddings(prompt, edit_image, null_cont, null_cont_mask)
+        context['crossattn'] = cont
+        null_context['crossattn'] = null_cont
+
+
+        null_context['edit'] = context['edit'] = edit_image
+        null_context['edit_mask'] = context['edit_mask'] = edit_mask
+
+        # process sample
+        model = self.model_ema if self.use_ema and self.eval_ema else self.model
+        embedding_context = model.no_sync if isinstance(model, torch.distributed.fsdp.FullyShardedDataParallel) \
+            else nullcontext
+        with embedding_context():
+            samples = self.diffusion.sample(solver=sampler,
+                                            noise=noise,
+                                            model=model,
+                                            model_kwargs=[{
+                                                'cond': context,
+                                                'mask': cont_mask,
+                                                'text_position_embeddings': self.text_position_embeddings.pos if hasattr(
+                                                    self.text_position_embeddings, 'pos') else None
+                                            }, {
+                                                'cond': null_context,
+                                                'mask': null_cont_mask,
+                                                'text_position_embeddings': self.text_position_embeddings.pos if hasattr(
+                                                    self.text_position_embeddings, 'pos') else None
+                                            }] if guide_scale is not None and guide_scale > 1 else {
+                                                'cond': context,
+                                                'mask': cont_mask,
+                                                'text_position_embeddings': self.text_position_embeddings.pos if hasattr(
+                                                    self.text_position_embeddings, 'pos') else None
+                                            },
+                                            cat_uc=False,
+                                            steps=sample_steps,
+                                            guide_scale=guide_scale,
+                                            guide_rescale=guide_rescale,
+                                            discretization=discretization,
+                                            show_progress=True,
+                                            seed=seed,
+                                            condition_fn=None,
+                                            clamp=None,
+                                            percentile=None,
+                                            t_max=None,
+                                            t_min=None,
+                                            discard_penultimate_step=None,
+                                            return_intermediate=None,
+                                            **kwargs)
+
+        samples = unpack_tensor_into_imagelist(samples, x_shapes)
+        x_samples = self.decode_first_stage(samples)
+        return x_samples
+
+    def upscale_resize(self, image, interpolation=T.InterpolationMode.BILINEAR):
+        _, c, H, W = image.shape
+        scale = max(1.0, math.sqrt(4096 / ((H / 16) * (W / 16))))
+        rH = int(H * scale) // 16 * 16  # ensure divisible by self.d
+        rW = int(W * scale) // 16 * 16
+        image = T.Resize((rH, rW), interpolation=interpolation, antialias=True)(image)
+        return image
+
+    @torch.no_grad()
+    def forward_test(self,
+                     edit_image=[],
+                     edit_image_mask=[],
+                     image=None,
+                     image_mask=None,
+                     prompt=[],
+                     n_prompt=[],
+                     sampler='ddim',
+                     sample_steps=20,
+                     seed=2023,
+                     guide_scale=4.5,
+                     guide_rescale=0.5,
+                     discretization='trailing',
+                     enhance_scale=0.99,
+                     log_num=-1,
+                     **kwargs):
+        assert check_list_of_list(prompt) and check_list_of_list(edit_image) and check_list_of_list(edit_image_mask)
+        assert len(edit_image) == len(edit_image_mask) == len(prompt)
+        assert self.cond_stage_model is not None
+        # gc_seg is unused
+        kwargs.pop("gc_seg", -1)
+        prompt, n_prompt, image, image_mask, edit_image, edit_image_mask = self.limit_batch_data(
+            [prompt, n_prompt, image, image_mask, edit_image, edit_image_mask], log_num)
+
+        prompt = [[pp] if isinstance(pp, str) else pp for pp in prompt]
+
+        g = torch.Generator(device=we.device_id)
+        seed = seed if seed >= 0 else random.randint(0, 2 ** 32 - 1)
+        g.manual_seed(seed)
+        n_prompt = copy.deepcopy(prompt)
+        # only modify the last prompt to be zero
+        for nn_p_id, nn_p in enumerate(n_prompt):
+            if isinstance(nn_p, str):
+                n_prompt[nn_p_id] = [""]
+            elif isinstance(nn_p, list):
+                n_prompt[nn_p_id][-1] = ""
+            else:
+                raise NotImplementedError
+        # process image
+        image = to_device(image)
+        x = self.encode_first_stage(image, **kwargs)
+        noise = [torch.empty(*i.shape, device=we.device_id).normal_(generator=g) for i in x]
+        noise, x_shapes = pack_imagelist_into_tensor(noise)
+        image_mask = to_device(image_mask, strict=False)
+        cond_mask = [self.interpolate_func(i) for i in image_mask] if image_mask is not None else [None] * len(image)
+
+        # processe edit image & edit image mask
+        edit_image = [to_device(i, strict=False) for i in edit_image]
+        edit_image_mask = [to_device(i, strict=False) for i in edit_image_mask]
+        e_img, e_mask = [], []
+        for u, m in zip(edit_image, edit_image_mask):
+            if u is None:
+                continue
+            if m is None:
+                m = [None] * len(u)
+            e_img.append(self.encode_first_stage(u, **kwargs))
+            e_mask.append([self.interpolate_func(i) for i in m])
+
+        x_samples = self.forward_sample(
+            edit_image=e_img,
+            edit_mask=e_mask,
+            noise=noise,
+            cond_mask=cond_mask,
+            x_shapes=x_shapes,
+            prompt=prompt,
+            n_prompt=n_prompt,
+            sampler=sampler,
+            sample_steps=sample_steps,
+            seed=seed,
+            guide_scale=guide_scale,
+            guide_rescale=guide_rescale,
+            discretization='trailing',
+            **kwargs)
+
+        if self.enhence_model and enhance_scale > 0:
+            x_samples = [self.upscale_resize(x) for x in x_samples]
+            x_start = self.enhence_model.encode_first_stage(x_samples, **kwargs)
+            noise = []
+            for i, x in enumerate(x_start):
+                noise_ = self.enhence_model.noise_sample(1, x_samples[i].shape[2], x_samples[i].shape[3], seed)
+                noise.append(noise_)
+            with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+                x_samples = self.enhence_model.forward_sample(noise = noise,
+                                                              x = x_start,
+                                                              reverse_scale = enhance_scale,
+                                                              prompt =[kwargs.pop("enhance_prompt", "") for _ in noise],
+                                                              **self.enhence_sampler_cfg)
+        outputs = list()
+        for i in range(len(prompt)):
+            rec_img = torch.clamp((x_samples[i].float() + 1.0) / 2.0 + self.decoder_bias / 255, min=0.0, max=1.0)
+            rec_img = rec_img.squeeze(0)
+            edit_imgs, edit_img_masks = [], []
+            if edit_image is not None and edit_image[i] is not None:
+                if edit_image_mask[i] is None:
+                    edit_image_mask[i] = [None] * len(edit_image[i])
+                for edit_img, edit_mask in zip(edit_image[i], edit_image_mask[i]):
+                    edit_img = torch.clamp((edit_img + 1.0) / 2.0, min=0.0, max=1.0)
+                    edit_imgs.append(edit_img.squeeze(0))
+                    if edit_mask is None:
+                        edit_mask = torch.ones_like(edit_img[[0], :, :])
+                    edit_img_masks.append(edit_mask)
+            one_tup = {
+                'reconstruct_image': rec_img,
+                'instruction': prompt[i],
+                'edit_image': edit_imgs if len(edit_imgs) > 0 else None,
+                'edit_mask': edit_img_masks if len(edit_imgs) > 0 else None
+            }
+            if image is not None:
+                if image_mask is None:
+                    image_mask = [None] * len(image)
+                ori_img = torch.clamp((image[i] + 1.0) / 2.0, min=0.0, max=1.0)
+                one_tup['target_image'] = ori_img.squeeze(0)
+                one_tup['target_mask'] = image_mask[i] if image_mask[i] is not None else torch.ones_like(
+                    ori_img[[0], :, :])
+            outputs.append(one_tup)
+
+        return outputs
+
+
+    @staticmethod
+    def get_config_template():
+        return dict_to_yaml('MODEL',
+                            __class__.__name__,
+                            LatentDiffusionACERefiner.para_dict,
                             set_name=True)

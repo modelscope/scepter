@@ -59,13 +59,16 @@ class ModelUI(UIBase):
                     status_file = os.path.join(self.work_dir, one_dir,
                                                'status.json')
                     if FS.exists(status_file):
-                        status = json.load(open(status_file, 'r'))
+                        try:
+                            status = json.load(open(status_file, 'r'))
+                        except:
+                            continue
                         status['model_name'] = one_dir
                         have_model_list.append(status)
         have_model_list.sort(key=lambda x: x['start_time'])
         self.user_level_model_list[user_name] = [
             v['model_name'] for v in have_model_list
-        ][:100]
+        ]
 
     def get_ckpt_list(self, output_model):
         all_ckpt_list = []
@@ -177,11 +180,12 @@ class ModelUI(UIBase):
 
         def model_name_change(model_name):
             if model_name is None:
-                return '', gr.Column(), '', []
+                return '', gr.Column(), None, []
             message = trainer_ui.trainer_ins.get_log(model_name)
             status = trainer_ui.trainer_ins.get_status(model_name)
             ckpt_list = self.get_ckpt_list(model_name)
-            ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else ''
+            ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else None
+            ckpt_list = ckpt_list if isinstance(ckpt_list, list) and len(ckpt_list) > 0 else None
             if ckpt_value is not None and len(ckpt_value) > 0:
                 gallery_value = self.get_gallery_list(model_name, ckpt_value)
             else:
@@ -264,13 +268,14 @@ class ModelUI(UIBase):
             message = trainer_ui.trainer_ins.get_log(model_name)
             status = trainer_ui.trainer_ins.get_status(model_name)
             ckpt_list = self.get_ckpt_list(model_name)
-            ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else ''
+            ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else None
+            ckpt_list = ckpt_list if isinstance(ckpt_list, list) and len(ckpt_list) > 0 else None
             ret_gallery = ckpt_name_change(model_name, ckpt_value)
+            model_list = self.user_level_model_list.get(login_user_name, [])
             self.load_history(login_user_name)
             return (message, gr.Column(visible=status in ('running',
                                                           'success')),
-                    gr.Dropdown(choices=self.user_level_model_list.get(
-                        login_user_name, []),
+                    gr.Dropdown(choices=model_list,
                                 value=model_name),
                     gr.Dropdown(choices=ckpt_list,
                                 value=ckpt_value), ret_gallery)
@@ -330,7 +335,8 @@ class ModelUI(UIBase):
             message = trainer_ui.trainer_ins.get_log(model_name)
             status = trainer_ui.trainer_ins.get_status(model_name)
             ckpt_list = self.get_ckpt_list(model_name)
-            ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else ''
+            ckpt_value = ckpt_list[-1] if len(ckpt_list) > 0 else None
+            ckpt_list = ckpt_list if isinstance(ckpt_list, list) and len(ckpt_list) > 0 else None
             ret_gallery = ckpt_name_change(model_name, ckpt_value)
             self.load_history(login_user_name)
             return (message, gr.Column(visible=status in ('running',
@@ -553,7 +559,7 @@ class ModelUI(UIBase):
             if len(model_list) > 0:
                 model_name = model_list[-1]
             else:
-                model_name = ''
+                model_name = None
             return gr.Dropdown(choices=model_list, value=model_name)
 
         manager.user_name.change(model_name_change,

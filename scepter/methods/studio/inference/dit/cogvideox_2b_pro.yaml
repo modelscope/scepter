@@ -1,0 +1,151 @@
+NAME: COGVIDEOX_2B
+IS_DEFAULT: False
+DEFAULT_PARAS:
+  PARAS:
+    RESOLUTIONS: [[480, 720]]
+  INPUT:
+    IMAGE:
+    ORIGINAL_SIZE_AS_TUPLE: [480, 720]
+    TARGET_SIZE_AS_TUPLE: [480, 720]
+    PROMPT: ""
+    NEGATIVE_PROMPT: ""
+    PROMPT_PREFIX: ""
+    SAMPLE: ddim
+    SAMPLE_STEPS: 50
+    GUIDE_SCALE: 6.0
+    GUIDE_RESCALE: 0.0
+    DISCRETIZATION: trailing
+    NUM_FRAMES:
+      DEFAULT: 49
+      VISIBLE: True
+    FPS:
+      DEFAULT: 8
+      VISIBLE: True
+  OUTPUT:
+    VIDEOS:
+    SEED:
+  MODULES_PARAS:
+    FIRST_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: decode
+          DTYPE: bfloat16
+          INPUT: ["LATENT"]
+      PARAS:
+          SCALING_FACTOR_IMAGE: 1.15258426
+    DIFFUSION_MODEL:
+      FUNCTION:
+        -
+          NAME: forward
+          DTYPE: bfloat16
+          INPUT: ["SAMPLE_STEPS", "SAMPLE", "GUIDE_SCALE", "GUIDE_RESCALE", "DISCRETIZATION", "NUM_FRAMES", "FPS"]
+      PARAS:
+        USE_ROTARY_POSITIONAL_EMBEDDINGS: False
+        PATCH_SIZE: 2
+        LATENT_CHANNELS: 16
+        SCALE_FACTOR_SPATIAL: 8
+        SCALE_FACTOR_TEMPORAL: 4
+        ATTENTION_HEAD_DIM: 64
+        SAMPLE_HEIGHT: 480
+        SAMPLE_WIDTH: 720
+    COND_STAGE_MODEL:
+      FUNCTION:
+        -
+          NAME: encode
+          DTYPE: bfloat16
+          INPUT: ["PROMPT"]
+#
+MODEL:
+  PRETRAINED_MODEL:
+  DIFFUSION:
+    NAME: BaseDiffusion
+    PREDICTION_TYPE: v
+    NOISE_SCHEDULER:
+      NAME: ScaledLinearScheduler
+      BETA_MIN: 0.00085
+      BETA_MAX: 0.012
+      SNR_SHIFT_SCALE: 3.0
+      RESCALE_BETAS_ZERO_SNR: True
+    DIFFUSION_SAMPLERS:
+      NAME: DDIMSampler
+      DISCRETIZATION_TYPE: trailing
+      ETA: 0.0
+  #
+  DIFFUSION_MODEL:
+    NAME: CogVideoXTransformer3DModel
+    DTYPE: bfloat16
+    PRETRAINED_MODEL: ms://AI-ModelScope/CogVideoX-2b@transformer/diffusion_pytorch_model.safetensors
+    NUM_ATTENTION_HEADS: 30
+    ATTENTION_HEAD_DIM: 64
+    IN_CHANNELS: 16
+    OUT_CHANNELS: 16
+    FLIP_SIN_TO_COS: True
+    FREQ_SHIFT: 0
+    TIME_EMBED_DIM: 512
+    TEXT_EMBED_DIM: 4096
+    NUM_LAYERS: 30
+    DROPOUT: 0.0
+    ATTENTION_BIAS: True
+    SAMPLE_WIDTH: 90
+    SAMPLE_HEIGHT: 60
+    SAMPLE_FRAMES: 49
+    PATCH_SIZE: 2
+    TEMPORAL_COMPRESSION_RATIO: 4
+    MAX_TEXT_SEQ_LENGTH: 226
+    ACTIVATION_FN: "gelu-approximate"
+    TIMESTEP_ACTIVATION_FN: "silu"
+    NORM_ELEMENTWISE_AFFINE: True
+    NORM_EPS: 1e-5
+    SPATIAL_INTERPOLATION_SCALE: 1.875
+    TEMPORAL_INTERPOLATION_SCALE: 1.0
+    USE_ROTARY_POSITIONAL_EMBEDDINGS: False
+    USE_LEARNED_POSITIONAL_EMBEDDINGS: False
+    GRADIENT_CHECKPOINTING: False
+  #
+  FIRST_STAGE_MODEL:
+    NAME: AutoencoderKLCogVideoX
+    DTYPE: bfloat16
+    PRETRAINED_MODEL: ms://AI-ModelScope/CogVideoX-2b@vae/diffusion_pytorch_model.safetensors
+    SAMPLE_HEIGHT: 480
+    SAMPLE_WIDTH: 720
+    USE_QUANT_CONV: False
+    USE_POST_QUANT_CONV: False
+    USE_SLICING: True
+    USE_TILING: True
+    GRADIENT_CHECKPOINTING: False
+    ENCODER:
+      NAME: CogVideoXEncoder3D
+      IN_CHANNELS: 3
+      OUT_CHANNELS: 16
+      UP_BLOCK_TYPES: [ "CogVideoXDownBlock3D", "CogVideoXDownBlock3D", "CogVideoXDownBlock3D", "CogVideoXDownBlock3D" ]
+      BLOCK_OUT_CHANNELS: [ 128, 256, 256, 512 ]
+      LAYERS_PER_BLOCK: 3
+      ACT_FN: "silu"
+      NORM_EPS: 1e-6
+      NORM_NUM_GROUPS: 32
+      DROPOUT: 0.0
+      PAD_MODE: "first"
+      TEMPORAL_COMPRESSION_RATIO: 4
+      GRADIENT_CHECKPOINTING: False
+    DECODER:
+      NAME: CogVideoXDecoder3D
+      IN_CHANNELS: 16
+      OUT_CHANNELS: 3
+      UP_BLOCK_TYPES: [ "CogVideoXUpBlock3D", "CogVideoXUpBlock3D", "CogVideoXUpBlock3D", "CogVideoXUpBlock3D" ]
+      BLOCK_OUT_CHANNELS: [ 128, 256, 256, 512 ]
+      LAYERS_PER_BLOCK: 3
+      ACT_FN: "silu"
+      NORM_EPS: 1e-6
+      NORM_NUM_GROUPS: 32
+      DROPOUT: 0.0
+      PAD_MODE: "first"
+      TEMPORAL_COMPRESSION_RATIO: 4
+      GRADIENT_CHECKPOINTING: False
+  #
+  COND_STAGE_MODEL:
+    NAME: T5EmbedderHF
+    PRETRAINED_MODEL: ms://AI-ModelScope/t5-v1_1-xxl
+    TOKENIZER_PATH: ms://AI-ModelScope/t5-v1_1-xxl
+    LENGTH: 226
+    CLEAN:
+    USE_GRAD: False

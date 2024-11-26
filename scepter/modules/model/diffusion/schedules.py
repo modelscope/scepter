@@ -21,7 +21,7 @@ class ScheduleOutput(object):
     x_0: torch.Tensor
     t: torch.Tensor
     sigma: torch.Tensor
-    alpha: torch.Tensor
+    alpha_bar: torch.Tensor
     custom_fields: dict = field(default_factory=dict)
 
     def add_custom_field(self, key: str, value) -> None:
@@ -30,6 +30,21 @@ class ScheduleOutput(object):
 
 @NOISE_SCHEDULERS.register_class()
 class BaseNoiseScheduler(object):
+    '''
+    In the diffusion model, the parameters related to the noise schedule are alpha, beta,
+    and sigma. The following are the definitions of the above three parameters, which should
+    be the basic property for the instance of noise scheduler.
+        \alpha_{t} = \sqrt{1 - \beta_{t}^2} \alpha is the strength of signal and \beta is the strength of noise
+        \sigma_{t} = \sqrt{1 - \overline\alpha} = \sqrt{1 - \prod_{i=1}^{t}\alpha^2_{i}} (P(x_{t}|x_{0}) ~ N(\overline\alpha x_{0}, \sigma^2))
+        \alpha_bar_{t} = \sqrt{\overline\alpha} = \sqrt{\prod_{i=1}^{t}\alpha^2_{i}} (P(x_{t}|x_{0}) ~ N(\overline\alpha x_{0}, \sigma^2))
+
+    where sigma_{t} is the var of p(x_{t-1}|x_{t}, x_{0}).
+
+    (reference to https://arxiv.org/abs/2010.02502)
+    let sigma transfer to beta:
+        square_\beta = 1 - \frac{1 - square_\sigma_{t}}{1 - square_\sigma_{t - 1 }}
+
+    '''
     para_dict = {
         'NUM_TIMESTEPS': {
             'value': 1000,
@@ -48,7 +63,7 @@ class BaseNoiseScheduler(object):
         self.num_timesteps = self.cfg.get('NUM_TIMESTEPS', 1000)
         self._sample_steps = torch.arange(self.num_timesteps,
                                           dtype=torch.float32)
-        self._sigmas, self._betas, self._alphas, self._timesteps = None, None, None, None
+        self._sigmas, self._betas, self._alphas, self._alphas_bar, self._timesteps = None, None, None, None, None
 
     def check_function(self):
         try:
@@ -128,6 +143,10 @@ class BaseNoiseScheduler(object):
         square_beta = self.sigmas_to_square_betas(sigma)
         return torch.sqrt(1 - square_beta)
 
+    def t_to_alpha_bar(self, t, **kwargs):
+        sigma = self.t_to_sigma(t)
+        return torch.sqrt(1 - sigma**2)
+
     def t_to_beta(self, t, **kwargs):
         sigma = self.t_to_sigma(t)
         square_beta = self.sigmas_to_square_betas(sigma)
@@ -138,11 +157,11 @@ class BaseNoiseScheduler(object):
             t = torch.randint(0,
                               self.num_timesteps, (x_0.shape[0], ),
                               device=x_0.device).long()
-        alpha = _i(self.alphas, t, x_0)
+        alpha = _i(self.alphas_bar, t, x_0)
         sigma = _i(self.sigmas, t, x_0)
         x_t = alpha * x_0 + sigma * noise
 
-        return ScheduleOutput(x_0=x_0, x_t=x_t, t=t, alpha=alpha, sigma=sigma)
+        return ScheduleOutput(x_0=x_0, x_t=x_t, t=t, alpha_bar=alpha, sigma=sigma)
 
     def t_to_alpha_init(self, t, **kwargs):
         indices = t.long()
@@ -152,6 +171,16 @@ class BaseNoiseScheduler(object):
                         for t in timesteps]
         alpha = self.alphas[step_indices].flatten().to(t)
         return alpha
+
+    def t_to_alpha_bar_init(self, t, **kwargs):
+        indices = t.long()
+        indices[indices >= self.num_timesteps] = self.num_timesteps - 1
+        timesteps = self.timesteps.to(t)[indices]
+        step_indices = [(self.timesteps.to(t) == t).nonzero().item()
+                        for t in timesteps]
+        alpha_bar = self.alphas_bar[step_indices].flatten().to(t)
+        return alpha_bar
+
 
     def t_to_beta_init(self, t, **kwargs):
         indices = t.long()
@@ -206,6 +235,10 @@ class BaseNoiseScheduler(object):
         return self._alphas
 
     @property
+    def alphas_bar(self):
+        return self._alphas_bar
+
+    @property
     def timesteps(self):
         return self._timesteps
 
@@ -221,6 +254,10 @@ class BaseNoiseScheduler(object):
             'data': self._alphas.cpu().numpy(),
             'label': 'alphas'
         }, {
+            'data': self._alphas_bar.cpu().numpy(),
+            'label': 'alphas_bar'
+        },
+            {
             'data': self._timesteps.cpu().numpy() / self.num_timesteps,
             'label': 'timesteps'
         }]
@@ -280,7 +317,8 @@ class ScaledLinearScheduler(BaseNoiseScheduler):
                                                    self.snr_shift_scale,
                                                    self.rescale_betas_zero_snr)
         self._betas = torch.sqrt(square_betas)
-        self._alphas = torch.sqrt(1 - self._sigmas**2)
+        self._alphas = torch.sqrt(1 - square_betas)
+        self._alphas_bar = torch.sqrt(1 - self._sigmas**2)
         self._timesteps = torch.arange(len(self._sigmas), dtype=torch.float32)
 
 
@@ -304,7 +342,8 @@ class LinearScheduler(BaseNoiseScheduler):
         sigmas = self.betas_to_sigmas(betas)
         self._sigmas = sigmas
         self._betas = betas
-        self._alphas = torch.sqrt(1 - sigmas**2)
+        self._alphas = torch.sqrt(1 - betas**2)
+        self._alphas_bar = torch.sqrt(1 - sigmas**2)
         self._timesteps = torch.arange(len(sigmas), dtype=torch.float32)
 
 
@@ -319,7 +358,8 @@ class FlowMatchUniformScheduler(BaseNoiseScheduler):
         self._timesteps = timesteps
         self._sigmas = self.t_to_sigma(timesteps)
         self._betas = torch.sqrt(self.sigmas_to_square_betas(self._sigmas))
-        self._alphas = torch.sqrt(1 - self.betas**2)
+        self._alphas = torch.sqrt(1 - self._betas**2)
+        self._alphas_bar = torch.sqrt(1 - self._sigmas ** 2)
 
     def add_noise(self, x_0, noise=None, t=None, **kwargs):
         if t is None:
@@ -332,7 +372,7 @@ class FlowMatchUniformScheduler(BaseNoiseScheduler):
                               x_t=x_t,
                               t=t,
                               sigma=sigma,
-                              alpha=self.t_to_alpha(t))
+                              alpha_bar=self.t_to_alpha_bar(t))
 
     def sigma_to_t(self, sigma, **kwargs):
         return sigma * self.num_timesteps
@@ -406,7 +446,7 @@ class FlowMatchShiftScheduler(FlowMatchUniformScheduler):
                               x_t=x_t,
                               t=t,
                               sigma=sigma,
-                              alpha=self.t_to_alpha(t))
+                              alpha_bar=self.t_to_alpha_bar(t))
 
     def sigma_to_t(self, sigma, **kwargs):
         t = sigma / (sigma - self.shift * sigma + self.shift)
@@ -486,7 +526,7 @@ class FlowMatchFluxShiftScheduler(FlowMatchUniformScheduler):
                               x_t=x_t,
                               t=t,
                               sigma=sigma,
-                              alpha=self.t_to_alpha(t))
+                              alpha_bar=self.t_to_alpha_bar(t))
 
     def sigma_to_t(self, sigma, **kwargs):
         seq_len = kwargs.get('seq_len', 256)
@@ -570,6 +610,7 @@ class FlowMatchSigmaScheduler(FlowMatchUniformScheduler):
                                                  (self.shift - 1) * timesteps)
         self._betas = torch.sqrt(self.sigmas_to_square_betas(self._sigmas))
         self._alphas = torch.sqrt(1 - self.betas**2)
+        self._alphas_bar = torch.sqrt(1 - self._sigmas ** 2)
 
     def add_noise(self, x_0, noise=None, t=None, **kwargs):
         if t is None:
@@ -589,7 +630,7 @@ class FlowMatchSigmaScheduler(FlowMatchUniformScheduler):
                               x_t=x_t,
                               t=t,
                               sigma=sigma,
-                              alpha=self.t_to_alpha(t))
+                              alpha_bar=self.t_to_alpha_bar(t))
 
     def compute_density_for_timestep_sampling(self, t):
         """Compute the density for sampling the timesteps when doing SD3 training.

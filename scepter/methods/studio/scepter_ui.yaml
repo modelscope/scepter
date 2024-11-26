@@ -89,5 +89,5 @@ INTERFACE:
     CONFIG: scepter/methods/studio/inference/inference.yaml
   - NAME: 对话式编辑
     NAME_EN: ChatBot
-    IFID: ChatBot
+    IFID: chatbot
     CONFIG: scepter/methods/studio/chatbot/chatbot.yaml

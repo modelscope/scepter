@@ -12,7 +12,7 @@ from scepter.modules.utils.distribute import we
 from scepter.modules.utils.file_system import FS
 from torch import Tensor, nn
 from torch.utils.checkpoint import checkpoint_sequential
-
+from torch.nn.utils.rnn import pad_sequence
 from .layers import (DoubleStreamBlock, EmbedND, LastLayer, MLPEmbedder,
                      SingleStreamBlock, timestep_embedding)
 
@@ -245,7 +245,133 @@ class Flux(BaseModel):
 
     @staticmethod
     def get_config_template():
-        return dict_to_yaml('MODEL',
+        return dict_to_yaml('BACKBONE',
                             __class__.__name__,
                             Flux.para_dict,
+                            set_name=True)
+
+@BACKBONES.register_class()
+class FluxMR(Flux):
+    def prepare_input(self, x, cond):
+        context, y = cond["context"].to(x), cond["y"].to(x)
+        batch_frames, batch_frames_ids = [], []
+        for ix, shape in zip(x, cond["x_shapes"]):
+            # unpack image from sequence
+            ix = ix[:, :shape[0] * shape[1]].view(-1, shape[0], shape[1])
+            c, h, w = ix.shape
+            ix = rearrange(ix, "c (h ph) (w pw) -> (h w) (c ph pw)", ph=2, pw=2)
+            ix_id = torch.zeros(h // 2, w // 2, 3)
+            ix_id[..., 1] = ix_id[..., 1] + torch.arange(h // 2)[:, None]
+            ix_id[..., 2] = ix_id[..., 2] + torch.arange(w // 2)[None, :]
+            ix_id = rearrange(ix_id, "h w c -> (h w) c")
+            batch_frames.append([ix])
+            batch_frames_ids.append([ix_id])
+
+        x_list, x_id_list, mask_x_list, x_seq_length = [], [], [], []
+        for frames, frame_ids in zip(batch_frames, batch_frames_ids):
+            proj_frames = []
+            for idx, one_frame in enumerate(frames):
+                one_frame = self.img_in(one_frame)
+                proj_frames.append(one_frame)
+            ix = torch.cat(proj_frames, dim=0)
+            if_id = torch.cat(frame_ids, dim=0)
+            x_list.append(ix)
+            x_id_list.append(if_id)
+            mask_x_list.append(torch.ones(ix.shape[0]).to(ix.device, non_blocking=True).bool())
+            x_seq_length.append(ix.shape[0])
+        x = pad_sequence(tuple(x_list), batch_first=True)
+        x_ids = pad_sequence(tuple(x_id_list), batch_first=True).to(x)  # [b,pad_seq,2] pad (0.,0.) at dim2
+        mask_x = pad_sequence(tuple(mask_x_list), batch_first=True)
+
+        txt = self.txt_in(context)
+        txt_ids = torch.zeros(context.shape[0], context.shape[1], 3).to(x)
+        mask_txt = torch.ones(context.shape[0], context.shape[1]).to(x.device, non_blocking=True).bool()
+
+        return x, x_ids, txt, txt_ids, y, mask_x, mask_txt, x_seq_length
+
+    def unpack(self, x: Tensor, cond: dict = None, x_seq_length: list = None) -> Tensor:
+        x_list = []
+        image_shapes = cond["x_shapes"]
+        for u, shape, seq_length in zip(x, image_shapes, x_seq_length):
+            height, width = shape
+            h, w = math.ceil(height / 2), math.ceil(width / 2)
+            u = rearrange(
+                u[seq_length-h*w:seq_length, ...],
+                "(h w) (c ph pw) -> (h ph w pw) c",
+                h=h,
+                w=w,
+                ph=2,
+                pw=2,
+            )
+            x_list.append(u)
+        x = pad_sequence(tuple(x_list), batch_first=True).permute(0, 2, 1)
+        return x
+
+    def forward(
+            self,
+            x: Tensor,
+            t: Tensor,
+            cond: dict = {},
+            guidance: Tensor | None = None,
+            gc_seg: int = 0,
+            **kwargs
+    ) -> Tensor:
+        x, x_ids, txt, txt_ids, y, mask_x, mask_txt, seq_length_list = self.prepare_input(x, cond)
+        # running on sequences img
+        vec = self.time_in(timestep_embedding(t, 256))
+        if self.guidance_embed:
+            if guidance is None:
+                raise ValueError("Didn't get guidance strength for guidance distilled model.")
+            vec = vec + self.guidance_in(timestep_embedding(guidance, 256))
+        vec = vec + self.vector_in(y)
+        ids = torch.cat((txt_ids, x_ids), dim=1)
+        pe = self.pe_embedder(ids)
+
+        mask_aside = torch.cat((mask_txt, mask_x), dim=1)
+        mask = mask_aside[:, None, :] * mask_aside[:, :, None]
+
+        kwargs = dict(
+            vec=vec,
+            pe=pe,
+            mask=mask,
+            txt_length = txt.shape[1],
+        )
+        x = torch.cat((txt, x), 1)
+        if self.use_grad_checkpoint and gc_seg >= 0:
+            x = checkpoint_sequential(
+                functions=[partial(block, **kwargs) for block in self.double_blocks],
+                segments=gc_seg if gc_seg > 0 else len(self.double_blocks),
+                input=x,
+                use_reentrant=False
+            )
+        else:
+            for block in self.double_blocks:
+                x = block(x, **kwargs)
+
+        kwargs = dict(
+            vec=vec,
+            pe=pe,
+            mask=mask,
+        )
+
+        if self.use_grad_checkpoint and gc_seg >= 0:
+            x = checkpoint_sequential(
+                functions=[partial(block, **kwargs) for block in self.single_blocks],
+                segments=gc_seg if gc_seg > 0 else len(self.single_blocks),
+                input=x,
+                use_reentrant=False
+            )
+        else:
+            for block in self.single_blocks:
+                x = block(x, **kwargs)
+        x = x[:, txt.shape[1]:, ...]
+        x = self.final_layer(x, vec)  # (N, T, patch_size ** 2 * out_channels) 6 64 64
+        x = self.unpack(x, cond, seq_length_list)
+        return x
+
+    @staticmethod
+    def get_config_template():
+        return dict_to_yaml('BACKBONE',
+                            __class__.__name__,
+                            FluxMR.para_dict,
                             set_name=True)

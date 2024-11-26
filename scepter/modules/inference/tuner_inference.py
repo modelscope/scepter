@@ -29,11 +29,11 @@ class TunerInference():
             warnings.warn(f'Import swift error, please deal with this problem: {e}')
 
         self.logger.info('Unloading tuner model')
-        if isinstance(diffusion_model['model'], SwiftModel):
+        if diffusion_model is not None and isinstance(diffusion_model['model'], SwiftModel):
             for adapter_name in diffusion_model['model'].adapters:
                 diffusion_model['model'].deactivate_adapter(adapter_name,
                                                             offload='cpu')
-        if isinstance(cond_stage_model['model'], SwiftModel):
+        if cond_stage_model is not None and isinstance(cond_stage_model['model'], SwiftModel):
             for adapter_name in cond_stage_model['model'].adapters:
                 cond_stage_model['model'].deactivate_adapter(adapter_name,
                                                              offload='cpu')

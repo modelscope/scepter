@@ -128,13 +128,24 @@ class CheckpointHook(Hook):
                     solver.work_dir,
                     'checkpoints/{}-{}'.format(self.save_name_prefix,
                                                solver.total_iter + 1))
-                if we.rank == 0:
-                    local_folder, _ = FS.map_to_local(save_path)
-                    if hasattr(solver.model, 'module'):
-                        solver.model.module.save_pretrained(local_folder)
-                    else:
-                        solver.model.save_pretrained(local_folder)
-                    FS.put_dir_from_local_dir(local_folder, save_path)
+                solver_model = solver.model.module if hasattr(solver.model, 'module') else solver.model
+                if isinstance(solver_model.base_model.model, torch.distributed.fsdp.FullyShardedDataParallel):
+                    full_state_dict_config = torch.distributed.fsdp.FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
+                    with torch.distributed.fsdp.FullyShardedDataParallel.state_dict_type(solver_model.base_model, torch.distributed.fsdp.StateDictType.FULL_STATE_DICT, full_state_dict_config):
+                        state_dict = solver_model.base_model.state_dict()
+                    if we.rank == 0:
+                        state_dict_new = {}
+                        local_folder, _ = FS.map_to_local(save_path)
+                        for adapter_name in solver_model.adapters.keys():
+                            state_dict_adapter = solver_model.adapters[adapter_name].state_dict_callback(state_dict, adapter_name, replace_key=False)
+                            state_dict_new.update(state_dict_adapter)
+                        solver_model.save_pretrained(local_folder, state_dict=state_dict_new)
+                        FS.put_dir_from_local_dir(local_folder, save_path)
+                else:
+                    if we.rank == 0:
+                        local_folder, _ = FS.map_to_local(save_path)
+                        solver_model.save_pretrained(local_folder)
+                        FS.put_dir_from_local_dir(local_folder, save_path)
             else:
                 if hasattr(solver, 'save_pretrained'):
                     save_path = osp.join(

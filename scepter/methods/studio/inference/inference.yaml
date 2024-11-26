@@ -18,6 +18,16 @@ DIFFUSION_PARAS:
     MAX: 4
     DEFAULT: 1
     VISIBLE: True
+  NUM_FRAMES:
+    MIN: 1
+    MAX: 100
+    DEFAULT: 49
+    VISIBLE: False
+  FPS:
+    MIN: 1
+    MAX: 50
+    DEFAULT: 8
+    VISIBLE: False
   SAMPLE_STEPS:
     MIN: 1
     MAX: 100
@@ -93,7 +103,8 @@ DIFFUSION_PARAS:
              [1664, 576], [1728, 576],
              [2048, 2048], [2048, 1920], [1920, 2048],
              [1536, 2560], [2560, 1536], [2560, 1440],
-             [2560, 1440]
+             [2560, 1440],
+             [480, 720], [720, 480]
             ]
     DEFAULT: [1024, 1024]
     VISIBLE: True

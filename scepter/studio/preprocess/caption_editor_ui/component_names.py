@@ -22,7 +22,8 @@ class CreateDatasetUIName():
             self.dataset_type = 'Dataset Type'
             self.dataset_type_name = {
                 'scepter_txt2img': 'Text2Image Generation',
-                'scepter_img2img': 'Image Edit Generation'
+                'scepter_img2img': 'Image Edit Generation',
+                'scepter_txt2vid': 'Text2Video Generation'
             }
             self.user_data_name = (
                 f'Current Dataset Name. Changes of dataset name take '
@@ -34,30 +35,35 @@ class CreateDatasetUIName():
                 'scepter_txt2img':
                 f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/3D_example_csv.zip',
                 'scepter_img2img':
-                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip'
+                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip',
+                'scepter_txt2vid':
+                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/video_example.zip'
             }
             self.default_dataset_zip_str = ' and '.join(
                 [f'[{k}]({v})' for k, v in self.default_dataset_zip.items()])
 
             self.default_dataset_name = {
                 'scepter_txt2img': '3D_example',
-                'scepter_img2img': 'hed_example'
+                'scepter_img2img': 'hed_example',
+                'scepter_txt2vid': 'video_example'
             }
-
             self.btn_create_datasets_from_file = 'Create Dataset From File'
             self.user_direction = (
                 '### User Guide: \n' +
                 f'* {self.btn_create_datasets} button is used to create a new dataset '
                 ". Please make sure to modify the dataset's name and version. After creation, "
-                'you can upload images one by one. \n'
+                'you can upload images or videos one by one. \n'
                 f'* The "{self.btn_create_datasets_from_file}" button supports creating a new dataset from '
                 'a file, currently supporting zip files. For zip files, the format should be consistent'
-                " with the one used during training, ensuring it contains an 'images/' folder and a '"
-                "train.csv' (which will use the image paths in this file); "
-                'The first line is Target:FILE, Prompt, followed by the format of each line: image path, description.'
+                " with the one used during training, ensuring it contains an 'images/' or 'videos/' folder and a '"
+                "train.csv' (which will use the image or video paths in this file); "
+                'The first line is Target:FILE, Prompt, followed by the format of each line: image path or video path, '
+                'description.'
                 'we also surpport the zip of '
-                'one level subfolder of images whose format are in jpg, jpeg, png, webp. '
+                'one level subfolder of images or videos whose format are in jpg, jpeg, png, mp4, webp. '
                 f'See the ZIP examples: {self.default_dataset_zip_str}. \n'  # noqa
+                'Addition, txt2vid data also supports batch upload of txt file list, followed by the format of '
+                'each line: video path#;#video description '
                 f'* If you have refreshed the page, please click the {self.refresh_list_button} '
                 'button to ensure all previously created datasets are visible in the dropdown menu.\n'
                 '* For processing and training with large-scale data(for example more than 10K samples), '
@@ -97,7 +103,8 @@ class CreateDatasetUIName():
             self.dataset_type = '数据集类型'
             self.dataset_type_name = {
                 'scepter_txt2img': '文生图数据',
-                'scepter_img2img': '图像编辑（图生图）数据'
+                'scepter_img2img': '图像编辑（图生图）数据',
+                'scepter_txt2vid': '文生视频数据'
             }
 
             self.user_data_name = f'当前数据集名称，修改后点{self.modify_data_button}生效'
@@ -108,26 +115,30 @@ class CreateDatasetUIName():
                 'scepter_txt2img':
                 f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/3D_example_csv.zip',
                 'scepter_img2img':
-                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip'
+                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/hed_pair.zip',
+                'scepter_txt2vid':
+                f'{self.default_dataset_repo}repo?Revision=master&FilePath=datasets/video_example.zip'
             }
             self.default_dataset_zip_str = ' 和 '.join(
                 [f'[{k}]({v})' for k, v in self.default_dataset_zip.items()])
 
             self.default_dataset_name = {
                 'scepter_txt2img': '3D_example',
-                'scepter_img2img': 'hed_example'
+                'scepter_img2img': 'hed_example',
+                'scepter_txt2vid': 'video_example'
             }
             self.btn_create_datasets_from_file = '从文件新建'
             self.user_direction = (
                 '### 使用说明 \n' +
                 f'* {self.btn_create_datasets} 按钮用于从零新建数据集，请注意修改数据集的name和version，'
-                '新建完成后可以逐个上传图片。\n' +
+                '新建完成后可以逐个上传图片或视频。\n' +
                 f'* {self.btn_create_datasets_from_file} 按钮支持从文件中来新建数据集，目前支持zip文件，'
-                '需要保证在文件夹外进行打包，并包含images/文件夹和train.csv(会使用该文件中的图片路径)，首行为Target:FILE,Prompt，'
-                '其次每行格式为：图片路径,描述；'
-                f'同时我们也支持图像文件的zip包，格式在jpg、jpeg、png或webp。数据ZIP样例路径：{self.default_dataset_zip_str}. \n'
+                '需要保证在文件夹外进行打包，并包含 images/ 或 videos/ 文件夹和train.csv(会使用该文件中的图片或视频路径)，首行为Target:FILE,Prompt，'
+                '其次每行格式为：图片 或 视频 路径,描述；'
+                f'同时我们也支持图像或视频文件的zip包，格式在jpg、jpeg、png、mp4或webp。数据ZIP样例路径：{self.default_dataset_zip_str}； \n'
+                '另外，文生视频数据还支持txt文件列表批量上传，文件每行格式为：视频路径#;#视频描述；\n '
                 +
-                f'* 如果刷新了页面，请点击{self.refresh_list_button} 按钮以确保所有以往创建的数据集在下拉框中可见。\n'
+                f'如果刷新了页面，请点击 {self.refresh_list_button} 按钮以确保所有以往创建的数据集在下拉框中可见\n'
                 '* 对于大规模数据的处理和训练（数据规模大于1万），建议使用命令行形式\n'
                 '* <span style="color: blue;">请注意观察系统日志的输出以帮助改进操作。</span> \n')
             # Error or Warning
@@ -154,11 +165,13 @@ class DatasetGalleryUIName():
             self.illegal_blank_dataset = 'Illgal or blank dataset is not allowed editing.'
             self.delete_blank_dataset = 'Blank dataset is not allowed deleting.'
             self.upload_image = 'Upload Target Image'
+            self.upload_video = 'Upload Video'
             self.upload_src_image = 'Upload Source Image'
             self.upload_src_mask = 'Mask Image'
             self.upload_image_btn = '\U00002714'  # ✔️
             self.cancel_upload_btn = '\U00002716'  # ✖️
             self.image_caption = 'Image Caption'
+            self.video_caption = 'Video Caption'
 
             self.btn_modify = '\U0001F4DD'  # 📝
             self.btn_delete = '\U0001f5d1'  # 🗑️
@@ -196,10 +209,12 @@ class DatasetGalleryUIName():
                 f'click{self.btn_reset_edit} to reset edited data，'
                 f'click{self.btn_cancel_edit} to out of editing mode.')
             self.preprocess_choices = [
-                'Image Preprocess', 'Caption Preprocess'
+                'Image Preprocess', 'Caption Preprocess', 'Caption translation'
             ]
+            self.preprocess_choices_video = ['Video caption generation', 'Caption translation']
 
             self.preview_target_image = 'Preview Target Image'
+            self.preview_target_video = 'Preview Target Video'
             self.preview_src_image = 'Preview Source Image'
             self.preview_src_mask_image = 'Preview Source Image Mask'
             self.preview_caption = 'Preview Caption'
@@ -211,7 +226,7 @@ class DatasetGalleryUIName():
             self.caption_preprocess_btn = 'apply'
             self.caption_preview_btn = 'preview'
             self.caption_update_mode = 'Caption Update Mode'
-            self.caption_update_choices = ['Append', 'Replace']
+            self.caption_update_choices = ['Replace', 'Append']
 
             self.used_device = 'Used Device'
             self.used_memory = 'Used Memory'
@@ -234,11 +249,13 @@ class DatasetGalleryUIName():
             self.illegal_blank_dataset = '不合法或空白数据集不允许编辑。'
             self.delete_blank_dataset = '空白数据集不允许删除。'
             self.upload_image = '上传目标图片'
+            self.upload_video = '上传视频'
             self.upload_src_image = '上传待编辑图片'
             self.upload_src_mask = '蒙版区域'
             self.upload_image_btn = '\U00002714'  # ✔️
             self.cancel_upload_btn = '\U00002716'  # ✖️
             self.image_caption = '图片描述'
+            self.video_caption = '视频描述'
 
             self.btn_modify = '\U0001F4DD'  # 📝
             self.dataset_images = f'图片数据，点击{self.btn_modify}进入编辑模式'
@@ -256,8 +273,8 @@ class DatasetGalleryUIName():
             self.edit_caption = '编辑描述'
             self.batch_caption_generate = '处理范围'
 
-            self.ori_dataset = '原始数据 高({}) * 宽({}) 图像格式({})'
-            self.edit_dataset = '可编辑数据 高({}) * 宽({}) 图像格式({})'
+            self.ori_dataset = '原始数据 高({}) * 宽({}) 格式({})'
+            self.edit_dataset = '可编辑数据 高({}) * 宽({}) 格式({})'
             self.upload_image_info = '图像信息 高({}) * 宽({})'
             self.upload_src_image_info = '源图像信息 高({}) * 宽({})'
 
@@ -276,8 +293,10 @@ class DatasetGalleryUIName():
                                       f'点击{self.btn_cancel_edit}取消编辑，'
                                       f'点击{self.btn_reset_edit}重置数据，'
                                       f'修改编辑范围可以批量编辑不同范围的数据。')
-            self.preprocess_choices = ['图像预处理', '描述生成']
+            self.preprocess_choices = ['图像预处理', '描述生成', '描述翻译']
+            self.preprocess_choices_video = ['视频描述生成', '描述翻译']
             self.preview_target_image = '预览图片'
+            self.preview_target_video = '预览视频'
             self.preview_src_image = '预览原图'
             self.preview_src_mask_image = '预览蒙版'
             self.preview_caption = '预览描述'
@@ -288,7 +307,7 @@ class DatasetGalleryUIName():
             self.caption_preprocess_btn = '应用'
             self.caption_preview_btn = '预览'
             self.caption_update_mode = '描述更新方式'
-            self.caption_update_choices = ['追加', '替换']
+            self.caption_update_choices = ['替换', '追加']
             self.used_device = '使用设备'
             self.used_memory = '使用内存'
             self.caption_language = '描述语言'
@@ -384,5 +403,35 @@ class Image2ImageDataCardName():
             self.illegal_data_err5 = '路径不支持{}，应该为oss路径（oss://）或者省略前缀（xxx/xxx）'
             self.illegal_data_err6 = '下载图像失败{}'
             self.illegal_data_err7 = '上传图像失败{}'
+            self.delete_err1 = '删除失败，数据已经为空了'
+            self.export_zip_err1 = '压缩文件失败!'
+
+
+class Text2VideoDataCardName():
+    def __init__(self, language='en'):
+        if language == 'en':
+            self.illegal_data_err1 = (
+                'The list supports only "," or "#;#" as delimiters. '
+                'The two columns represent video path and description, '
+                'respectively.')
+            self.illegal_data_err2 = 'Illegal file format'
+            self.illegal_data_err3 = 'File decompression failed, failed to upload to storage!'
+            self.illegal_data_err4 = 'Illegal width({}),height({})'
+            self.illegal_data_err5 = (
+                'The path should not contain "{}". '
+                'It should be an OSS path (oss://) or the prefix '
+                'can be omitted (xxx/xxx)."')
+            self.illegal_data_err6 = 'Video download failed {}'
+            self.illegal_data_err7 = 'Video upload failed {}'
+            self.delete_err1 = 'Deletion failed, the data is already empty.'
+            self.export_zip_err1 = 'Failed to compress the file!'
+        elif language == 'zh':
+            self.illegal_data_err1 = '列表只支持,或#;#作为分割符，两列分别为视频路径/描述'
+            self.illegal_data_err2 = '非法的文件格式'
+            self.illegal_data_err3 = '文件解压失败，上传存储器失败！'
+            self.illegal_data_err4 = '不合法的width({}),height({})'
+            self.illegal_data_err5 = '路径不支持{}，应该为oss路径（oss://）或者省略前缀（xxx/xxx）'
+            self.illegal_data_err6 = '下载视频失败{}'
+            self.illegal_data_err7 = '上传视频失败{}'
             self.delete_err1 = '删除失败，数据已经为空了'
             self.export_zip_err1 = '压缩文件失败!'

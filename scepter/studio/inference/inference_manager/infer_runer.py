@@ -6,6 +6,7 @@ from scepter.modules.inference.largen_inference import LargenInference
 from scepter.modules.inference.pixart_inference import PixArtInference
 from scepter.modules.inference.sd3_inference import SD3Inference
 from scepter.modules.inference.stylebooth_inference import StyleboothInference
+from scepter.modules.inference.cogvideox_inference import CogVideoXInference
 from scepter.modules.utils.logger import get_logger
 
 
@@ -111,6 +112,8 @@ class PipelineManager():
             PipelineBuilder = SD3Inference
         elif pipeline_name.startswith('FLUX'):
             PipelineBuilder = FluxInference
+        elif pipeline_name.startswith('COGVIDEO'):
+            PipelineBuilder = CogVideoXInference
         else:
             PipelineBuilder = DiffusionInference
         new_inference = PipelineBuilder(logger=self.logger)

@@ -10,24 +10,23 @@ from functools import partial
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.distributed.fsdp import FullStateDictConfig
-from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
-from torch.distributed.fsdp import (MixedPrecision, ShardingStrategy,
-                                    StateDictType)
-from torch.distributed.fsdp.wrap import lambda_auto_wrap_policy
-from torch.nn.parallel import DistributedDataParallel
-from tqdm import tqdm
-
 from scepter.modules.data.dataset import DATASETS
 from scepter.modules.opt.lr_schedulers import LR_SCHEDULERS
 from scepter.modules.opt.optimizers import OPTIMIZERS
+from scepter.modules.solver import BaseSolver
 from scepter.modules.solver.registry import SOLVERS
 from scepter.modules.utils.config import Config, dict_to_yaml
 from scepter.modules.utils.data import transfer_data_to_cuda
 from scepter.modules.utils.distribute import we
 from scepter.modules.utils.probe import ProbeData
-
-from .base_solver import BaseSolver
+from torch.distributed.fsdp import FullStateDictConfig
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+from torch.distributed.fsdp import (MixedPrecision, ShardingStrategy,
+                                    StateDictType)
+from torch.distributed.fsdp.wrap import (lambda_auto_wrap_policy,
+                                         size_based_auto_wrap_policy)
+from torch.nn.parallel import DistributedDataParallel
+from tqdm import tqdm
 
 sharding_strategy_map = {
     'full_shard': ShardingStrategy.FULL_SHARD,
@@ -38,17 +37,18 @@ sharding_strategy_map = {
 
 def shard_model(model,
                 device_id,
+                process_group=None,
                 param_dtype=torch.bfloat16,
                 reduce_dtype=torch.float32,
                 buffer_dtype=torch.float32,
                 fsdp_group=['blocks'],
                 sharding_strategy=ShardingStrategy.FULL_SHARD,
-                sync_module_states=False):
+                sync_module_states=False,
+                use_orig_params=False):
     wrap_modules = []
     for module_name in fsdp_group:
         if hasattr(model, module_name):
-            if isinstance(getattr(model, module_name),
-                          (list, tuple, nn.ModuleList)):
+            if isinstance(getattr(model, module_name), (list, tuple, nn.ModuleList)):
                 wrap_modules.extend([m for m in getattr(model, module_name)])
             else:
                 wrap_modules.extend([getattr(model, module_name)])
@@ -56,7 +56,7 @@ def shard_model(model,
             warnings.warn("Can't find module {} in model".format(module_name))
     return FSDP(
         module=model,
-        process_group=None,
+        process_group=process_group,
         sharding_strategy=sharding_strategy,
         auto_wrap_policy=partial(
             # size_based_auto_wrap_policy, min_num_params=int(1e6),
@@ -66,7 +66,8 @@ def shard_model(model,
                                        reduce_dtype=reduce_dtype,
                                        buffer_dtype=buffer_dtype),
         device_id=device_id,
-        sync_module_states=sync_module_states)
+        sync_module_states=sync_module_states,
+        use_orig_params=use_orig_params)
 
 
 def get_module(instance, sub_module):
@@ -195,7 +196,11 @@ class LatentDiffusionSolver(BaseSolver):
             self.logger.info('Use fsdp as the backend of ddp.')
         else:
             self.logger.info('Use default backend.')
+        self.use_scaler = cfg.get('USE_SCALER', True)
+        self.enable_gradscaler = cfg.get('ENABLE_GRADSCALER', False)
+        self.use_orig_params = cfg.get('USE_ORIG_PARAMS', False)
         self.model_shard = cfg.get('SHARDING_STRATEGY', 'full_shard')
+        self.sharding_size = cfg.get('SHARDING_SIZE', None)
         self.reduce_dtype = getattr(torch,
                                     cfg.get('FSDP_REDUCE_DTYPE', 'float32'))
         self.buffer_dtype = getattr(torch,
@@ -211,7 +216,7 @@ class LatentDiffusionSolver(BaseSolver):
         self.sample_args = cfg.get('SAMPLE_ARGS', None)
         self.tuner_cfg = cfg.get('TUNER', None)
         self.freeze_cfg = cfg.get('FREEZE', None)
-        self.log_train_num = cfg.get('LOG_TRAIN_NUM', -1)
+        self.log_train_num = cfg.get("LOG_TRAIN_NUM", -1)
 
     def set_up(self):
         self.construct_data()
@@ -220,6 +225,7 @@ class LatentDiffusionSolver(BaseSolver):
         self.model_to_device()
         self.init_lr()
         self.init_opti()
+        self.logger.info(self.model)
 
     def construct_hook(self):
         # initialize data
@@ -281,54 +287,79 @@ class LatentDiffusionSolver(BaseSolver):
 
     def init_opti(self):
         import torch.cuda.amp as amp
+        import torch.distributed as dist
 
         if we.is_distributed:
             if self.use_fairscale:
                 from fairscale.nn.data_parallel import ShardedDataParallel
                 from fairscale.optim.oss import OSS
                 if hasattr(self.model, 'ignored_parameters'):
-                    train_params, _ = self.model.parameters(
+                    train_params, ignored_params = self.model.parameters(
                     ), self.model.ignored_parameters()
                 else:
-                    train_params, _ = self.model.parameters(), None
+                    train_params, ignored_params = self.model.parameters(
+                    ), None
                 self.optimizer = OSS(params=train_params,
                                      optim=torch.optim.AdamW,
                                      lr=self.cfg.OPTIMIZER.LEARNING_RATE)
                 self.model = ShardedDataParallel(self.model, self.optimizer)
             elif self.use_fsdp:
                 shard_fn = partial
+                if self.model_shard == 'hybrid_shard' and self.sharding_size is not None and self.sharding_size > 1:
+                    if self.sharding_size > we.world_size:
+                        self.logger.info(f'Reset sharding_size ({self.sharding_size}) to world_size ({we.world_size})')
+                    sharding_size = min(self.sharding_size, we.world_size)
+                    assert we.world_size % sharding_size == 0
+                    # mesh to facilitate rank indexing
+                    mesh = torch.arange(we.world_size).view(-1, sharding_size)
+                    # sharding groups
+                    for ranks in mesh.tolist():
+                        group = dist.new_group(ranks=ranks)
+                        if we.rank in ranks:
+                            sharding_group = group
+                    # replication groups
+                    for ranks in mesh.t().tolist():
+                        group = dist.new_group(ranks=ranks)
+                        if we.rank in ranks:
+                            replication_group = group
+                    # fsdp group tuple
+                    fsdp_group = (sharding_group, replication_group)
+                    fsdp_rank0 = we.rank // sharding_size * sharding_size
+                else:
+                    fsdp_group = None
+                    fsdp_rank0 = 0
+
                 if self.shard_modules is not None:
                     for module in self.shard_modules:
                         if isinstance(module, str):
                             sub_module = get_module(self.model, module)
                             if sub_module is not None:
                                 sub_module = shard_model(
-                                    sub_module,
-                                    device_id=we.device_id,
-                                    param_dtype=self.dtype,
-                                    reduce_dtype=self.reduce_dtype,
-                                    buffer_dtype=self.buffer_dtype,
-                                    sharding_strategy=sharding_strategy_map[
-                                        self.model_shard],
-                                    sync_module_states=True)
+                                            sub_module,
+                                            process_group=fsdp_group,
+                                            device_id=we.device_id,
+                                            param_dtype=self.dtype,
+                                            reduce_dtype=self.reduce_dtype,
+                                            buffer_dtype=self.buffer_dtype,
+                                            sharding_strategy=sharding_strategy_map[self.model_shard],
+                                            sync_module_states=True,
+                                            use_orig_params=self.use_orig_params)
                                 set_module(self.model, module, sub_module)
                         elif isinstance(module, (dict, Config)):
-                            sub_module = get_module(self.model,
-                                                    module['MODULE'])
+                            sub_module = get_module(self.model, module["MODULE"])
                             if sub_module is not None:
                                 sub_module = shard_model(
                                     sub_module,
+                                    process_group=fsdp_group,
                                     device_id=we.device_id,
                                     param_dtype=self.dtype,
                                     reduce_dtype=self.reduce_dtype,
                                     buffer_dtype=self.buffer_dtype,
-                                    fsdp_group=module.get(
-                                        'FSDP_GROUP', ['blocks']),
-                                    sharding_strategy=sharding_strategy_map[
-                                        self.model_shard],
-                                    sync_module_states=True)
-                                set_module(self.model, module['MODULE'],
-                                           sub_module)
+                                    fsdp_group=module.get("FSDP_GROUP", ["blocks"]),
+                                    sharding_strategy=sharding_strategy_map[self.model_shard],
+                                    sync_module_states=module.get("SYNC_MODULE_STATES", True),
+                                    use_orig_params=self.use_orig_params)
+                                set_module(self.model, module["MODULE"], sub_module)
                 else:
                     self.logger.warning(
                         'FSDP_SHARD_MODULES is None, which means wraping the whold model as the '
@@ -380,22 +411,23 @@ class LatentDiffusionSolver(BaseSolver):
                                                     logger=self.logger,
                                                     optimizer=self.optimizer)
 
-        if self.cfg.DTYPE in ['float16']:
+        if self.use_scaler and self.cfg.DTYPE in ['float16', 'bfloat16']:
             if we.is_distributed:
                 if self.use_fairscale:
                     from fairscale.optim.grad_scaler import ShardedGradScaler
-                    self.scaler = ShardedGradScaler(enabled=True)
+                    self.scaler = ShardedGradScaler(enabled=self.enable_gradscaler)
                 elif self.use_fsdp:
                     from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
-                    self.scaler = ShardedGradScaler(enabled=True,
+                    self.scaler = ShardedGradScaler(enabled=self.enable_gradscaler,
                                                     process_group=None)
                 else:
-                    self.scaler = amp.GradScaler()
-            else:
+                    self.scaler = amp.GradScaler(enabled=self.enable_gradscaler)
+            elif self.cfg.DTYPE in ['float16']:
                 self.scaler = amp.GradScaler()
+            else:
+                self.scaler = None
         else:
             self.scaler = None
-        self.logger.info(self.model)
 
     def load_checkpoint(self, checkpoint: dict):
         """
@@ -450,10 +482,10 @@ class LatentDiffusionSolver(BaseSolver):
                                 f'Load checkpoint for optimizer {module}.')
                 else:
                     self.optimizer.load_state_dict(checkpoint['optimizer'])
-                    self.logger.info('Load checkpoint for optimizer.')
+                    self.logger.info(f'Load checkpoint for optimizer.')
             if 'scaler' in checkpoint and self.scaler:
                 self.scaler.load_state_dict(checkpoint['scaler'])
-                self.logger.info('Load checkpoint for scaler.')
+                self.logger.info(f'Load checkpoint for scaler.')
         self.logger.info('Load checkpoint finished.')
 
     def save_checkpoint(self) -> dict:
@@ -522,7 +554,8 @@ class LatentDiffusionSolver(BaseSolver):
                         ckpt['model'][module] = current_module.state_dict()
             else:
                 ckpt['model'] = model.state_dict()
-        if self.optimizer and not self.use_fairscale:
+        if (self.optimizer and not self.use_fairscale
+                and self.save_modules and "optimizer" in self.save_modules):
             if self.use_fsdp and we.is_distributed:
                 ckpt['optimizer'] = OrderedDict()
                 for module in self.train_modules:
@@ -586,9 +619,6 @@ class LatentDiffusionSolver(BaseSolver):
                 'batch_size': len(batch_data['prompt'])
             })
             self.current_batch_data[self.mode] = batch_data
-            if self.sample_args:
-                self.current_batch_data[self.mode].update(
-                    self.sample_args.get_lowercase_dict())
             with torch.autocast(device_type='cuda',
                                 enabled=self.use_amp,
                                 dtype=self.dtype):
@@ -631,12 +661,12 @@ class LatentDiffusionSolver(BaseSolver):
             # the inference image use
             ret_images, ret_labels = [], []
             if 'hint' in result:
-                ret_images.append(
-                    (result['hint'][:result['image'].shape[0]].permute(
-                        1, 2, 0).cpu().numpy() * 255).astype(np.uint8))
-                ret_labels.append('Control Image')
-            ret_images.append((result['image'].permute(1, 2, 0).cpu().numpy() *
-                               255).astype(np.uint8))
+                ret_images.append((result['hint'][:result['image'].shape[0]].permute(1, 2, 0).cpu().numpy() *
+                                   255).astype(np.uint8))
+                ret_labels.append(f"Control Image")
+            ret_images.append(
+                (result['image'].permute(1, 2, 0).cpu().numpy() *
+                 255).astype(np.uint8))
             ret_labels.append(result['prompt'] +
                               " <font color='red'> |NegPrompt| </font> " +
                               result['n_prompt'])
@@ -678,15 +708,15 @@ class LatentDiffusionSolver(BaseSolver):
             # the inference image use
             ret_images, ret_labels = [], []
             if 'hint' in result:
-                ret_images.append(
-                    (result['hint'][:result['image'].shape[0]].permute(
-                        1, 2, 0).cpu().numpy() * 255).astype(np.uint8))
-                ret_labels.append('Control Image')
-            ret_images.append((result['image'].permute(1, 2, 0).cpu().numpy() *
-                               255).astype(np.uint8))
+                ret_images.append((result['hint'][:result['image'].shape[0]].permute(1, 2, 0).cpu().numpy() *
+                                 255).astype(np.uint8))
+                ret_labels.append(f"Control Image")
+            ret_images.append(
+                (result['image'].permute(1, 2, 0).cpu().numpy() *
+                 255).astype(np.uint8))
             ret_labels.append(result['prompt'] +
-                              " <font color='red'> |NegPrompt| </font> " +
-                              result['n_prompt'])
+                             " <font color='red'> |NegPrompt| </font> " +
+                             result['n_prompt'])
             log_data.append(ret_images)
             log_label.append(ret_labels)
             ori_label.append(result['prompt'])
@@ -715,11 +745,8 @@ class LatentDiffusionSolver(BaseSolver):
             swift_cfg_dict[f'{t_id}_{cfg_name}'] = init_config
         if len(swift_cfg_dict) > 0:
             from swift import Swift
-            model = Swift.prepare_model(self.model, config=swift_cfg_dict)
-
-            self.logger.info([(key, param.shape)
-                              for key, param in model.named_parameters()
-                              if param.requires_grad])
+            model = Swift.prepare_model(self.model, config=swift_cfg_dict, autocast_adapter_dtype=False)
+        self.logger.info([(key, param.shape) for key, param in model.named_parameters() if param.requires_grad])
         return model
 
     def freeze(self, freeze_cfg, model=None):
@@ -781,9 +808,7 @@ class LatentDiffusionSolver(BaseSolver):
                 for name, param in freeze_model.named_parameters():
                     if re.match(train_part, name):
                         param.requires_grad = True
-        self.logger.info([(key, param.shape)
-                          for key, param in freeze_model.named_parameters()
-                          if param.requires_grad])
+        self.logger.info([(key, param.shape) for key, param in freeze_model.named_parameters() if param.requires_grad])
         return model
 
     @torch.no_grad()
@@ -826,37 +851,32 @@ class LatentDiffusionSolver(BaseSolver):
     @property
     def probe_data(self):
         if not we.debug and self.mode == 'train':
-            batch_data = transfer_data_to_cuda(
-                self.current_batch_data[self.mode])
+            batch_data = self.current_batch_data[self.mode]
+            if self.sample_args:
+                batch_data.update(self.sample_args.get_lowercase_dict())
             self.eval_mode()
             with torch.autocast(device_type='cuda',
                                 enabled=self.use_amp,
                                 dtype=self.dtype):
                 batch_data['log_num'] = self.log_train_num
-                results = self.run_step_eval(batch_data)
-                images = batch_data['image'] if 'image' in batch_data else [
-                    None
-                ] * len(results)
+                results = self.run_step_eval(transfer_data_to_cuda(batch_data))
+                images = batch_data['image'] if 'image' in batch_data else [None] * len(results)
             self.train_mode()
             log_data, log_label = [], []
             for result, image in zip(results, images):
                 ret_images, ret_labels = [], []
                 if 'hint' in result:
-                    ret_images.append(
-                        (result['hint'][:result['image'].shape[0]].permute(
-                            1, 2, 0).cpu().numpy() * 255).astype(np.uint8))
+                    ret_images.append((result['hint'][:result['image'].shape[0]].permute(1, 2, 0).cpu().numpy() *
+                                     255).astype(np.uint8))
                 if image is not None:
                     image = torch.clamp((image + 1.0) / 2.0, min=0.0, max=1.0)
-                    ret_images.append((image.permute(1, 2, 0).cpu().numpy() *
-                                       255).astype(np.uint8))
-                    ret_labels.append('target image')
+                    ret_images.append((image.permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8))
+                    ret_labels.append(f'target image')
 
-                ret_images.append(
-                    (result['image'].permute(1, 2, 0).cpu().numpy() *
-                     255).astype(np.uint8))
-                ret_labels.append(result['prompt'] +
-                                  " <font color='red'> |NegPrompt| </font> " +
-                                  result['n_prompt'])
+                ret_images.append((result['image'].permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8))
+                ret_labels.append(result['prompt']
+                                  + " <font color='red'> |NegPrompt| </font> "
+                                  + result['n_prompt'])
                 log_data.append(ret_images)
                 log_label.append(ret_labels)
             self.register_probe({

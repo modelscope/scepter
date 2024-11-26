@@ -74,12 +74,13 @@ class TrainerUIName():
         self.task_choices = ['Text2Image', 'Image Editing']
         self.data_task_map = {
             'scepter_txt2img': None,
-            'scepter_img2img': 'edit'
+            'scepter_img2img': 'edit',
+            'scepter_txt2vid': 'dit'
         }
         if language == 'en':
             self.user_direction = '''
                 ### User Guide
-                - Data: Data preparation is done through the Data Manager. (zip example: [3D](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip))
+                - Data: Data preparation is done through the Data Manager. (zip example: [3D](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip), txt example(Support only video data): [txt](https://modelscope.cn/models/iic/scepter/resolve/master/datasets/video_example.txt))
                 - Parameters: You can try modifying the related parameters.
                 - Training: Click on [Start Training].
                 - Testing: After completing the training, click [Go to inference].
@@ -93,14 +94,20 @@ class TrainerUIName():
             self.data_source_choices = [
                 'Dataset zip', 'MaaS Dataset', 'Dataset Management'
             ]
+            self.illegal_data_err = (
+                'The list supports only "," or "#;#" as delimiters. '
+                'The two columns represent video path and description, '
+                'respectively.')
             self.data_source_value = 'Dataset zip'
             self.data_source_name = 'Data Source'
             self.data_type_map = {
                 'scepter_txt2img': 'Text2Image Generation',
-                'scepter_img2img': 'Image Edit Generation'
+                'scepter_img2img': 'Image Edit Generation',
+                'scepter_txt2vid': 'Text2Video Generation'
             }
             self.data_type_choices = list(self.data_type_map.keys())
             self.data_type_value = 'scepter_txt2img'
+            self.data_type_value_video = 'scepter_txt2vid'
             self.data_type_name = 'Data Type'
             self.ori_data_name = 'Data Name'
             # Supports MaaS dataset/local/HTTP Zip package
@@ -120,8 +127,8 @@ class TrainerUIName():
             self.base_model = 'Base Model'
             self.tuner_name = 'Tuner Method'
             self.base_model_revision = 'Model Version Number'
-            self.resolution_height = 'Train Image Height'
-            self.resolution_width = 'Train Image Width'
+            self.resolution_height = 'Train Image or Video Height'
+            self.resolution_width = 'Train Image or Video Width'
             self.resolution_height_max = 'Resolution Height Max'
             self.resolution_width_max = 'Resolution Width Max'
             self.train_epoch = 'Total Training Epochs'
@@ -142,6 +149,8 @@ class TrainerUIName():
             self.bucket_resolution_steps = 'Bucket Resolution Steps'
             self.bucket_no_upscale = 'Bucket No Upscale'
             self.bucket_no_upscale_ins = 'Disable Automatic Image Upscaling'
+            self.accumulate_step = 'Accumulate Step'
+            self.gpus = 'Select GPUs'
             # Error or Warning
             self.training_err1 = 'CUDA is unavailable.'
             self.training_err2 = 'Currently insufficient VRAM, training failed!'
@@ -153,7 +162,7 @@ class TrainerUIName():
         elif language == 'zh':
             self.user_direction = '''
                 ### 使用说明
-                - 数据: 通过数据管理器进行数据的准备（ZIP样例：[3D](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip)）
+                - 数据: 通过数据管理器进行数据的准备（ZIP样例：[3D](https://www.modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=datasets/3D_example_csv.zip)，txt样例（仅支持视频数据）：[txt](https://modelscope.cn/models/iic/scepter/resolve/master/datasets/video_example.txt)）
                 - 参数: 可尝试进行相关参数的修改
                 - 训练: 点击【开始训练】
                 - 测试: 完成训练后点击【使用模型】
@@ -161,14 +170,17 @@ class TrainerUIName():
                 - 对于大规模数据的处理和训练，建议使用命令行形式
                 '''  # noqa
             self.data_source_choices = ['数据集zip', 'MaaS数据集', '数据管理器']
+            self.illegal_data_err = '列表只支持,或#;#作为分割符，两列分别为视频路径/描述'
             self.data_source_value = '数据集zip'
             self.data_source_name = '数据集来源'
             self.data_type_map = {
                 'scepter_txt2img': '文生图数据',
-                'scepter_img2img': '图像编辑（图生图）数据'
+                'scepter_img2img': '图像编辑（图生图）数据',
+                'scepter_txt2vid': '文生视频数据'
             }
             self.data_type_choices = list(self.data_type_map.keys())
             self.data_type_value = 'scepter_txt2img'
+            self.data_type_value_video = 'scepter_txt2vid'
             self.data_type_name = '数据类型'
             self.ori_data_name = '数据集名称'
             self.ms_data_name_place_hold = '请使用数据管理器导入'  # '支持MaaS数据集/本地/Http Zip包'
@@ -187,8 +199,8 @@ class TrainerUIName():
             self.base_model = '基础模型'
             self.tuner_name = '微调方法'
             self.base_model_revision = '模型版本号'
-            self.resolution_height = '训练图片高度'
-            self.resolution_width = '训练图片宽度'
+            self.resolution_height = '训练图片或视频高度'
+            self.resolution_width = '训练图片或视频宽度'
             self.resolution_height_max = '最大训练高度'
             self.resolution_width_max = '最大训练宽度'
             self.train_epoch = '总训练轮数'
@@ -208,6 +220,8 @@ class TrainerUIName():
             self.bucket_resolution_steps = '分桶分辨率步长'
             self.bucket_no_upscale = '分桶分辨率不做放大'
             self.bucket_no_upscale_ins = '禁止图片分辨率上采样'
+            self.accumulate_step = '梯度累积数量'
+            self.gpus = '选择GPU'
             # Error or Warning
             self.training_err1 = 'CUDA不可用.'
             self.training_err2 = '目前显存不足，训练失败！'

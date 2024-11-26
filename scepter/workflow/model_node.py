@@ -39,8 +39,8 @@ class ModelNode:
                 'mantras': ('CONDITIONING', ),
                 'tuners': ('CONDITIONING', ),
                 'controls': ('CONDITIONING', ),
-                'image': ('IMAGE',),
-                'mask': ('MASK',)
+                'image': ('IMAGE', ),
+                'mask': ('MASK', )
             }
         }
 
@@ -64,15 +64,17 @@ class ModelNode:
             image = [TT.ToPILImage()(image.squeeze(0).permute(2, 0, 1))]
         if mask is not None:
             mask = [TT.ToPILImage()(mask.squeeze(0))]
-        data = self.format_parameters(model, model_source, prompt, negative_prompt,
-                                      parameters, mantras, tuners, controls, image, mask)
+        data = self.format_parameters(model, model_source, prompt,
+                                      negative_prompt, parameters, mantras,
+                                      tuners, controls, image, mask)
         cfg = self.model_file.get(model)['config']
         cfg = self.source_mapping(cfg, model_source)
         self.init_infer(model, cfg)
 
         if model.startswith('ACE'):
             output = self.diff_infer(**data[0], **data[1])
-            output_image = torch.stack([ TT.ToTensor()(img) for img in output]).permute(0, 2, 3, 1).unsqueeze(0)
+            output_image = torch.stack([TT.ToTensor()(img) for img in output
+                                        ]).permute(0, 2, 3, 1).unsqueeze(0)
         else:
             output = self.diff_infer(data[0], **data[1])
             x = output['images'].permute(0, 2, 3, 1)
@@ -94,10 +96,14 @@ class ModelNode:
             elif source == 'Local':
                 cfg_new = copy.deepcopy(cfg)
                 cfg_new.MODEL = cfg_new.MODEL_LOCAL
+                if hasattr(cfg_new, 'REFINER_MODEL_LOCAL'):
+                    cfg_new.REFINER_MODEL = cfg_new.REFINER_MODEL_LOCAL
                 return cfg_new
             elif source == 'HuggingFace':
                 cfg_new = copy.deepcopy(cfg)
                 cfg_new.MODEL = cfg_new.MODEL_HF
+                if hasattr(cfg_new, 'REFINER_MODEL_HF'):
+                    cfg_new.REFINER_MODEL = cfg_new.REFINER_MODEL_HF
                 return cfg_new
             else:
                 raise NotImplementedError(f'Unknown model source: {source}')
@@ -143,17 +149,8 @@ class ModelNode:
             self.pipeline[model_name] = diff_infer
         self.diff_infer = diff_infer
 
-    def format_parameters(self,
-                          model,
-                          model_source,
-                          prompt,
-                          negative_prompt,
-                          parameters,
-                          mantras,
-                          tuners,
-                          controls,
-                          image,
-                          mask):
+    def format_parameters(self, model, model_source, prompt, negative_prompt,
+                          parameters, mantras, tuners, controls, image, mask):
         input_data = {'prompt': prompt, 'negative_prompt': negative_prompt}
         input_params = {
             'diffusion_model': self.model_file.get(model)['diffusion_model'],
@@ -163,10 +160,10 @@ class ModelNode:
         }
 
         if image is not None:
-            input_data.update({"image": image})
+            input_data.update({'image': image})
 
         if mask is not None:
-            input_data.update({"mask": mask})
+            input_data.update({'mask': mask})
 
         if parameters:
             seed = parameters.pop('seed', -1)

@@ -151,7 +151,7 @@ class FluxInference(DiffusionInference):
                 with torch.autocast('cuda',
                                     enabled= dtype in ('float16', 'bfloat16'),
                                     dtype=getattr(torch, dtype)):
-                    solver_sample = value_input.get('sample', 'flow_eluer')
+                    solver_sample = value_input.get('sample', 'flow_euler')
                     sample_steps = value_input.get('sample_steps', 20)
                     guide_scale = value_input.get('guide_scale', 3.5)
                     if guide_scale is not None:

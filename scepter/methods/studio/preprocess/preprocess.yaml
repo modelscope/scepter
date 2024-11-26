@@ -450,3 +450,28 @@ PROCESSORS:
       SRC_IMAGE_TOOL: sketch
       SRC_IMAGE_INTERACTIVE: True
       CAPTION_INTERACTIVE: False
+
+VIDEO_PROCESSORS:
+  - NAME: CogVLM2Llama3Caption
+    TYPE: caption
+    MODEL_PATH: ms://ZhipuAI/cogvlm2-llama3-caption
+    DEVICE: "gpu"
+    MEMORY: 20000
+    PROMPT: Please describe this video in detail.
+    TEMPERATURE: 0.1
+    MAX_NEW_TOKENS: 2048
+    PAD_TOKEN_ID: 128002
+    TOP_K: 1
+    TOP_P: 0.1
+
+TRANSLATION_PROCESSORS:
+  - NAME: OpusMtZhEn
+    TYPE: caption
+    MODEL_PATH: ms://cubeai/trans-opus-mt-zh-en
+    DEVICE: "gpu"
+    MEMORY: 5000
+  - NAME: OpusMtEnZh
+    TYPE: caption
+    MODEL_PATH: ms://cubeai/trans-opus-mt-en-zh
+    DEVICE: "gpu"
+    MEMORY: 5000

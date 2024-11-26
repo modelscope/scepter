@@ -15,8 +15,11 @@ from scepter.modules.utils.file_system import FS
 import numpy as np
 from scepter.studio.preprocess.processors.base_processor import \
     BaseCaptionProcessor
+import io
+from decord import cpu, VideoReader, bridge
 
-__all__ = ['BlipImageBase', 'QWVL', 'QWVLQuantize', 'InternVL15']
+__all__ = ['BlipImageBase', 'QWVL', 'QWVLQuantize', 'InternVL15', 'CogVLM2Llama3Caption',
+           'OpusMtZhEn', 'OpusMtEnZh']
 
 def get_region(image, mask, mask_id):
     locs = np.where(np.array(mask) == mask_id)
@@ -466,4 +469,307 @@ class InternVL15(QWVL):
         image = self.load_image(image, max_num=6).to(torch.bfloat16).cuda(we.device_id)
         response = self.model_info['model'].chat(self.model_info['tokenizer'], image, prompt, generation_config=generation_config)
         response = response.replace("\n", "").strip()
+        return response
+
+
+class CogVLM2Llama3Caption(BaseCaptionProcessor):
+    def __init__(self, cfg, language='en'):
+        super().__init__(cfg, language=language)
+        self.model_path = cfg.MODEL_PATH
+        self.model_info = {
+            'device': 'offline',
+            'model': None,
+            'tokenizer': None
+        }
+        self.prompt = cfg.PROMPT
+        self.temperature = cfg.TEMPERATURE
+        self.max_new_tokens = cfg.MAX_NEW_TOKENS
+        self.pad_token_id = cfg.PAD_TOKEN_ID
+        self.top_k = cfg.TOP_K
+        self.top_p = cfg.TOP_P
+        self.TORCH_TYPE = torch.bfloat16 if (torch.cuda.is_available() and
+                                             torch.cuda.get_device_capability()
+                                             [0] >= 8) else torch.float16
+
+    def load_model(self):
+        is_flg, msg = super().load_model()
+        if not is_flg:
+            return is_flg, msg
+        if self.model_info['device'] == 'offline':
+            model = None
+            try:
+                from transformers import AutoModelForCausalLM, AutoTokenizer
+                local_model_dir = FS.get_dir_to_local_dir(self.model_path)
+                tokenizer = AutoTokenizer.from_pretrained(
+                    local_model_dir,
+                    trust_remote_code=True,
+                )
+                model = AutoModelForCausalLM.from_pretrained(
+                    local_model_dir,
+                    device_map='auto',
+                    torch_dtype=self.TORCH_TYPE,
+                    trust_remote_code=True
+                ).eval().to(we.device_id)
+            except Exception as e:
+                if model is not None:
+                    del model
+                return False, f"Load model error '{e}'"
+            self.model_info['device'] = model.device
+            self.model_info['model'] = model
+            self.model_info['tokenizer'] = tokenizer
+        elif self.model_info['device'] == 'cpu':
+            try:
+                self.model_info['model'].to(we.device_id)
+                self.model_info['device'] = we.device_id
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+            except Exception as e:
+                del self.model_info['model']
+                self.model_info['model'] = None
+                self.model_info['device'] = 'offline'
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+                return False, f"Load model error '{e}'"
+        return True, ''
+
+    def unload_model(self):
+        super().unload_model()
+        if self.delete_instance:
+            self.model_info['device'] = 'offline'
+            if self.model_info['model'] is not None:
+                self.model_info['model'] = self.model_info['model'].to('cpu')
+                del self.model_info['model']
+            self.model_info['model'] = None
+        elif (isinstance(self.model_info['device'], numbers.Number)
+              or str(self.model_info['device']).startswith('cuda')):
+            self.model_info['device'] = 'cpu'
+            self.model_info['model'] = self.model_info['model'].to('cpu')
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+        return True, ''
+
+    def load_video(self, video_data, strategy='chat'):
+        bridge.set_bridge('torch')
+        mp4_stream = video_data
+        num_frames = 24
+        decord_vr = VideoReader(io.BytesIO(mp4_stream), ctx=cpu(0))
+
+        frame_id_list = None
+        total_frames = len(decord_vr)
+        if strategy == 'base':
+            clip_end_sec = 60
+            clip_start_sec = 0
+            start_frame = int(clip_start_sec * decord_vr.get_avg_fps())
+            end_frame = min(total_frames,
+                            int(clip_end_sec * decord_vr.get_avg_fps())) if clip_end_sec is not None else total_frames
+            frame_id_list = np.linspace(start_frame, end_frame - 1, num_frames, dtype=int)
+        elif strategy == 'chat':
+            timestamps = decord_vr.get_frame_timestamp(np.arange(total_frames))
+            timestamps = [i[0] for i in timestamps]
+            max_second = round(max(timestamps)) + 1
+            frame_id_list = []
+            for second in range(max_second):
+                closest_num = min(timestamps, key=lambda x: abs(x - second))
+                index = timestamps.index(closest_num)
+                frame_id_list.append(index)
+                if len(frame_id_list) >= num_frames:
+                    break
+        video_data = decord_vr.get_batch(frame_id_list)
+        video_data = video_data.permute(3, 0, 1, 2)
+        return video_data
+
+    def get_caption(self, prompt, video_data, temperature):
+        strategy = 'chat'
+        video = self.load_video(video_data, strategy=strategy)
+
+        history = []
+        query = prompt
+        model = self.model_info['model']
+        tokenizer = self.model_info['tokenizer']
+        inputs = model.build_conversation_input_ids(
+            tokenizer=tokenizer,
+            query=query,
+            images=[video],
+            history=history,
+            template_version=strategy
+        )
+        inputs = {
+            'input_ids': inputs['input_ids'].unsqueeze(0).to('cuda'),
+            'token_type_ids': inputs['token_type_ids'].unsqueeze(0).to(we.device_id),
+            'attention_mask': inputs['attention_mask'].unsqueeze(0).to(we.device_id),
+            'images': [[inputs['images'][0].to(we.device_id).to(self.TORCH_TYPE)]],
+        }
+        gen_kwargs = {
+            "max_new_tokens": self.max_new_tokens,
+            "pad_token_id": self.pad_token_id,
+            "top_k": self.top_k,
+            "do_sample": True,
+            "top_p": self.top_p,
+            "temperature": temperature,
+        }
+        with torch.no_grad():
+            outputs = model.generate(**inputs, **gen_kwargs)
+            outputs = outputs[:, inputs['input_ids'].shape[1]:]
+            response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            return response
+
+    def __call__(self, *args, **kwargs):
+        video_path = kwargs.pop('video_path', None)
+        with open(video_path, 'rb') as f:
+            video_data = f.read()
+        response = (self.get_caption(self.prompt, video_data, self.temperature))
+        return response
+
+
+class OpusMtZhEn(BaseCaptionProcessor):
+    def __init__(self, cfg, language='en'):
+        super().__init__(cfg, language=language)
+        self.model_path = cfg.MODEL_PATH
+        self.model_info = {
+            'device': 'offline',
+            'model': None,
+            'tokenizer': None
+        }
+
+    def load_model(self):
+        is_flg, msg = super().load_model()
+        if not is_flg:
+            return is_flg, msg
+        if self.model_info['device'] == 'offline':
+            model = None
+            try:
+                from transformers import MarianMTModel, AutoTokenizer
+                local_model_dir = FS.get_dir_to_local_dir(self.model_path)
+                tokenizer = AutoTokenizer.from_pretrained(
+                    local_model_dir
+                )
+                model = MarianMTModel.from_pretrained(
+                    local_model_dir
+                ).to(we.device_id)
+            except Exception as e:
+                if model is not None:
+                    del model
+                return False, f"Load model error '{e}'"
+            self.model_info['device'] = model.device
+            self.model_info['model'] = model
+            self.model_info['tokenizer'] = tokenizer
+        elif self.model_info['device'] == 'cpu':
+            try:
+                self.model_info['model'].to(we.device_id)
+                self.model_info['device'] = we.device_id
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+            except Exception as e:
+                del self.model_info['model']
+                self.model_info['model'] = None
+                self.model_info['device'] = 'offline'
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+                return False, f"Load model error '{e}'"
+        return True, ''
+
+    def unload_model(self):
+        super().unload_model()
+        if self.delete_instance:
+            self.model_info['device'] = 'offline'
+            if self.model_info['model'] is not None:
+                self.model_info['model'] = self.model_info['model'].to('cpu')
+                del self.model_info['model']
+            self.model_info['model'] = None
+        elif (isinstance(self.model_info['device'], numbers.Number)
+              or str(self.model_info['device']).startswith('cuda')):
+            self.model_info['device'] = 'cpu'
+            self.model_info['model'] = self.model_info['model'].to('cpu')
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+        return True, ''
+
+    def get_caption(self, data):
+        model = self.model_info['model']
+        tokenizer = self.model_info['tokenizer']
+        batch = tokenizer(data, return_tensors="pt").to(we.device_id)
+        generated_ids = model.generate(**batch)
+        translated_text = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        return translated_text
+
+    def __call__(self, *args, **kwargs):
+        caption = kwargs.pop('caption', None)
+        response = (self.get_caption(caption))
+        return response
+
+
+class OpusMtEnZh(BaseCaptionProcessor):
+    def __init__(self, cfg, language='en'):
+        super().__init__(cfg, language=language)
+        self.model_path = cfg.MODEL_PATH
+        self.model_info = {
+            'device': 'offline',
+            'model': None,
+            'tokenizer': None
+        }
+
+    def load_model(self):
+        is_flg, msg = super().load_model()
+        if not is_flg:
+            return is_flg, msg
+        if self.model_info['device'] == 'offline':
+            model = None
+            try:
+                from transformers import MarianMTModel, AutoTokenizer
+                local_model_dir = FS.get_dir_to_local_dir(self.model_path)
+                tokenizer = AutoTokenizer.from_pretrained(
+                    local_model_dir
+                )
+                model = MarianMTModel.from_pretrained(
+                    local_model_dir
+                ).to(we.device_id)
+            except Exception as e:
+                if model is not None:
+                    del model
+                return False, f"Load model error '{e}'"
+            self.model_info['device'] = model.device
+            self.model_info['model'] = model
+            self.model_info['tokenizer'] = tokenizer
+        elif self.model_info['device'] == 'cpu':
+            try:
+                self.model_info['model'].to(we.device_id)
+                self.model_info['device'] = we.device_id
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+            except Exception as e:
+                del self.model_info['model']
+                self.model_info['model'] = None
+                self.model_info['device'] = 'offline'
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+                return False, f"Load model error '{e}'"
+        return True, ''
+
+    def unload_model(self):
+        super().unload_model()
+        if self.delete_instance:
+            self.model_info['device'] = 'offline'
+            if self.model_info['model'] is not None:
+                self.model_info['model'] = self.model_info['model'].to('cpu')
+                del self.model_info['model']
+            self.model_info['model'] = None
+        elif (isinstance(self.model_info['device'], numbers.Number)
+              or str(self.model_info['device']).startswith('cuda')):
+            self.model_info['device'] = 'cpu'
+            self.model_info['model'] = self.model_info['model'].to('cpu')
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+        return True, ''
+
+    def get_caption(self, data):
+        model = self.model_info['model']
+        tokenizer = self.model_info['tokenizer']
+        batch = tokenizer(data, return_tensors="pt").to(we.device_id)
+        generated_ids = model.generate(**batch)
+        translated_text = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        return translated_text
+
+    def __call__(self, *args, **kwargs):
+        caption = kwargs.pop('caption', None)
+        response = (self.get_caption(caption))
         return response

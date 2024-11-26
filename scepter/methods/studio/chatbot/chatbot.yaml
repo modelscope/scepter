@@ -8,11 +8,11 @@ FILE_SYSTEM:
     TEMP_DIR: ./cache/cache_data
 #
 ENABLE_I2V: False
+SKIP_EXAMPLES: True
 #
 MODEL:
   EDIT_MODEL:
     MODEL_CFG_DIR: scepter/methods/studio/chatbot/models/
-    DEFAULT: ace_0.6b_512
   I2V:
     MODEL_NAME: CogVideoX-5b-I2V
     MODEL_DIR: ms://ZhipuAI/CogVideoX-5b-I2V/

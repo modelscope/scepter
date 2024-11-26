@@ -2,7 +2,7 @@ albumentations
 beautifulsoup4
 bezier
 einops
-modelscope
+modelscope[framework]
 ms-swift
 numpy
 open_clip_torch
@@ -12,6 +12,7 @@ oss2>=2.15.0
 pycocotools
 pyyaml>=5.3.1
 scikit-image
+scikit-learn
+sentencepiece
 torchsde
 transformers
-scikit-learn
