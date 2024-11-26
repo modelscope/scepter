@@ -59,6 +59,6 @@ class ParameterNode:
             'guide_rescale': guide_rescale,
             'discretization': discretization,
             'target_size_as_tuple': [output_height, output_width],
-            'seed': random_seed
+            'random_seed': random_seed
         }
         return (out, )
