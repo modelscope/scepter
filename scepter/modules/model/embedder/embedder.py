@@ -37,9 +37,10 @@ except Exception as e:
 def autocast(f, enabled=True):
     def do_autocast(*args, **kwargs):
         with torch.cuda.amp.autocast(
-                enabled=enabled,
-                dtype=torch.get_autocast_gpu_dtype(),
-                cache_enabled=torch.is_autocast_cache_enabled(),
+            device_type="cuda",
+            enabled=enabled,
+            dtype=torch.get_autocast_gpu_dtype(),
+            cache_enabled=torch.is_autocast_cache_enabled(),
         ):
             return f(*args, **kwargs)
 

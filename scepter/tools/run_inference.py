@@ -68,7 +68,7 @@ def run_task(cfg):
     })
 
     dtype = getattr(torch, cfg.SOLVER.DTYPE)
-    with amp.autocast(enabled=True, dtype=dtype):
+    with amp.autocast(device_type="cuda",enabled=True, dtype=dtype):
         batch_data = transfer_data_to_cuda(batch_data)
         ret = solver.run_step_test(batch_data)
     save_folder = os.path.join(solver.work_dir, cfg.args.save_folder)
@@ -150,7 +150,7 @@ def run_task_control(cfg):
     })
 
     dtype = getattr(torch, cfg.SOLVER.DTYPE)
-    with amp.autocast(enabled=True, dtype=dtype):
+    with amp.autocast(device_type="cuda",enabled=True, dtype=dtype):
         batch_data = transfer_data_to_cuda(batch_data)
         ret = solver.run_step_test(batch_data)
     save_folder = os.path.join(solver.work_dir, cfg.args.save_folder)
