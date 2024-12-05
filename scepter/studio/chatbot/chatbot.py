@@ -27,6 +27,7 @@ from scepter.modules.utils.config import Config
 from scepter.modules.utils.directory import get_md5
 from scepter.modules.utils.file_system import FS
 from scepter.studio.utils.env import init_env
+import scepter
 from importlib.metadata import version
 
 from .example import get_examples
@@ -66,7 +67,8 @@ class ChatBotUI(object):
         self.cache_dir = cfg.WORK_DIR
         self.chatbot_examples = get_examples(self.cache_dir) if not cfg.get('SKIP_EXAMPLES', False) else []
         self.model_cfg_dir = cfg.MODEL.EDIT_MODEL.MODEL_CFG_DIR
-        self.model_yamls = glob.glob(os.path.join(self.model_cfg_dir,
+        self.model_yamls = glob.glob(os.path.join(
+                            os.path.dirname(scepter.dirname), self.model_cfg_dir,
                                                   '*.yaml'))
         self.model_choices = dict()
         self.default_model_name = ''
