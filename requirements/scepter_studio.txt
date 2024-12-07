@@ -1,4 +1,4 @@
-bitsandbytes
+bitsandbytes<=0.44.1
 gradio
 gradio_imageslider
 imagehash
