@@ -15,4 +15,4 @@ scikit-image
 scikit-learn
 sentencepiece
 torchsde
-transformers
+transformers<=4.46.3
