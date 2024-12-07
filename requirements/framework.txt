@@ -2,8 +2,8 @@ albumentations
 beautifulsoup4
 bezier
 einops
-modelscope[framework]==1.20.1
-ms-swift==2.6.0
+modelscope[framework]<=1.20.1
+ms-swift
 numpy
 open_clip_torch
 opencv-python
