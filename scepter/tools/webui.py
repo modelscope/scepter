@@ -13,6 +13,7 @@ import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger, init_logger
+from scepter.modules.utils.import_utils import get_dirname
 
 if os.path.exists('__init__.py'):
     package_name = 'scepter_ext'
@@ -45,7 +46,7 @@ if __name__ == '__main__':
                         dest='config',
                         type=str,
                         default=os.path.join(
-                            os.path.dirname(scepter.dirname),
+                            os.path.dirname(get_dirname()),
                             'scepter/methods/studio/scepter_ui.yaml'))
     parser.add_argument('--debug',
                         dest='debug',
@@ -71,13 +72,17 @@ if __name__ == '__main__':
                         default='all',
                         help='The tabs will be launched, '
                              'set [all] to use all tools and set [chatbot] to use chatbot only.')
+    parser.add_argument('--model',
+                        dest='model',
+                        default=None,
+                        help='Example: sd*|flux')
 
     args = parser.parse_args()
     if not os.path.exists(args.config):
         print(
-            f"{args.config} doesn't exist, find this file in {os.path.dirname(scepter.dirname)}"
+            f"{args.config} doesn't exist, find this file in {os.path.dirname(get_dirname())}"
         )
-        args.config = os.path.join(os.path.dirname(scepter.dirname),
+        args.config = os.path.join(os.path.dirname(get_dirname()),
                                    args.config)
         assert os.path.exists(args.config)
     config = Config(load=True, cfg_file=args.config)
@@ -95,6 +100,7 @@ if __name__ == '__main__':
         if not FS.exists(info['CONFIG']):
             raise f"{info['CONFIG']} doesn't exist."
         interface = None
+        model = args.model if args.model else None
         if ifid == 'home' and args.tab in ["all", ifid]:
             from scepter.studio.home.home import HomeUI
 
@@ -111,7 +117,7 @@ if __name__ == '__main__':
                                      language=args.language,
                                      root_work_dir=config.WORK_DIR)
             print('init preprocess success!')
-        if ifid == 'self_train'  and args.tab in ["all", ifid]:
+        if ifid == 'self_train' and args.tab in ["all", ifid]:
             from scepter.studio.self_train.self_train import SelfTrainUI
 
             interface = SelfTrainUI(info['CONFIG'],
@@ -119,19 +125,19 @@ if __name__ == '__main__':
                                     language=args.language,
                                     root_work_dir=config.WORK_DIR)
             print('init self-train success!')
-        if ifid == 'tuner_manager'  and args.tab in ["all", ifid]:
+        if ifid == 'tuner_manager' and args.tab in ["all", ifid]:
             from scepter.studio.tuner_manager.tuner_manager import TunerManagerUI
             interface = TunerManagerUI(info['CONFIG'],
                                        is_debug=args.debug,
                                        language=args.language,
                                        root_work_dir=config.WORK_DIR)
             print('init tuner-manager success!')
-        if ifid == 'inference'  and args.tab in ["all", ifid]:
+        if ifid == 'inference' and args.tab in ["all", ifid]:
             from scepter.studio.inference.inference import InferenceUI
-
             interface = InferenceUI(info['CONFIG'],
                                     is_debug=args.debug,
                                     language=args.language,
+                                    model=model,
                                     root_work_dir=config.WORK_DIR)
             print('init inference success!')
         if ifid == 'chatbot' and args.tab in ["all", ifid]:
@@ -139,7 +145,7 @@ if __name__ == '__main__':
 
             interface = ChatBotUI(info['CONFIG'],
                                   root_work_dir=config.WORK_DIR)
-            print('init inference success!')
+            print('init chatbot success!')
         if ifid == '':
             pass  # TODO: Add New Features
         if interface:

@@ -1136,7 +1136,7 @@ class MMDiT(BaseModel):
                     from safetensors.torch import load_file as load_safetensors
                     model = load_safetensors(local_path)
                 else:
-                    model = torch.load(local_path, map_location='cpu')
+                    model = torch.load(local_path, map_location='cpu', weights_only=True)
                 if 'state_dict' in model:
                     model = model['state_dict']
                 new_ckpt = OrderedDict()

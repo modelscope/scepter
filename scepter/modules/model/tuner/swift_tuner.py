@@ -79,6 +79,7 @@ class SwiftLoRA():
                                       lora_alpha=cfg.LORA_ALPHA,
                                       lora_dropout=cfg.LORA_DROPOUT,
                                       bias=cfg.BIAS,
+                                      use_dora=cfg.get('USE_DORA', False),
                                       target_modules=cfg.TARGET_MODULES)
 
     def __call__(self, *args, **kwargs):

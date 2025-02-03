@@ -4,6 +4,7 @@ import os
 
 from .constant import WORKFLOW_CONFIG
 
+
 class ParameterNode:
     def __init__(self):
         self.cfg = WORKFLOW_CONFIG.workflow_config

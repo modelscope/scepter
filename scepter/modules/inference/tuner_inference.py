@@ -144,9 +144,9 @@ class TunerInference():
                         is_bin_file = True
                         if os.path.isfile(bin_file):
                             if 'weights_only' in torch.load.__code__.co_varnames:
-                                state_dict = torch.load(bin_file, weights_only=True)
+                                state_dict = torch.load(bin_file, weights_only=True, map_location="cpu")
                             else:
-                                state_dict = torch.load(bin_file)
+                                state_dict = torch.load(bin_file, map_location="cpu")
                         elif os.path.isfile(safe_file):
                             is_bin_file = False
                             from safetensors.torch import \

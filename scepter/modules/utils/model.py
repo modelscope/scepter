@@ -2,26 +2,11 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 import re
-import sys
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 from torch.utils.model_zoo import load_url as load_state_dict_from_url
-
-
-class StdMsg():
-    def __init__(self, name='msg'):
-        self.name = name
-
-    def info(self, msg):
-        sys.stdout.write('[Info]: ' + msg + '\n')
-
-    def error(self, msg):
-        sys.stdout.write('[Error]: ' + msg + '\n')
-
-    def warning(self, msg):
-        sys.stdout.write('[Warning]: ' + msg + '\n')
 
 
 def move_model_to_cpu(params):
@@ -41,7 +26,7 @@ def load_pretrained(model: torch.nn.Module,
             f'Load pretrained model [{model.__class__.__name__}] from {path}')
     if os.path.exists(path):
         # From local
-        state_dict = torch.load(path, map_location)
+        state_dict = torch.load(path, map_location, weights_only=True)
     elif path.startswith('http'):
         # From url
         state_dict = load_state_dict_from_url(path,

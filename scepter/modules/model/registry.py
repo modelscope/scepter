@@ -19,7 +19,7 @@ def build_model(cfg, registry, logger=None, *args, **kwargs):
             raise TypeError('Pretrain parameter must be a string or list')
     else:
         pretrain_cfg = None
-
+    device = cfg.get("DEVICE", None)
     model = build_from_config(cfg, registry, logger=logger, *args, **kwargs)
     if pretrain_cfg is not None:
         if hasattr(model, 'load_pretrained_model'):
@@ -49,7 +49,7 @@ def build_diffusion_sampler(cfg, registry, logger=None, *args, **kwargs):
 
 
 MODELS = Registry('MODELS', build_func=build_model)
-TOKENIZERS = Registry('TOKENIZER', build_func=build_model)
+TOKENIZERS = Registry('TOKENIZERS', build_func=build_model)
 EMBEDDERS = Registry('EMBEDDERS', build_func=build_model)
 BACKBONES = Registry('BACKBONES', build_func=build_model)
 NECKS = Registry('NECKS', build_func=build_model)

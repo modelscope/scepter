@@ -86,7 +86,7 @@ class SketchAnnotator(BaseAnnotator, metaclass=ABCMeta):
                                std=0.0858381272736797).eval()
         if pretrained_model:
             with FS.get_from(pretrained_model, wait_finish=True) as local_path:
-                state = torch.load(local_path, map_location='cpu')
+                state = torch.load(local_path, map_location='cpu', weights_only=True)
                 self.model.load_state_dict(state)
 
     @torch.no_grad()

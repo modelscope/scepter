@@ -114,7 +114,7 @@ class HedAnnotator(BaseAnnotator, metaclass=ABCMeta):
         pretrained_model = cfg.get('PRETRAINED_MODEL', None)
         if pretrained_model:
             with FS.get_from(pretrained_model, wait_finish=True) as local_path:
-                self.netNetwork.load_state_dict(torch.load(local_path))
+                self.netNetwork.load_state_dict(torch.load(local_path, weights_only=True))
 
     @torch.no_grad()
     @torch.inference_mode()

@@ -5,10 +5,10 @@ import shutil
 from collections import OrderedDict
 
 import gradio as gr
-import scepter
 from huggingface_hub import HfApi, snapshot_download
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.import_utils import get_dirname
 from scepter.modules.utils.module_transform import \
     convert_tuner_civitai_to_scepter
 from scepter.studio.tuner_manager.manager_ui.component_names import \
@@ -49,7 +49,7 @@ class BrowserUI(UIBase):
         self.language = language
         self.export_folder = os.path.join(self.work_dir, cfg.EXPORT_DIR)
         self.readme_file = cfg.README_EN if self.language == 'en' else cfg.README_ZH
-        self.readme_file = os.path.join(os.path.dirname(scepter.dirname),
+        self.readme_file = os.path.join(os.path.dirname(get_dirname()),
                                         self.readme_file)
         self.base_model_tuner_methods = cfg.BASE_MODEL_VERSION
         self.base_model_tuner_methods_map = {}
@@ -68,10 +68,11 @@ class BrowserUI(UIBase):
             local_tuner_work_dir, _ = FS.map_to_local(tuner['MODEL_PATH'])
             if not os.path.exists(local_tuner_work_dir):
                 FS.get_dir_to_local_dir(tuner['MODEL_PATH'])
-            update_2level_dict(self.saved_tuners_category[login_user_name],
-                               {first_level: {
-                                   second_level: tuner
-                               }})
+            for user_name in list(set([login_user_name] + ['admin'])):
+                update_2level_dict(self.saved_tuners_category[user_name],
+                                   {first_level: {
+                                       second_level: tuner
+                                   }})
 
     def category_to_saved_tuners(self):
         self.saved_tuners = []

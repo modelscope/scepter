@@ -11,7 +11,6 @@ import torch
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.distribute import we
 from scepter.modules.model.backbone.cogvideox.utils import get_3d_rotary_pos_embed, get_resize_crop_region_for_grid
-
 from .diffusion_inference import DiffusionInference, get_model
 from .tuner_inference import TunerInference
 
@@ -27,9 +26,13 @@ class CogVideoXInference(DiffusionInference):
 
     @torch.no_grad()
     def decode_first_stage(self, latents):
-        latents = latents.permute(0, 2, 1, 3, 4)
-        latents = 1 / self.first_stage_model['paras']['scaling_factor_image'] * latents
-        frames = get_model(self.first_stage_model).decode(latents)
+        _, dtype = self.get_function_info(self.first_stage_model, 'decode')
+        with torch.autocast('cuda',
+                            enabled=dtype in ('bfloat16'),
+                            dtype=getattr(torch, dtype)):
+            latents = latents.permute(0, 2, 1, 3, 4)
+            latents = 1 / self.first_stage_model['paras']['scaling_factor_image'] * latents
+            frames = get_model(self.first_stage_model).decode(latents)
         return frames
 
     def _prepare_rotary_positional_embeddings(
@@ -121,8 +124,9 @@ class CogVideoXInference(DiffusionInference):
                 )
                 function_name, dtype = self.get_function_info(
                     self.diffusion_model)
+
                 with torch.autocast('cuda',
-                                    enabled=dtype=='bfloat16',
+                                    enabled=dtype in ('float16', 'bfloat16'),
                                     dtype=getattr(torch, dtype)):
                     solver_sample = value_input.get('sample', 'ddim')
                     sample_steps = value_input.get('sample_steps', 50)
@@ -143,7 +147,6 @@ class CogVideoXInference(DiffusionInference):
                                         }],
                                         steps=sample_steps,
                                         show_progress=True,
-                                        use_dynamic_cfg=True,
                                         guide_scale=guide_scale,
                                         guide_rescale=guide_rescale,
                                         return_intermediate=None,
@@ -151,7 +154,6 @@ class CogVideoXInference(DiffusionInference):
                 self.dynamic_unload(self.diffusion_model,
                                     'diffusion_model',
                                     skip_loaded=True)
-
             self.dynamic_load(self.first_stage_model, 'first_stage_model')
             x_samples = self.decode_first_stage(latent).float()  # [B, C, F, H, W]
             self.dynamic_unload(self.first_stage_model,

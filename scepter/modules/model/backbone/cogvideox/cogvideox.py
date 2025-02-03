@@ -48,6 +48,8 @@ class CogVideoXTransformer3DModel(BaseModel):
             Whether to flip the sin to cos in the time embedding.
         time_embed_dim (`int`, defaults to `512`):
             Output dimension of timestep embeddings.
+        ofs_embed_dim (`int`, defaults to `512`):
+            Output dimension of "ofs" embeddings used in CogVideoX-5b-I2B in version 1.5
         text_embed_dim (`int`, defaults to `4096`):
             Input dimension of text embeddings from the text encoder.
         num_layers (`int`, defaults to `30`):
@@ -98,6 +100,7 @@ class CogVideoXTransformer3DModel(BaseModel):
         flip_sin_to_cos = cfg.get("FLIP_SIN_TO_COS", True)
         freq_shift = cfg.get("FREQ_SHIFT", 0)
         time_embed_dim = cfg.get("TIME_EMBED_DIM", 512)
+        ofs_embed_dim = cfg.get("OFS_EMBED_DIM", None)  # 1.5
         text_embed_dim = cfg.get("TEXT_EMBED_DIM", 4096)
         num_layers = cfg.get("NUM_LAYERS", 30)
         dropout = cfg.get("DROPOUT", 0.0)
@@ -106,6 +109,8 @@ class CogVideoXTransformer3DModel(BaseModel):
         sample_height = cfg.get("SAMPLE_HEIGHT", 60)
         sample_frames = cfg.get("SAMPLE_FRAMES", 49)
         patch_size = cfg.get("PATCH_SIZE", 2)
+        patch_size_t = cfg.get("PATCH_SIZE_T", None)
+        patch_bias = cfg.get("PATCH_BIAS", True)
         temporal_compression_ratio = cfg.get("TEMPORAL_COMPRESSION_RATIO", 4)
         max_text_seq_length = cfg.get("MAX_TEXT_SEQ_LENGTH", 226)
         activation_fn = cfg.get("ACTIVATION_FN", "gelu-approximate")
@@ -119,6 +124,7 @@ class CogVideoXTransformer3DModel(BaseModel):
         self.gradient_checkpointing = cfg.get("GRADIENT_CHECKPOINTING", False)
         inner_dim = num_attention_heads * attention_head_dim
         self.patch_size = patch_size
+        self.patch_size_t = patch_size_t
         self.use_rotary_positional_embeddings = use_rotary_positional_embeddings
 
         if not use_rotary_positional_embeddings and use_learned_positional_embeddings:
@@ -131,10 +137,11 @@ class CogVideoXTransformer3DModel(BaseModel):
         # 1. Patch embedding
         self.patch_embed = CogVideoXPatchEmbed(
             patch_size=patch_size,
+            patch_size_t=patch_size_t,
             in_channels=in_channels,
             embed_dim=inner_dim,
             text_embed_dim=text_embed_dim,
-            bias=True,
+            bias=patch_bias,
             sample_width=sample_width,
             sample_height=sample_height,
             sample_frames=sample_frames,
@@ -147,9 +154,17 @@ class CogVideoXTransformer3DModel(BaseModel):
         )
         self.embedding_dropout = nn.Dropout(dropout)
 
-        # 2. Time embeddings
+        # 2. Time embeddings and ofs embedding(Only CogVideoX1.5-5B I2V have)
         self.time_proj = Timesteps(inner_dim, flip_sin_to_cos, freq_shift)
         self.time_embedding = TimestepEmbedding(inner_dim, time_embed_dim, timestep_activation_fn)
+
+        self.ofs_proj = None
+        self.ofs_embedding = None
+        if ofs_embed_dim:
+            self.ofs_proj = Timesteps(ofs_embed_dim, flip_sin_to_cos, freq_shift)
+            self.ofs_embedding = TimestepEmbedding(
+                ofs_embed_dim, ofs_embed_dim, timestep_activation_fn
+            )  # same as time embeddings, for ofs
 
         # 3. Define spatio-temporal transformers blocks
         self.transformer_blocks = nn.ModuleList(
@@ -178,7 +193,15 @@ class CogVideoXTransformer3DModel(BaseModel):
             norm_eps=norm_eps,
             chunk_dim=1,
         )
-        self.proj_out = nn.Linear(inner_dim, patch_size * patch_size * out_channels)
+
+        if patch_size_t is None:
+            # For CogVideox 1.0
+            output_dim = patch_size * patch_size * out_channels
+        else:
+            # For CogVideoX 1.5
+            output_dim = patch_size * patch_size * patch_size_t * out_channels
+
+        self.proj_out = nn.Linear(inner_dim, output_dim)
 
     def forward(
         self,
@@ -186,6 +209,7 @@ class CogVideoXTransformer3DModel(BaseModel):
         t: Union[int, float, torch.LongTensor] = None,
         cond: torch.Tensor = None,
         timestep_cond: Optional[torch.Tensor] = None,
+        ofs: Optional[Union[int, float, torch.LongTensor]] = None,
         image_rotary_emb: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         **kwargs
     ):
@@ -207,6 +231,12 @@ class CogVideoXTransformer3DModel(BaseModel):
         # there might be better ways to encapsulate this.
         t_emb = t_emb.to(dtype=encoder_hidden_states.dtype)
         emb = self.time_embedding(t_emb, timestep_cond)
+
+        if self.ofs_embedding is not None:
+            ofs_emb = self.ofs_proj(ofs)
+            ofs_emb = ofs_emb.to(dtype=hidden_states.dtype)
+            ofs_emb = self.ofs_embedding(ofs_emb)
+            emb = emb + ofs_emb
 
         # 2. Patch embedding
         hidden_states = self.patch_embed(encoder_hidden_states, hidden_states)
@@ -261,8 +291,16 @@ class CogVideoXTransformer3DModel(BaseModel):
         #   - It is okay to `channels` use for CogVideoX-2b and CogVideoX-5b (number of input channels is equal to output channels)
         #   - However, for CogVideoX-5b-I2V also takes concatenated input image latents (number of input channels is twice the output channels)
         p = self.patch_size
-        output = hidden_states.reshape(batch_size, num_frames, height // p, width // p, -1, p, p)
-        output = output.permute(0, 1, 4, 2, 5, 3, 6).flatten(5, 6).flatten(3, 4)
+        p_t = self.patch_size_t
+
+        if p_t is None:
+            output = hidden_states.reshape(batch_size, num_frames, height // p, width // p, -1, p, p)
+            output = output.permute(0, 1, 4, 2, 5, 3, 6).flatten(5, 6).flatten(3, 4)
+        else:
+            output = hidden_states.reshape(
+                batch_size, (num_frames + p_t - 1) // p_t, height // p, width // p, -1, p_t, p, p
+            )
+            output = output.permute(0, 1, 5, 4, 2, 6, 3, 7).flatten(6, 7).flatten(4, 5).flatten(1, 2)
 
         return output
 
@@ -277,7 +315,7 @@ class CogVideoXTransformer3DModel(BaseModel):
                         from safetensors.torch import load_file as load_safetensors
                         ckpt = load_safetensors(local_model)
                     else:
-                        ckpt = torch.load(local_model, map_location='cpu')
+                        ckpt = torch.load(local_model, map_location='cpu', weights_only=True)
                     ckpt_all.update(ckpt)
             missing, unexpected = self.load_state_dict(ckpt_all, strict=False)
             if we.rank == 0:
@@ -309,9 +347,9 @@ if __name__ == "__main__":
         FS.init_fs_client(file_sys)
     model = BACKBONES.build(cfg.DIFFUSION_MODEL, logger=get_logger()).eval().requires_grad_(False).to('cuda').to(torch.bfloat16)
 
-    hidden_states = torch.load(FS.get_from(cfg.HIDDEN_STATES))
-    encoder_hidden_states = torch.load(FS.get_from(cfg.ENCODER_HIDDEN_STATES))
-    timestep = torch.load(FS.get_from(cfg.TIMESTEP))
+    hidden_states = torch.load(FS.get_from(cfg.HIDDEN_STATES), weights_only=True)
+    encoder_hidden_states = torch.load(FS.get_from(cfg.ENCODER_HIDDEN_STATES), weights_only=True)
+    timestep = torch.load(FS.get_from(cfg.TIMESTEP), weights_only=True)
     timestep_cond = None
     image_rotary_emb = None
     attention_kwargs = None

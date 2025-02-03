@@ -34,6 +34,7 @@ class BaseDiffusion(object):
 
     def init_params(self):
         self.prediction_type = self.cfg.get('PREDICTION_TYPE', 'eps')
+        self.use_dynamic_cfg = self.cfg.get('USE_DYNAMIC_CFG', False)
         self.noise_scheduler = NOISE_SCHEDULERS.build(self.cfg.NOISE_SCHEDULER,
                                                       logger=self.logger)
         self.sampler_scheduler = NOISE_SCHEDULERS.build(self.cfg.get(
@@ -56,7 +57,6 @@ class BaseDiffusion(object):
                model_kwargs={},
                steps=20,
                sampler=None,
-               use_dynamic_cfg=False,
                guide_scale=None,
                guide_rescale=None,
                show_progress=False,
@@ -79,7 +79,7 @@ class BaseDiffusion(object):
             if guide_scale is None or guide_scale == 1.0:
                 out = model(x=x_t, t=t, **model_kwargs)
             else:
-                if use_dynamic_cfg:
+                if self.use_dynamic_cfg:
                     guidance_scale = 1 + guide_scale * (
                         (1 - math.cos(math.pi * (
                             (steps - timestamp.item()) / steps)**5.0)) / 2)
@@ -158,14 +158,16 @@ class BaseDiffusion(object):
 
     def get_sampler(self, sampler):
         if isinstance(sampler, str):
-            if sampler not in DIFFUSION_SAMPLERS.class_map:
+            from scepter.modules.utils.import_utils import LazyImportModule
+            if (not LazyImportModule.get_module_type(('DIFFUSION_SAMPLERS', sampler))) and (
+                    sampler not in DIFFUSION_SAMPLERS.class_map):
                 if self.logger is not None:
                     self.logger.info(
-                        f'{sampler} not in the defined samplers list {DIFFUSION_SAMPLERS.class_map.keys()}'
+                        f'{sampler} not in the defined samplers list.'
                     )
                 else:
                     print(
-                        f'{sampler} not in the defined samplers list {DIFFUSION_SAMPLERS.class_map.keys()}'
+                        f'{sampler} not in the defined samplers list.'
                     )
                 return None
             sampler_cfg = Config(cfg_dict={'NAME': sampler}, load=False)

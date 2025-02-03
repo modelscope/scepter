@@ -17,8 +17,11 @@ def build_solver(cfg, registry, logger=None, *args, **kwargs):
             f'registry must be type Registry, got {type(registry)}')
 
     cfg = deep_copy(cfg)
-
     req_type = cfg.get('NAME')
+
+    from scepter.modules.utils.import_utils import LazyImportModule
+    sig = (registry.name.upper(), req_type)
+    LazyImportModule.import_module(sig)
     if isinstance(req_type, str):
         req_type_entry = registry.get(req_type)
         if req_type_entry is None:

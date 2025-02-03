@@ -354,7 +354,7 @@ class PixArt(BaseModel):
     def load_pretrained_model(self, pretrained_model):
         if pretrained_model:
             with FS.get_from(pretrained_model, wait_finish=True) as local_path:
-                model = torch.load(local_path, map_location='cpu')
+                model = torch.load(local_path, map_location='cpu', weights_only=True)
                 if 'state_dict' in model:
                     model = model['state_dict']
                 new_ckpt = OrderedDict()

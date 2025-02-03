@@ -3,11 +3,12 @@
 import os
 from collections import OrderedDict
 from glob import glob
+import re
 
 import gradio as gr
-import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.import_utils import get_dirname
 from scepter.studio.inference.inference_manager.infer_runer import \
     PipelineManager
 from scepter.studio.inference.inference_ui.component_names import \
@@ -33,6 +34,7 @@ class InferenceUI():
                  cfg_general_file,
                  is_debug=False,
                  language='en',
+                 model=None,
                  root_work_dir='./'):
         config_dir = os.path.dirname(cfg_general_file)
         cfg_general = Config(cfg_file=cfg_general_file)
@@ -43,22 +45,22 @@ class InferenceUI():
         cfg_general = init_env(cfg_general)
         # official mantra
         mantra_book = Config(
-            cfg_file=os.path.join(os.path.dirname(scepter.dirname),
+            cfg_file=os.path.join(os.path.dirname(get_dirname()),
                                   cfg_general.EXTENSION_PARAS.MANTRA_BOOK))
         cfg_general.MANTRAS = mantra_book.MANTRAS
         # official tuners
         official_tuners = Config(
-            cfg_file=os.path.join(os.path.dirname(scepter.dirname),
+            cfg_file=os.path.join(os.path.dirname(get_dirname()),
                                   cfg_general.EXTENSION_PARAS.OFFICIAL_TUNERS))
         cfg_general.TUNERS = official_tuners.TUNERS
         official_controllers = Config(cfg_file=os.path.join(
-            os.path.dirname(scepter.dirname),
+            os.path.dirname(get_dirname()),
             cfg_general.EXTENSION_PARAS.OFFICIAL_CONTROLLERS))
         cfg_general.CONTROLLERS = official_controllers.CONTROLLERS
 
         # customized tuners
         tuner_manager = Config(
-            cfg_file=os.path.join(os.path.dirname(scepter.dirname),
+            cfg_file=os.path.join(os.path.dirname(get_dirname()),
                                   cfg_general.EXTENSION_PARAS.TUNER_MANAGER))
         tuner_manager = os.path.join(root_work_dir, tuner_manager.WORK_DIR,
                                      tuner_manager.TUNER_LIST_YAML)
@@ -70,8 +72,13 @@ class InferenceUI():
             cfg_general.CUSTOM_TUNERS = []
 
         pipe_manager = PipelineManager()
-        config_list = glob(os.path.join(config_dir, '*/*_pro.yaml'),
-                           recursive=True)
+        config_list = []
+        if model is not None:
+            config_list = [cfg for cfg in glob(os.path.join(config_dir, '*/*_pro.yaml'),
+                                               recursive=True) if re.match(model, cfg.split('/')[-1])]
+        if not config_list:
+            config_list = glob(os.path.join(config_dir, '*/*_pro.yaml'),
+                               recursive=True)
         for config_file in config_list:
             pipe_manager.register_pipeline(Config(cfg_file=config_file))
 

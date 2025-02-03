@@ -185,6 +185,10 @@ SOLVER:
     PIN_MEMORY: True
     BATCH_SIZE: 1
     NUM_WORKERS: 4
+    NUM_FRAMES: 49
+    FPS: 8
+    HEIGHT: 480
+    WIDTH: 720
     PROMPT_PREFIX: 'DISNEY '
     DELIMITER: '#;#'
     FIELDS: [ 'video_path', 'prompt' ]

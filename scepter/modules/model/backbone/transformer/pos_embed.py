@@ -13,7 +13,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
 from torch import Tensor
-from torch.cuda import amp
+from torch import amp
 from torch.nn.utils.rnn import pad_sequence
 
 
@@ -175,7 +175,7 @@ def frame_unpad(x, shapes):
     return torch.concat(frames)
 
 
-@amp.autocast(enabled=False)
+@amp.autocast("cuda", enabled=False)
 def rope_params(max_seq_len, dim, theta=10000):
     """
     Precompute the frequency tensor for complex exponentials.
@@ -189,7 +189,7 @@ def rope_params(max_seq_len, dim, theta=10000):
     return freqs
 
 
-@amp.autocast(enabled=False)
+@amp.autocast("cuda", enabled=False)
 def rope_apply(x, grid_sizes, freqs):
     """
     x:          [B, L, N, C].
@@ -225,7 +225,7 @@ def rope_apply(x, grid_sizes, freqs):
     return torch.stack(output)
 
 
-@amp.autocast(enabled=False)
+@amp.autocast("cuda", enabled=False)
 def rope_apply_multires_pad(x, x_lens, x_shapes, freqs, pad=True):
     """
     x:          [B, L, N, C].
@@ -267,7 +267,7 @@ def rope_apply_multires_pad(x, x_lens, x_shapes, freqs, pad=True):
     return torch.stack(output) if pad else torch.concat(output)
 
 
-@amp.autocast(enabled=False)
+@amp.autocast("cuda", enabled=False)
 def rope_apply_multires(x, x_lens, x_shapes, freqs, pad=True):
     """
     x:          [B*L, N, C].

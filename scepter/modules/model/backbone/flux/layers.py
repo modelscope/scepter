@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+# This file contains code that is adapted from
+# https://github.com/black-forest-labs/flux.git
 from __future__ import annotations
 
 import math
@@ -351,7 +353,7 @@ class SingleStreamBlock(nn.Module):
         if mask is not None:
             mask = repeat(mask, 'B L S->  B H L S', H=self.num_heads)
         # compute attention
-        attn = attention(q, k, v, pe=pe, mask=mask)
+        attn = attention(q, k, v, pe=pe, mask=mask, backend=self.backend)
         # compute activation in mlp stream, cat again and run second linear layer
         output = self.linear2(torch.cat((attn, self.mlp_act(mlp)), 2))
         return x + mod.gate * output

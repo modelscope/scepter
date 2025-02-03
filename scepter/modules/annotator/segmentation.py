@@ -10,7 +10,11 @@ import torchvision.transforms as T
 from PIL import Image
 from pycocotools import mask as mask_utils
 from scipy import ndimage
-from sklearn.cluster import KMeans
+try:
+    from sklearn.cluster import KMeans
+except:
+    import warnings
+    warnings.warn("ignore sklearn import, please pip install scikit-learn.")
 from torchvision.ops.boxes import batched_nms
 
 from scepter.modules.annotator.base_annotator import BaseAnnotator

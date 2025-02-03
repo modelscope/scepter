@@ -129,7 +129,7 @@ class AutoencoderKL(TrainModule):
                 for k in f.keys():
                     sd[k] = f.get_tensor(k)
         else:
-            sd = torch.load(path, map_location='cpu')
+            sd = torch.load(path, map_location='cpu', weights_only=True)
             if path.find('.pt') > -1 and 'state_dict' in sd:
                 sd = sd['state_dict']
             elif path.find('.ckpt') > -1 and 'state_dict' in sd:
@@ -373,7 +373,7 @@ class AutoencoderKLFlux(TrainModule):
                 for k in f.keys():
                     sd[k] = f.get_tensor(k)
         else:
-            sd = torch.load(path, map_location="cpu")
+            sd = torch.load(path, map_location="cpu", weights_only=True)
             if path.find('.pt') > -1 and 'state_dict' in sd:
                 sd = sd['state_dict']
             elif path.find('.ckpt') > -1 and 'state_dict' in sd:

@@ -276,7 +276,7 @@ class DiffusionInferenceTest(unittest.TestCase):
         print(save_path)
 
 
-    # @unittest.skip('')
+    @unittest.skip('')
     def test_cogvideox_2b(self):
         config_file = 'scepter/methods/studio/inference/dit/cogvideox_2b_pro.yaml'
         cfg = Config(cfg_file=config_file)
@@ -290,6 +290,26 @@ class DiffusionInferenceTest(unittest.TestCase):
         }, **input_params)
         frames = (output['videos'][0].permute(1, 2, 3, 0).cpu().numpy() * 255).astype(np.uint8)
         save_path = os.path.join(self.tmp_dir, 'cogvideox_2b_girlbike.mp4')
+        writer = imageio.get_writer(save_path, fps=8)
+        for frame in frames:
+            writer.append_data(np.array(frame))
+        writer.close()
+        print(save_path)
+
+    # @unittest.skip('')
+    def test_cogvideox_5b(self):
+        config_file = 'scepter/methods/studio/inference/dit/cogvideox_5b_pro.yaml'
+        cfg = Config(cfg_file=config_file)
+        diff_infer = CogVideoXInference(logger=self.logger)
+        diff_infer.init_from_cfg(cfg)
+        input_params = {
+            'seed': 42
+        }
+        output = diff_infer({
+            'prompt': 'A girl riding a bike.'
+        }, **input_params)
+        frames = (output['videos'][0].permute(1, 2, 3, 0).cpu().numpy() * 255).astype(np.uint8)
+        save_path = os.path.join(self.tmp_dir, 'cogvideox_5b_girlbike.mp4')
         writer = imageio.get_writer(save_path, fps=8)
         for frame in frames:
             writer.append_data(np.array(frame))

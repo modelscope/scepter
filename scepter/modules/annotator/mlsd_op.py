@@ -29,7 +29,7 @@ class MLSDdetector(BaseAnnotator, metaclass=ABCMeta):
         pretrained_model = cfg.get('PRETRAINED_MODEL', None)
         if pretrained_model:
             with FS.get_from(pretrained_model, wait_finish=True) as local_path:
-                model.load_state_dict(torch.load(local_path), strict=True)
+                model.load_state_dict(torch.load(local_path, weights_only=True), strict=True)
         self.model = model.eval()
         self.thr_v = cfg.get('THR_V', 0.1)
         self.thr_d = cfg.get('THR_D', 0.1)

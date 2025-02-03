@@ -48,7 +48,7 @@ class ControlUI(UIBase):
         else:
             self.controller_choices = []
             self.controller_default = ''
-        self.component_names = ControlUIName(language)
+        self.component_names = ControlUIName(language, cfg.SKIP_EXAMPLES)
 
     def load_annotator(self, annotator):
         if annotator['device'] == 'offline':

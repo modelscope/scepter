@@ -74,7 +74,7 @@ class VisualTransformer(BaseModel):
             with FS.get_from(self.pretrain_path,
                              wait_finish=True) as local_file:
                 logger.info(f'Loading checkpoint from {self.pretrain_path}')
-                visual_pre = torch.load(local_file, map_location='cpu')
+                visual_pre = torch.load(local_file, map_location='cpu', weights_only=True)
                 if not use_proj:
                     visual_pre.pop('proj')
                 if visual_pre['conv1.weight'].dtype == torch.float16:
@@ -145,7 +145,7 @@ class SomeFTVisualTransformer(BaseModel):
             with FS.get_from(self.pretrain_path,
                              wait_finish=True) as local_file:
                 logger.info(f'Loading checkpoint from {self.pretrain_path}')
-                visual_pre = torch.load(local_file, map_location='cpu')
+                visual_pre = torch.load(local_file, map_location='cpu', weights_only=True)
             state_dict_update = self.reformat_state_dict(visual_pre)
             self.visual.load_state_dict(state_dict_update, strict=True)
 

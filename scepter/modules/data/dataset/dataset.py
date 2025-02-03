@@ -4,6 +4,7 @@
 import numbers
 import os
 import sys
+import copy
 from collections.abc import Iterable
 
 import numpy as np

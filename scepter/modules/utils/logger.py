@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
-
 import logging
-import numbers
 import sys
 import time
 from collections import OrderedDict
 
 import numpy as np
 import torch
-from scepter.modules.utils.distribute import get_dist_info
+import numbers
 
 
 def as_time(s):
@@ -71,6 +69,7 @@ def init_logger(in_logger, log_file=None, dist_launcher='pytorch'):
             log_file (str, None): if not None, a file handler will be add to in_logger
             dist_launcher (str, None):
         """
+    from scepter.modules.utils.distribute import get_dist_info
     rank, _ = get_dist_info()
     if rank == 0:
         if log_file is not None:
@@ -91,6 +90,20 @@ def init_logger(in_logger, log_file=None, dist_launcher='pytorch'):
         else:
             # Distribute Training with more than one machine, we'd like to show logs on every machine.
             in_logger.setLevel(logging.INFO)
+
+
+class StdMsg():
+    def __init__(self, name='msg'):
+        self.name = name
+
+    def info(self, msg):
+        sys.stdout.write('[Info]: ' + msg + '\n')
+
+    def error(self, msg):
+        sys.stdout.write('[Error]: ' + msg + '\n')
+
+    def warning(self, msg):
+        sys.stdout.write('[Warning]: ' + msg + '\n')
 
 
 class LogAgg(object):

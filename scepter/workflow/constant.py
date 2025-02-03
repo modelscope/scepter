@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
-from dataclasses import dataclass
 
 WORKFLOW_PREFIX = 'custom_nodes/ComfyUI-Scepter/'
 WORKFLOW_MODEL_PREFIX = 'models/scepter/'
@@ -10,6 +9,8 @@ MANTRA_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/mantra.yaml')
 TUNER_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/tuner_model.yaml')
 CONTROL_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/control_model.yaml')
 ANNOTATOR_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/annotator.yaml')
+ACE_PLUS_PROCESSOR_PATH = os.path.join(WORKFLOW_PREFIX, 'config/ace_plus_processor.yaml')
+
 
 class WorkflowConfig(object):
     def __init__(self):
@@ -21,6 +22,7 @@ class WorkflowConfig(object):
         self.tuner_config = Config(cfg_file=TUNER_CONFIG_PATH)
         self.control_config = Config(cfg_file=CONTROL_CONFIG_PATH)
         self.annotator_config = Config(cfg_file=ANNOTATOR_CONFIG_PATH)
+        self.ace_plus_processor_config = Config(cfg_file=ACE_PLUS_PROCESSOR_PATH)
 
         if 'FILE_SYSTEMS' in self.workflow_config:
             for fs_info in self.workflow_config['FILE_SYSTEMS']:
@@ -51,6 +53,7 @@ class WorkflowConfig(object):
         self.anno_info = {
             item['TYPE']: item for item in self.annotator_config['ANNOTATORS']
         }
+
 
 global WORKFLOW_CONFIG
 WORKFLOW_CONFIG = WorkflowConfig()

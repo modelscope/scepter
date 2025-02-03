@@ -65,6 +65,13 @@ def build_from_config(cfg, registry, logger=None, *args, **kwargs):
 
     cfg = deep_copy(cfg)
     req_type = cfg.get('NAME')
+
+    from scepter.modules.utils.import_utils import LazyImportModule
+    sig = (registry.name.upper(), req_type)
+    if (LazyImportModule.get_module_type(sig)
+            and req_type not in registry.class_map.keys()):
+        LazyImportModule.import_module(sig)
+
     if isinstance(req_type, str):
         req_type_entry = registry.get(req_type)
         if req_type_entry is None:
