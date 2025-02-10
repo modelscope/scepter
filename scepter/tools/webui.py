@@ -9,7 +9,6 @@ import sys
 
 import gradio as gr
 
-import scepter
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
 from scepter.modules.utils.logger import get_logger, init_logger
@@ -95,7 +94,7 @@ if __name__ == '__main__':
                         '') if args.language == 'en' else info['NAME']
         ifid = info['IFID']
         if not FS.exists(info['CONFIG']):
-            info['CONFIG'] = os.path.join(os.path.dirname(scepter.dirname),
+            info['CONFIG'] = os.path.join(os.path.dirname(get_dirname()),
                                           info['CONFIG'])
         if not FS.exists(info['CONFIG']):
             raise f"{info['CONFIG']} doesn't exist."
