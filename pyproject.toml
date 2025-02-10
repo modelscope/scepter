@@ -3,7 +3,7 @@ name = "scepter"
 description = "Custom nodes for various visual generation and editing tasks using Scepter."
 version = "1.0.0"
 license = {file = "LICENSE"}
-dependencies = ["-r requirements/framework.txt", "-r requirements/scepter_studio.txt"]
+dependencies = ["-r requirements/framework.txt", "-r requirements/recommended.txt", "-r requirements/scepter_studio.txt"]
 
 [project.urls]
 Repository = "https://github.com/modelscope/scepter"
