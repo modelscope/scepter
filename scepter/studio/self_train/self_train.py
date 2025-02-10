@@ -3,9 +3,10 @@
 import os
 
 import gradio as gr
-import scepter
+
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.import_utils import get_dirname
 from scepter.studio.self_train.self_train_ui.model_ui import ModelUI
 from scepter.studio.self_train.self_train_ui.trainer_ui import TrainerUI
 from scepter.studio.self_train.utils.config_parser import get_all_config
@@ -51,7 +52,7 @@ class SelfTrainUI():
 
 if __name__ == '__main__':
     st_ins = SelfTrainUI(os.path.join(
-        scepter.dirname, 'scepter/methods/studio/self_train/self_train.yaml'),
+        get_dirname(), 'scepter/methods/studio/self_train/self_train.yaml'),
                          is_debug=True,
                          language='zh',
                          root_work_dir='./cache')
