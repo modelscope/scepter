@@ -1,0 +1,24 @@
+PROCESSORS:
+  - NAME: ImageAnnotator
+    TYPE: image_processor
+  - NAME: CannyAnnotator
+    TYPE: canny_repainting
+    LOW_THRESHOLD: 100
+    HIGH_THRESHOLD: 200
+  - NAME: ColorAnnotator
+    TYPE: mosaic_repainting
+    RATIO: 64
+  - NAME: InfoDrawContourAnnotator
+    TYPE: contour_repainting
+    INPUT_NC: 3
+    OUTPUT_NC: 1
+    N_RESIDUAL_BLOCKS: 3
+    SIGMOID: True
+    PRETRAINED_MODEL: "ms://iic/scepter_annotator@annotator/ckpts/informative_drawing_contour_style.pth"
+  - NAME: MidasDetector
+    PRETRAINED_MODEL: "ms://iic/scepter_annotator@annotator/ckpts/dpt_hybrid-midas-501f0c75.pt"
+    TYPE: depth_repainting
+  - NAME: GrayAnnotator
+    TYPE: recolorizing
+DEFAULT_PARAS:
+  MAX_SEQ_LENGTH: 4096

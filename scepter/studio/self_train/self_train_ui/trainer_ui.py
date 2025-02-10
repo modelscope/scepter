@@ -12,11 +12,11 @@ from tqdm import tqdm
 
 import decord
 import gradio as gr
-import scepter
 import torch
 import yaml
 from scepter.modules.utils.directory import get_md5
 from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.import_utils import get_dirname
 from scepter.studio.self_train.scripts.trainer import TrainManager
 from scepter.studio.self_train.self_train_ui.component_names import \
     TrainerUIName
@@ -82,7 +82,7 @@ class TrainerUI(UIBase):
         self.BASE_CFG_VALUE = all_cfg_value
         self.para_data = get_default(self.BASE_CFG_VALUE)
         self.train_para_data = cfg.TRAIN_PARAS
-        self.run_script = os.path.join(os.path.dirname(scepter.dirname),
+        self.run_script = os.path.join(os.path.dirname(get_dirname()),
                                        cfg.SCRIPT_DIR, 'run_task.py')
         self.work_dir_pre, _ = FS.map_to_local(cfg.WORK_DIR)
         self.is_debug = is_debug

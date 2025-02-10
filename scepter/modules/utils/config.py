@@ -10,7 +10,8 @@ import sys
 
 import yaml
 
-from scepter.modules.utils.model import StdMsg
+from scepter.modules.utils.logger import StdMsg
+
 
 _SECURE_KEYWORDS = [
     'ENDPOINT', 'BUCKET', 'OSS_AK', 'OSS_SK', 'OSS', 'TOKEN', 'APPKEY'
@@ -211,7 +212,7 @@ def dict_to_yaml(module_name, name, json_config, set_name=False, exclude_keys=[]
     return yaml_str
 
 
-pattern = re.compile('.*?(\${\w+}).*?')  # noqa
+pattern = re.compile(r'.*?(\${\w+}).*?')  # noqa
 
 
 def env_var_constructor(loader, node):
@@ -669,4 +670,4 @@ class Config(object):
         return len(self.cfg_dict)
 
     def pop(self, name):
-        self.cfg_dict.pop(name)
+        return self.cfg_dict.pop(name)

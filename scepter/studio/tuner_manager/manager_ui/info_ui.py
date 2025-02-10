@@ -155,7 +155,7 @@ class InfoUI(UIBase):
                 raise gr.Error(self.component_names.model_err4)
             model_dir, _ = FS.map_to_local(current_model['MODEL_PATH'])
             if not os.path.exists(model_dir):
-                FS.get_dir_to_local_dir(current_model['MODEL_PATH'])
+                model_dir = FS.get_dir_to_local_dir(current_model['MODEL_PATH'])
 
             tuner_dict = {
                 'NAME': new_name,
@@ -305,7 +305,7 @@ class InfoUI(UIBase):
                         checkpoint_path = os.path.join(model_dir, swift_dir,
                                                        swift_file)
                         checkpoint = torch.load(checkpoint_path,
-                                                map_location='cpu')
+                                                map_location='cpu', weights_only=True)
                         swift_checkpoint.update(checkpoint)
 
             unet_config = create_unet_diffusers_config(v2=False)

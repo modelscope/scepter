@@ -217,6 +217,7 @@ class LatentDiffusionSolver(BaseSolver):
         self.tuner_cfg = cfg.get('TUNER', None)
         self.freeze_cfg = cfg.get('FREEZE', None)
         self.log_train_num = cfg.get("LOG_TRAIN_NUM", -1)
+        self.timesteps = cfg.get("TIMESTEPS", 1000)
 
     def set_up(self):
         self.construct_data()
@@ -272,6 +273,12 @@ class LatentDiffusionSolver(BaseSolver):
             module_keys = [key for key, _ in self.model.named_modules()]
             self.logger.info(module_keys)
 
+    def train_parameters(self):
+        model = self.model
+        for key, val in model.named_parameters():
+            if val.requires_grad:
+                yield val
+
     def model_to_device(self):
         self.model = self.model.to(we.device_id)
 
@@ -285,8 +292,15 @@ class LatentDiffusionSolver(BaseSolver):
             self.cfg.OPTIMIZER.LEARNING_RATE *= all_batch_size
             self.cfg.OPTIMIZER.LEARNING_RATE /= 640
 
+    def get_params(self, module):
+        train_params = []
+        for param in module.parameters():
+            if param.requires_grad:
+                train_params.append(param)
+        return train_params
+
     def init_opti(self):
-        import torch.cuda.amp as amp
+        import torch.amp as amp
         import torch.distributed as dist
 
         if we.is_distributed:
@@ -383,7 +397,7 @@ class LatentDiffusionSolver(BaseSolver):
                 for module in self.train_modules:
                     if hasattr(self.model, module):
                         current_module = getattr(self.model, module)
-                        train_params += list(current_module.parameters())
+                        train_params += self.get_params(current_module)
 
                 self.optimizer = OPTIMIZERS.build(self.cfg.OPTIMIZER,
                                                   logger=self.logger,
@@ -398,12 +412,12 @@ class LatentDiffusionSolver(BaseSolver):
                 self.optimizer = OPTIMIZERS.build(
                     self.cfg.OPTIMIZER,
                     logger=self.logger,
-                    parameters=self.model.parameters())
+                    parameters=self.get_params(self.model))
         else:
             self.optimizer = OPTIMIZERS.build(
                 self.cfg.OPTIMIZER,
                 logger=self.logger,
-                parameters=self.model.parameters())
+                parameters=self.get_params(self.model))
 
         if self.cfg.have('LR_SCHEDULER') and self.optimizer is not None:
             self.cfg.LR_SCHEDULER.TOTAL_STEPS = self.max_steps
@@ -422,8 +436,8 @@ class LatentDiffusionSolver(BaseSolver):
                                                     process_group=None)
                 else:
                     self.scaler = amp.GradScaler(enabled=self.enable_gradscaler)
-            elif self.cfg.DTYPE in ['float16']:
-                self.scaler = amp.GradScaler()
+            elif self.cfg.DTYPE in ['float16', 'bfloat16']:
+                self.scaler = amp.GradScaler(enabled=self.enable_gradscaler)
             else:
                 self.scaler = None
         else:
@@ -736,16 +750,40 @@ class LatentDiffusionSolver(BaseSolver):
 
         if model is None:
             model = self.model
-        swift_cfg_dict = {}
-        for t_id, t_cfg in enumerate(tuner_cfg):
-            cfg_name = t_cfg['NAME']
-            init_config = TUNERS.build(t_cfg, logger=self.logger)()
-            if init_config is None:
-                continue
-            swift_cfg_dict[f'{t_id}_{cfg_name}'] = init_config
-        if len(swift_cfg_dict) > 0:
+
+        if isinstance(tuner_cfg, str):
             from swift import Swift
-            model = Swift.prepare_model(self.model, config=swift_cfg_dict, autocast_adapter_dtype=False)
+            from scepter.modules.utils.file_system import FS
+            with FS.get_dir_to_local_dir(tuner_cfg, wait_finish=True) as local_dir:
+                model = Swift.from_pretrained(model, local_dir, autocast_adapter_dtype=False)
+            self.logger.info(f'Load tuner model from {tuner_cfg}')
+        else:
+            swift_cfg_dict = {}
+            swfit_ckpts = {}
+            for t_id, t_cfg in enumerate(tuner_cfg):
+                if 'PRETRAINED_MODEL' in t_cfg:
+                    pretrained_model = t_cfg.pop('PRETRAINED_MODEL')
+                    from scepter.modules.utils.file_system import FS
+                    with FS.get_from(pretrained_model, wait_finish=True) as local_path:
+                        if local_path.endswith('safetensors'):
+                            from safetensors.torch import load_file as load_safetensors
+                            ckpt = load_safetensors(local_path)
+                        else:
+                            ckpt = torch.load(local_path, map_location='cpu', weights_only=True)
+                        swfit_ckpts.update(ckpt)
+                cfg_name = t_cfg['NAME']
+                init_config = TUNERS.build(t_cfg, logger=self.logger)()
+                if init_config is None:
+                    continue
+                swift_cfg_dict[f'{t_id}_{cfg_name}'] = init_config
+
+            if len(swift_cfg_dict) > 0:
+                from swift import Swift
+                model = Swift.prepare_model(self.model, config=swift_cfg_dict, autocast_adapter_dtype=False)
+            if len(swfit_ckpts) > 0:
+                swfit_ckpts = {k.replace('transformer.', 'model.').replace('lora_A.weight', 'lora_A.0_SwiftLoRA.weight').replace('lora_B.weight', 'lora_B.0_SwiftLoRA.weight'): v for k, v in swfit_ckpts.items()}
+                model.load_state_dict(swfit_ckpts, strict=True)
+                self.logger.info(f'Restored from TUNER with length of {len(swfit_ckpts)}')
         self.logger.info([(key, param.shape) for key, param in model.named_parameters() if param.requires_grad])
         return model
 

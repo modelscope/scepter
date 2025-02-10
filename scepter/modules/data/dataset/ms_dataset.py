@@ -386,6 +386,11 @@ class ImageTextPairMSDatasetForACE(BaseDataset):
             'description':
             'The keywords sign you want to add, which is like <{HIGHLIGHT_KEYWORDS}{KEYWORDS_SIGN}>'
         },
+        'ALIGN_SIZE': {
+            'value': False,
+            'description':
+                'Whether ensure the size align between the source image and target image.'
+        },
         'OUTPUT_SIZE': {
             'value':
             None,
@@ -414,6 +419,8 @@ class ImageTextPairMSDatasetForACE(BaseDataset):
         self.replace_keywords = cfg.get('HIGHLIGHT_KEYWORDS', '')
         self.keywords_sign = cfg.get('KEYWORDS_SIGN', '')
         self.add_indicator = cfg.get('ADD_INDICATOR', False)
+
+        self.align_size = cfg.get('ALIGN_SIZE', False)
         # Use modelscope dataset
         if not ms_dataset_name:
             raise ValueError(
@@ -492,7 +499,7 @@ class ImageTextPairMSDatasetForACE(BaseDataset):
                                     tar_image_path,
                                     cvt_type='RGB')
         src_image = self.image_preprocess(src_image)
-        tar_image = self.image_preprocess(tar_image)
+        tar_image = self.image_preprocess(tar_image, size = src_image.shape[:2]  if self.align_size else None)
 
         tar_image = self.transforms(tar_image)
         src_image = self.transforms(src_image)
@@ -501,13 +508,13 @@ class ImageTextPairMSDatasetForACE(BaseDataset):
         if self.add_indicator:
             if '{image}' not in prompt:
                 prompt = '{image}, ' + prompt
-
         return {
-            'edit_image': [src_image],
-            'edit_image_mask': [src_mask],
+            'src_image_list': [src_image],
+            'src_mask_list': [src_mask],
             'image': tar_image,
             'image_mask': tar_mask,
             'prompt': [prompt],
+            'edit_id': [0]
         }
 
     def load_image(self, prefix, img_path, cvt_type=None):

@@ -26,19 +26,27 @@ class LatentDiffusionCogVideoX(LatentDiffusion):
         self.use_rotary_positional_embeddings = self.model_config.get('USE_ROTARY_POSITIONAL_EMBEDDINGS', False)
         self.attention_head_dim = self.model_config.get('ATTENTION_HEAD_DIM', 64)
         self.patch_size = self.model_config.get('PATCH_SIZE', 2)
-        self.sample_height = self.first_stage_config.get('SAMPLE_HEIGHT', 480)
-        self.sample_width = self.first_stage_config.get('SAMPLE_WIDTH', 720)
+        self.patch_size_t = self.model_config.get('PATCH_SIZE_T', None)
+        self.ofs_embed_dim = self.model_config.get('OFS_EMBED_DIM', None)
+        self.sample_height = self.first_stage_config.get('SAMPLE_HEIGHT', 60)
+        self.sample_width = self.first_stage_config.get('SAMPLE_WIDTH', 90)
         self.noised_image_dropout = self.cfg.get('NOISED_IMAGE_DROPOUT', 0.05)
+        self.invert_scale_latents = self.cfg.get('INVERT_SCALE_LATENTS', False)
 
     def construct_network(self):
         super().construct_network()
         self.model = self.model.to(getattr(torch, self.model_config.DTYPE))
+        self.first_stage_model = self.first_stage_model.to(getattr(torch, self.first_stage_config.DTYPE))
 
     @torch.no_grad()
     def encode_first_stage(self, x, **kwargs):
         if isinstance(x, list):
             x = torch.stack(x, dim=0)  # [B, C, F, H, W]
-        latents = self.scaling_factor_image * self.first_stage_model.encode(x).sample()
+        image_latents = self.first_stage_model.encode(x).sample()
+        if not self.invert_scale_latents:
+            latents = self.scaling_factor_image * image_latents
+        else:
+            latents = 1 / self.scaling_factor_image * image_latents
         return latents
 
     @torch.no_grad()
@@ -78,18 +86,36 @@ class LatentDiffusionCogVideoX(LatentDiffusion):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         grid_height = height // (self.scale_factor_spatial * self.patch_size)
         grid_width = width // (self.scale_factor_spatial * self.patch_size)
-        base_size_width = self.sample_width // (self.scale_factor_spatial * self.patch_size)
-        base_size_height = self.sample_height // (self.scale_factor_spatial * self.patch_size)
 
-        grid_crops_coords = get_resize_crop_region_for_grid(
-            (grid_height, grid_width), base_size_width, base_size_height
-        )
-        freqs_cos, freqs_sin = get_3d_rotary_pos_embed(
-            embed_dim=self.attention_head_dim,
-            crops_coords=grid_crops_coords,
-            grid_size=(grid_height, grid_width),
-            temporal_size=num_frames,
-        )
+        p = self.patch_size
+        p_t = self.patch_size_t
+
+        base_size_width = self.sample_width // p
+        base_size_height = self.sample_height // p
+
+        if p_t is None:
+            # CogVideoX 1.0
+            grid_crops_coords = get_resize_crop_region_for_grid(
+                (grid_height, grid_width), base_size_width, base_size_height
+            )
+            freqs_cos, freqs_sin = get_3d_rotary_pos_embed(
+                embed_dim=self.attention_head_dim,
+                crops_coords=grid_crops_coords,
+                grid_size=(grid_height, grid_width),
+                temporal_size=num_frames,
+            )
+        else:
+            # CogVideoX 1.5
+            base_num_frames = (num_frames + p_t - 1) // p_t
+
+            freqs_cos, freqs_sin = get_3d_rotary_pos_embed(
+                embed_dim=self.attention_head_dim,
+                crops_coords=None,
+                grid_size=(grid_height, grid_width),
+                temporal_size=base_num_frames,
+                grid_type="slice",
+                max_size=(base_size_height, base_size_width),
+            )
 
         freqs_cos = freqs_cos.to(device=device)
         freqs_sin = freqs_sin.to(device=device)
@@ -121,19 +147,21 @@ class LatentDiffusionCogVideoX(LatentDiffusion):
         else:
             image_latent = None
 
-        height, width = image_size
+        height, width = image_size[0] if isinstance(image_size, list) and all(isinstance(elem, list) for elem in image_size) else image_size
         image_rotary_emb = (
-            self._prepare_rotary_positional_embeddings(height, width, noise.size(1), we.device_id)
+            self._prepare_rotary_positional_embeddings(height=height, width=width, num_frames=noise.size(1), device=we.device_id)
             if self.use_rotary_positional_embeddings
             else None
         )
+        ofs_emb = None if self.ofs_embed_dim is None else image_latent.new_full((1,), fill_value=2.0)
 
         loss = self.diffusion.loss(x_0=x_start,
                                    t=t,
                                    model=self.model,
                                    model_kwargs={"cond": cont,
                                                  'image_latent': image_latent,
-                                                 'image_rotary_emb': image_rotary_emb},
+                                                 'image_rotary_emb': image_rotary_emb,
+                                                 'ofs': ofs_emb},
                                    noise=noise,
                                    **kwargs)
         loss = loss.mean()
@@ -160,6 +188,7 @@ class LatentDiffusionCogVideoX(LatentDiffusion):
             image_size = [480, 720]
         seed = seed if seed >= 0 else random.randint(0, 2**32 - 1)
         generator = torch.Generator().manual_seed(seed)
+        # generator = torch.Generator(we.device_id).manual_seed(seed)
         prompt = [prompt] if isinstance(prompt, str) else prompt
         num_samples = len(prompt)
         n_prompt = default(n_prompt, [self.default_n_prompt] * len(prompt))
@@ -169,14 +198,21 @@ class LatentDiffusionCogVideoX(LatentDiffusion):
                 cont = getattr(self.cond_stage_model, 'encode')(prompt, return_mask=False, use_mask=False)
                 null_cont = getattr(self.cond_stage_model, 'encode')(n_prompt, return_mask=False, use_mask=False)
 
-        height, width = image_size
+        height, width = image_size[0] if isinstance(image_size, list) and all(isinstance(elem, list) for elem in image_size) else image_size
+        latent_frames = (num_frames - 1) // self.scale_factor_temporal + 1
+        additional_frames = 0
+        if self.patch_size_t is not None and latent_frames % self.patch_size_t != 0:
+            additional_frames = self.patch_size_t - latent_frames % self.patch_size_t
+            num_frames += additional_frames * self.scale_factor_temporal
         noise = self.noise_sample(num_samples, num_frames, height, width, generator)
         image_rotary_emb = (
             self._prepare_rotary_positional_embeddings(height, width, noise.size(1), we.device_id)
             if self.use_rotary_positional_embeddings
             else None
         )
+
         image_latent, image = self.get_image_latent(image, video, noise) if image is not None else (None, None)
+        ofs_emb = None if self.ofs_embed_dim is None else image_latent.new_full((1,), fill_value=2.0)
 
         samples = self.diffusion.sample(noise=noise,
                                         sampler=sampler,
@@ -185,19 +221,21 @@ class LatentDiffusionCogVideoX(LatentDiffusion):
                                             'cond': cont,
                                             'image_latent': image_latent,
                                             'image_rotary_emb': image_rotary_emb,
+                                            'ofs': ofs_emb
                                         }, {
                                             'cond': null_cont,
                                             'image_latent': image_latent,
                                             'image_rotary_emb': image_rotary_emb,
+                                            'ofs': ofs_emb
                                         }],
                                         steps=sample_steps,
                                         show_progress=True,
-                                        use_dynamic_cfg=True,
                                         guide_scale=guide_scale,
                                         guide_rescale=guide_rescale,
                                         return_intermediate=None,
                                         **kwargs).float()
 
+        samples = samples[:, additional_frames:]
         x_frames = self.decode_first_stage(samples).float()
 
         outputs = []

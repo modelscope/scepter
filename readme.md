@@ -18,10 +18,8 @@ SCEPTER offers 3 core components:
 
 
 ## 🎉 News
-- [🔥🔥🔥2024.11]: We're excited to announce the upcoming release of the [ACE-0.6b-1024px](https://huggingface.co/scepter-studio/ACE-0.6B-1024px) model, 
-which significantly enhances image generation quality compared with [ACE-0.6b-512px](https://huggingface.co/scepter-studio/ACE-0.6B-512px). The detailed documents can be found at [ACE repo](https://github.com/ali-vilab/ACE.git).
-At the same time, based on the editing results of ACE, combined with the powerful text-to-image capabilities of the [FLUX-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) model through SDEdit as an image quality refiner, the quality of image editing can be further enhanced.
-- [🔥2024.11]: Supports video files, video annotation, caption translation in data management, and inference & training of the [CogVideoX](https://arxiv.org/abs/2408.06072).
+- [🔥🔥🔥 2025.01]: We report ACE++, an instruction-based diffusion framework that tackles various image generation and editing tasks. The code and paper is available on [ACE++](https://ali-vilab.github.io/ACE_plus_page/).
+- [2024.11]: Supports video files, video annotation, caption translation in data management, and inference & training of the [CogVideoX](https://arxiv.org/abs/2408.06072).
 - [2024.10]: We are pleased to announce the release of the code for [ACE](https://arxiv.org/abs/2410.00086), supporting Customized Training / Comfy UI Workflow / gradio-based ChatBot Interface. 
 - [2024.10]: Support for inference and tuning with [FLUX](https://huggingface.co/black-forest-labs/FLUX.1-dev), as well as for building [ComfyUI](https://github.com/comfyanonymous/ComfyUI) workflows using this framework.
 - [2024.09]: We introduce **ACE**, an **A**ll-round **C**reator and **E**ditor adept at executing a diverse array of image editing tasks tailored to your specifications. Built upon the cutting-edge Diffusion Transformer architecture, ACE has been extensively trained on a comprehensive dataset to seamlessly interpret and execute any natural language instruction. For further information, please consult the [project page](https://ali-vilab.github.io/ace-page/).
@@ -35,123 +33,65 @@ At the same time, based on the editing results of ACE, combined with the powerfu
 - [2023.12]: We propose [SCEdit](https://arxiv.org/abs/2312.11392), an efficient and controllable generation framework.
 - [2023.12]: We release [🪄SCEPTER](https://github.com/modelscope/scepter/) library.
 
+[//]: # (## 🖼 Gallery for Recent Works)
 
+[//]: # ()
+[//]: # (### FLUX Tuners)
 
+[//]: # ()
+[//]: # (<table><tbody>)
 
-## 🪄ACE
+[//]: # (  <tr>)
 
-ACE is a unified foundational model framework that supports a wide range of visual generation tasks. By defining CU for unifying multi-modal inputs across different tasks and incorporating long-context CU, we introduce historical contextual information into visual generation tasks, paving the way for ChatGPT-like dialog systems in visual generation.
+[//]: # (    <th align="center" colspan="3">Yarn Style</th>)
 
-[![Watch the demo](https://ali-vilab.github.io/ace-page/static/images/tasks.png)](https://ali-vilab.github.io/ace-page/)
+[//]: # (    <th align="center" colspan="3">Soft Watercolor Style</th>)
 
-### ACE Models
-|    **Model**     |                                                                                                                                                                                                            **Status**                                                                                                                                                                                                             | 
-|:----------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|  ACE-0.6B-512px  |          [![Demo link](https://img.shields.io/badge/Demo-ACE_Chat-purple)](https://huggingface.co/spaces/scepter-studio/ACE-Chat)<br>[![ModelScope link](https://img.shields.io/badge/ModelScope-Model-blue)](https://www.modelscope.cn/models/iic/ACE-0.6B-512px)  [![HuggingFace link](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-yellow)](https://huggingface.co/scepter-studio/ACE-0.6B-512px)          |
-| ACE-0.6B-1024px  | [![Demo link](https://img.shields.io/badge/Demo-ACE_Refiner_Chat-purple)](https://huggingface.co/spaces/scepter-studio/ACE-Refiner-Chat)<br>[![ModelScope link](https://img.shields.io/badge/ModelScope-Model-blue)](https://www.modelscope.cn/models/iic/ACE-0.6B-1024px)  [![HuggingFace link](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-yellow)](https://huggingface.co/scepter-studio/ACE-0.6B-1024px) |             |
-| ACE-12B-FLUX-dev |                                                                                                                                                                                                            Coming Soon                                                                                                                                                                                                            |
-### ACE Training
+[//]: # (  </tr>)
 
-We offer a demonstration training YAML that enables the end-to-end training of ACE using a toy dataset. For a comprehensive overview of the hyperparameter configurations, please consult `scepter/methods/edit/dit_ace_0.6b_512.yaml`.
+[//]: # (  <tr>)
 
-#### Prepare datasets
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_2_1.webp" width="200"></td>)
 
-Please find the dataset class located in `scepter/modules/data/dataset/ms_dataset.py`,
-designed to facilitate end-to-end training using an open-source toy dataset.
-Download a dataset zip file from [modelscope](https://www.modelscope.cn/models/iic/scepter/resolve/master/datasets/hed_pair.zip), and then extract its contents into the `cache/datasets/` directory.
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_2_2.webp" width="200"></td>)
 
-Should you wish to prepare your own datasets, we recommend consulting `scepter/modules/data/dataset/ms_dataset.py` for detailed guidance on the required data format.
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_2_3.webp" width="200"></td>)
 
-#### Prepare initial weight
-The ACE checkpoint has been uploaded to both ModelScope and HuggingFace platforms:
-* [ModelScope](https://www.modelscope.cn/models/iic/ACE-0.6B-512px)
-* [HuggingFace](https://huggingface.co/scepter-studio/ACE-0.6B-512px)
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_1_1.webp" width="200"></td>)
 
-In the provided training YAML configuration, we have designated the Modelscope URL as the default checkpoint URL. Should you wish to transition to Hugging Face, you can effortlessly achieve this by modifying the PRETRAINED_MODEL value within the YAML file (replace the prefix "ms://iic" to "hf://scepter-studio").
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_1_2.webp" width="200"></td>)
 
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_1_3.webp" width="200"></td>)
 
-#### Start training
+[//]: # (  </tr>)
 
-You can easily start training procedure by executing the following command:
-```bash
-# ACE-0.6B-512px
-PYTHONPATH=. python scepter/tools/run_train.py --cfg scepter/methods/edit/dit_ace_0.6b_512.yaml
-# ACE-0.6B-1024px
-PYTHONPATH=. python scepter/tools/run_train.py --cfg scepter/methods/edit/dit_ace_0.6b_1024.yaml
-```
+[//]: # (  <tr>)
 
-### ACE Chat Bot
+[//]: # (    <th align="center" colspan="3">Travel Style</th>)
 
-We have developed a chatbot interface utilizing Gradio, designed to convert user input in natural language into visually captivating images that align semantically with the specified instructions. You can easily access this functionality by launching Scepter Studio with the following command:
-```bash
-PYTHONPATH=. python scepter/tools/webui.py --cfg scepter/methods/studio/scepter_ui.yaml --language zh --tab chatbot
-```
-Upon starting, you will find a "ChatBot" tab within the Gradio application, which serves as a chat-based interface to handle any requests related to image editing or generation.
+[//]: # (    <th align="center" colspan="3">WuKong Style</th>)
 
-### ACE ComfyUI Workflow
+[//]: # (  </tr>)
 
-![Workflow](https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_example.jpg)
+[//]: # (  <tr>)
 
-<table><tbody>
-  <tr>
-    <th align="center" colspan="4">ACE Workflow Examples</th>
-  </tr>
-  <tr>
-    <th align="center" colspan="1">Control</th>
-    <th align="center" colspan="1">Semantic</th>
-    <th align="center" colspan="1">Element</th>
-  </tr>
-  <tr>
-    <td>
-      <a href="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_control.png" target="_blank">
-        <img src="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_control.png" width="200">
-      </a>
-    </td>
-    <td>
-      <a href="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_semantic.png" target="_blank">
-        <img src="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_semantic.png" width="200">
-      </a>
-    </td>
-    <td>
-      <a href="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_element.png" target="_blank">
-        <img src="https://github.com/ali-vilab/ace-page/raw/main/assets/comfyui/ace_element.png" width="200">
-      </a>
-    </td>
-  </tr>
-</tbody>
-</table>
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_3_1.webp" width="200"></td>)
 
-## 🖼 Gallery for Recent Works
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_3_2.webp" width="200"></td>)
 
-### FLUX Tuners
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_3_3.webp" width="200"></td>)
 
-<table><tbody>
-  <tr>
-    <th align="center" colspan="3">Yarn Style</th>
-    <th align="center" colspan="3">Soft Watercolor Style</th>
-  </tr>
-  <tr>
-    <td><img src="asset/images/flux_tuner/flux_tuner_2_1.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_2_2.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_2_3.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_1_1.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_1_2.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_1_3.webp" width="200"></td>
-  </tr>
-  <tr>
-    <th align="center" colspan="3">Travel Style</th>
-    <th align="center" colspan="3">WuKong Style</th>
-  </tr>
-  <tr>
-    <td><img src="asset/images/flux_tuner/flux_tuner_3_1.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_3_2.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_3_3.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_4_1.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_4_2.webp" width="200"></td>
-    <td><img src="asset/images/flux_tuner/flux_tuner_4_3.webp" width="200"></td>
-  </tr>
-</tbody>
-</table>
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_4_1.webp" width="200"></td>)
+
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_4_2.webp" width="200"></td>)
+
+[//]: # (    <td><img src="asset/images/flux_tuner/flux_tuner_4_3.webp" width="200"></td>)
+
+[//]: # (  </tr>)
+
+[//]: # (</tbody>)
+
+[//]: # (</table>)
 
 ### ComfyUI Workflow
 
@@ -225,18 +165,19 @@ pip install scepter
 
 ### Currently supported approaches
 
-|            Tasks             |                    Methods                     | Links                                                                                                                                                                                                                                                       |
-|:----------------------------:|:----------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|   Text-to-image Generation   |                    SD v1.5                     | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/runwayml/stable-diffusion-v1-5)                                                                                                         |
-|   Text-to-image Generation   |                    SD v2.1                     | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/runwayml/stable-diffusion-v1-5)                                                                                                         |
-|   Text-to-image Generation   |                     SD-XL                      | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)                                                                                               |
-|   Text-to-image Generation   |                      FLUX                      | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/black-forest-labs/FLUX.1-dev)                                                                                               |
-|       Efficient Tuning       |                      LoRA                      | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=LoRA&color=red&logo=arxiv)](https://arxiv.org/abs/2106.09685)                                                                                                                         |
-|       Efficient Tuning       |             Res-Tuning(NeurIPS23)              | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=Res-Tuing&color=red&logo=arxiv)](https://arxiv.org/abs/2310.19859) [![Page link](https://img.shields.io/badge/Page-ResTuning-Gree)](https://res-tuning.github.io/)                    |
-| Controllable Image Synthesis |  [🌟SCEdit(CVPR24)](docs/en/tasks/scedit.md)   | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=SCEdit&color=red&logo=arxiv)](https://arxiv.org/abs/2312.11392)   [![Page link](https://img.shields.io/badge/Page-SCEdit-Gree)](https://scedit.github.io/)                            |
-|        Image Editing         |      [🌟LAR-Gen](docs/en/tasks/largen.md)      | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=LARGen&color=red&logo=arxiv)](https://arxiv.org/abs/2403.19534)   [![Page link](https://img.shields.io/badge/Page-LARGen-Gree)](https://ali-vilab.github.io/largen-page/)             |
-|        Image Editing         |  [🌟StyleBooth](docs/en/tasks/stylebooth.md)   | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=StyleBooth&color=red&logo=arxiv)](https://arxiv.org/abs/2404.12154)   [![Page link](https://img.shields.io/badge/Page-StyleBooth-Gree)](https://ali-vilab.github.io/stylebooth-page/) |
-| Image Generation and Editing | [🌟ACE](https://ali-vilab.github.io/ace-page/) | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=ACE&color=red&logo=arxiv)](https://arxiv.org/abs/2410.00086)   [![Page link](https://img.shields.io/badge/Page-ACE-Gree)](https://ali-vilab.github.io/ace-page/) [![Demo link](https://img.shields.io/badge/Demo-ACE-purple)](https://huggingface.co/spaces/scepter-studio/ACE-Chat) <br> [![ModelScope link](https://img.shields.io/badge/ModelScope-Model-blue)](https://www.modelscope.cn/models/iic/ACE-0.6B-512px)  [![HuggingFace link](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-yellow)](https://huggingface.co/scepter-studio/ACE-0.6B-512px) |
+|            Tasks             |                     Methods                      | Links                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|:----------------------------:|:------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|   Text-to-image Generation   |                     SD v1.5                      | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/runwayml/stable-diffusion-v1-5)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|   Text-to-image Generation   |                     SD v2.1                      | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/runwayml/stable-diffusion-v1-5)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|   Text-to-image Generation   |                      SD-XL                       | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|   Text-to-image Generation   |                       FLUX                       | [![Hugging Face Repo](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Repo-blue)](https://huggingface.co/black-forest-labs/FLUX.1-dev)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|       Efficient Tuning       |                       LoRA                       | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=LoRA&color=red&logo=arxiv)](https://arxiv.org/abs/2106.09685)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|       Efficient Tuning       |              Res-Tuning(NeurIPS23)               | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=Res-Tuing&color=red&logo=arxiv)](https://arxiv.org/abs/2310.19859) [![Page link](https://img.shields.io/badge/Page-ResTuning-Gree)](https://res-tuning.github.io/)                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Controllable Image Synthesis |   [🌟SCEdit(CVPR24)](docs/en/tasks/scedit.md)    | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=SCEdit&color=red&logo=arxiv)](https://arxiv.org/abs/2312.11392)   [![Page link](https://img.shields.io/badge/Page-SCEdit-Gree)](https://scedit.github.io/)                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+|        Image Editing         |       [🌟LAR-Gen](docs/en/tasks/largen.md)       | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=LARGen&color=red&logo=arxiv)](https://arxiv.org/abs/2403.19534)   [![Page link](https://img.shields.io/badge/Page-LARGen-Gree)](https://ali-vilab.github.io/largen-page/)                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|        Image Editing         |   [🌟StyleBooth](docs/en/tasks/stylebooth.md)    | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=StyleBooth&color=red&logo=arxiv)](https://arxiv.org/abs/2404.12154)   [![Page link](https://img.shields.io/badge/Page-StyleBooth-Gree)](https://ali-vilab.github.io/stylebooth-page/)                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Image Generation and Editing |  [🌟ACE](https://ali-vilab.github.io/ace-page/)  | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=ACE&color=red&logo=arxiv)](https://arxiv.org/abs/2410.00086)   [![Page link](https://img.shields.io/badge/Page-ACE-Gree)](https://ali-vilab.github.io/ace-page/) [![Demo link](https://img.shields.io/badge/Demo-ACE-purple)](https://huggingface.co/spaces/scepter-studio/ACE-Chat) <br> [![ModelScope link](https://img.shields.io/badge/ModelScope-Model-blue)](https://www.modelscope.cn/models/iic/ACE-0.6B-512px)  [![HuggingFace link](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-yellow)](https://huggingface.co/scepter-studio/ACE-0.6B-512px)               |
+| Image Generation and Editing | [🌟ACE++](https://ali-vilab.github.io/ACE_plus_page/) | [![Arxiv   link](https://img.shields.io/static/v1?label=arXiv&message=ACEPlus&color=red&logo=arxiv)](https://arxiv.org/abs/2501.02487)   [![Page link](https://img.shields.io/badge/Page-ACE++-Gree)](https://ali-vilab.github.io/ACE_plus_page/) [![Demo link](https://img.shields.io/badge/Demo-ACE++-purple)](https://huggingface.co/spaces/scepter-studio/ACE-Plus) <br> [![ModelScope link](https://img.shields.io/badge/ModelScope-Model-blue)](https://www.modelscope.cn/models/iic/ACE_Plus/summary)  [![HuggingFace link](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-yellow)](https://huggingface.co/ali-vilab/ACE_Plus/tree/main) |
 
 
 ## 🖥️ SCEPTER Studio

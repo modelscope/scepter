@@ -13,8 +13,8 @@ import numpy as np
 import torch
 import torch.distributed as dist
 from torch.autograd import Function
-
-from scepter.modules.utils.model import StdMsg
+import platform
+from scepter.modules.utils.logger import StdMsg
 
 __all__ = [
     'gather_data', 'we', 'broadcast', 'barrier', 'reduce_scatter', 'reduce',
@@ -620,7 +620,11 @@ class Workenv(object):
         self.sync_bn = False
         self.rank = 0
         self.world_size = 1
-        self.device_id = 0
+        if torch.cuda.is_available():
+            self.device_id = 0
+        else:
+            self.device_id = 'mps' if platform.system() == "Darwin" else 'cpu'
+
         self.backend = ''
         self.device_count = 1
         self.seed = 2023
@@ -665,7 +669,7 @@ class Workenv(object):
         self.share_storage = os.environ.get('SHARE_STORAGE', None) == 'true'
 
         if not torch.cuda.is_available():
-            self.device_id = 'cpu'
+            self.device_id = 'mps' if platform.system() == "Darwin" else 'cpu'
             fn(config)
             return
 

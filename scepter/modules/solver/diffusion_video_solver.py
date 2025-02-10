@@ -24,23 +24,31 @@ class LatentDiffusionVideoSolver(LatentDiffusionSolver):
         for result in results:
             ret_videos, ret_labels = [], []
             if 'edit_video' in result:
-                ret_videos.append((result['edit_video'].permute(1, 2, 3, 0).cpu().numpy() *
-                             255).astype(np.uint8))
+                ret_videos.append((result['edit_video'].permute(1, 2, 3, 0)*255).cpu().numpy().astype(np.uint8))
                 ret_labels.append("left: edit video")
             if 'edit_image' in result:
-                ret_videos.append((result['edit_image'].permute(1, 2, 3, 0).cpu().numpy() *
-                                   255).astype(np.uint8))
+                ret_videos.append((result['edit_image'].permute(1, 2, 3, 0)*255).cpu().numpy().astype(np.uint8))
                 ret_labels.append("left: edit image")
+            if 'edit_mask' in result:
+                if len(result['edit_mask'].shape) == 4:
+                    ret_videos.append((result['edit_mask'].permute(1, 2, 3, 0)*255).cpu().numpy().astype(np.uint8))
+                elif len(result['edit_mask'].shape) == 3:
+                    if result['edit_mask'].shape[0] == 1:
+                        result['edit_mask'] = result['edit_mask'].repeat(3, 1, 1)
+                    ret_videos.append(((result['edit_mask'].permute(1, 2, 0)*255).cpu().numpy()[None, ...]).astype(np.uint8))
+                else:
+                    if result['edit_mask'].shape[0] == 1:
+                        result['edit_mask'] = result['edit_mask'].repeat(3, 1, 1, 1)
+                    ret_videos.append(((result['edit_mask'].permute(1, 2, 3, 0)*255).cpu().numpy()).astype(np.uint8))
+                ret_labels.append("middle: edit mask")
             if 'target_video' in result:
                 if len(ret_videos) > 0:
                     ret_labels.append("middle: target video")
                 else:
                     ret_labels.append("left: target video")
-                ret_videos.append((result['target_video'].permute(1, 2, 3, 0).cpu().numpy() *
-                                   255).astype(np.uint8))
+                ret_videos.append((result['target_video'].permute(1, 2, 3, 0)*255).cpu().numpy().astype(np.uint8))
 
-            ret_videos.append((result['reconstruct_video'].permute(1, 2, 3, 0).cpu().numpy() *
-                             255).astype(np.uint8))
+            ret_videos.append((result['reconstruct_video'].permute(1, 2, 3, 0)*255).cpu().numpy().astype(np.uint8))
             ret_labels.append("right: generation video" + " Prompt: " + result['instruction'])
 
             log_data.append(ret_videos)
@@ -70,15 +78,11 @@ class LatentDiffusionVideoSolver(LatentDiffusionSolver):
                 'batch_size': len(batch_data['prompt'])
             })
             self.current_batch_data[self.mode] = batch_data
-            if self.sample_args:
-                self.current_batch_data[self.mode].update(
-                    self.sample_args.get_lowercase_dict())
-            batch_data = transfer_data_to_cuda(batch_data)
             with torch.autocast(device_type='cuda',
                                 enabled=self.use_amp,
                                 dtype=self.dtype):
                 results = self.run_step_train(
-                    batch_data,
+                    transfer_data_to_cuda(batch_data),
                     step,
                     step=self.total_iter,
                     rank=we.rank)
@@ -124,6 +128,21 @@ class LatentDiffusionVideoSolver(LatentDiffusionSolver):
         })
         self.after_all_iter(self.hooks_dict[self._mode])
 
+    def run_step_val(self, batch_data, noise_generator=None):
+        loss_dict = {}
+        batch_data = transfer_data_to_cuda(batch_data)
+        with torch.autocast(device_type='cuda',
+                            enabled=self.use_amp,
+                            dtype=self.dtype):
+            if hasattr(self.model, 'module'):
+                results = self.model.module.forward_train(**batch_data)
+            else:
+                results = self.model.forward_train(**batch_data)
+            loss = results['loss']
+            for sample_id in batch_data['sample_id']:
+                loss_dict[sample_id] = loss.detach().cpu().numpy()
+        return loss_dict
+
     @torch.no_grad()
     def run_test(self):
         self.test_mode()
@@ -166,7 +185,7 @@ class LatentDiffusionVideoSolver(LatentDiffusionSolver):
             with torch.autocast(device_type='cuda',
                                 enabled=self.use_amp,
                                 dtype=self.dtype):
-                batch_data['log_train_num'] = self.log_train_num
+                batch_data['log_num'] = self.log_train_num
                 all_results = self.run_step_eval(transfer_data_to_cuda(batch_data))
             self.train_mode()
             log_data, log_label = self.save_results(all_results)

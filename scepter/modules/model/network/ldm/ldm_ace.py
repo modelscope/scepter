@@ -95,8 +95,8 @@ class LatentDiffusionACE(LatentDiffusion):
             return batch_data_list
 
     def forward_train(self,
-                      edit_image=[],
-                      edit_image_mask=[],
+                      src_image_list=[],
+                      src_mask_list=[],
                       image=None,
                       image_mask=None,
                       noise=None,
@@ -114,8 +114,8 @@ class LatentDiffusionACE(LatentDiffusion):
         Returns:
         '''
         assert check_list_of_list(prompt) and check_list_of_list(
-            edit_image) and check_list_of_list(edit_image_mask)
-        assert len(edit_image) == len(edit_image_mask) == len(prompt)
+            src_image_list) and check_list_of_list(src_mask_list)
+        assert len(src_image_list) == len(src_mask_list) == len(prompt)
         assert self.cond_stage_model is not None
         gc_seg = kwargs.pop('gc_seg', [])
         gc_seg = int(gc_seg[0]) if len(gc_seg) > 0 else 0
@@ -143,13 +143,13 @@ class LatentDiffusionACE(LatentDiffusion):
                                       'encode_list_of_list')(prompt_, return_mask=True)
         except Exception as e:
             print(e, prompt_)
-        cont, cont_mask = self.cond_stage_embeddings(prompt, edit_image, cont,
+        cont, cont_mask = self.cond_stage_embeddings(prompt, src_image_list, cont,
                                                      cont_mask)
         context['crossattn'] = cont
 
         # process edit image & edit image mask
-        edit_image = [to_device(i, strict=False) for i in edit_image]
-        edit_image_mask = [to_device(i, strict=False) for i in edit_image_mask]
+        edit_image = [to_device(i, strict=False) for i in src_image_list]
+        edit_image_mask = [to_device(i, strict=False) for i in src_mask_list]
         e_img, e_mask = [], []
         for u, m in zip(edit_image, edit_image_mask):
             if m is None:
@@ -185,8 +185,8 @@ class LatentDiffusionACE(LatentDiffusion):
 
     @torch.no_grad()
     def forward_test(self,
-                     edit_image=[],
-                     edit_image_mask=[],
+                     src_image_list=[],
+                     src_mask_list=[],
                      image=None,
                      image_mask=None,
                      prompt=[],
@@ -200,8 +200,8 @@ class LatentDiffusionACE(LatentDiffusion):
                      **kwargs):
 
         assert check_list_of_list(prompt) and check_list_of_list(
-            edit_image) and check_list_of_list(edit_image_mask)
-        assert len(edit_image) == len(edit_image_mask) == len(prompt)
+            src_image_list) and check_list_of_list(src_mask_list)
+        assert len(src_image_list) == len(src_mask_list) == len(prompt)
         assert self.cond_stage_model is not None
         # gc_seg is unused
         kwargs.pop('gc_seg', -1)
@@ -209,7 +209,7 @@ class LatentDiffusionACE(LatentDiffusion):
         context, null_context = {}, {}
 
         prompt, n_prompt, image, image_mask, edit_image, edit_image_mask = self.limit_batch_data(
-            [prompt, n_prompt, image, image_mask, edit_image, edit_image_mask],
+            [prompt, n_prompt, image, image_mask, src_image_list, src_mask_list],
             log_num)
         g = torch.Generator(device=we.device_id)
         seed = seed if seed >= 0 else random.randint(0, 2**32 - 1)
@@ -368,8 +368,8 @@ class LatentDiffusionACERefiner(LatentDiffusionACE):
             self.enhence_sampler_cfg = None
 
     def forward_sample(self,
-                         edit_image=[],
-                         edit_mask=[],
+                         src_image_list=[],
+                         src_mask_list=[],
                          noise=None,
                          cond_mask=[],
                          x_shapes=[],
@@ -414,15 +414,15 @@ class LatentDiffusionACERefiner(LatentDiffusionACE):
         # with torch.autocast(device_type="cuda", enabled=True, dtype=torch.bfloat16):
 
         cont, cont_mask = getattr(self.cond_stage_model, 'encode_list')(prompt, return_mask=True)
-        cont, cont_mask = self.cond_stage_embeddings(prompt, edit_image, cont, cont_mask)
+        cont, cont_mask = self.cond_stage_embeddings(prompt, src_image_list, cont, cont_mask)
         null_cont, null_cont_mask = getattr(self.cond_stage_model, 'encode_list')(n_prompt, return_mask=True)
-        null_cont, null_cont_mask = self.cond_stage_embeddings(prompt, edit_image, null_cont, null_cont_mask)
+        null_cont, null_cont_mask = self.cond_stage_embeddings(prompt, src_image_list, null_cont, null_cont_mask)
         context['crossattn'] = cont
         null_context['crossattn'] = null_cont
 
 
-        null_context['edit'] = context['edit'] = edit_image
-        null_context['edit_mask'] = context['edit_mask'] = edit_mask
+        null_context['edit'] = context['edit'] = src_image_list
+        null_context['edit_mask'] = context['edit_mask'] = src_mask_list
 
         # process sample
         model = self.model_ema if self.use_ema and self.eval_ema else self.model
@@ -478,8 +478,8 @@ class LatentDiffusionACERefiner(LatentDiffusionACE):
 
     @torch.no_grad()
     def forward_test(self,
-                     edit_image=[],
-                     edit_image_mask=[],
+                     src_image_list=[],
+                     src_mask_list=[],
                      image=None,
                      image_mask=None,
                      prompt=[],
@@ -493,13 +493,13 @@ class LatentDiffusionACERefiner(LatentDiffusionACE):
                      enhance_scale=0.99,
                      log_num=-1,
                      **kwargs):
-        assert check_list_of_list(prompt) and check_list_of_list(edit_image) and check_list_of_list(edit_image_mask)
-        assert len(edit_image) == len(edit_image_mask) == len(prompt)
+        assert check_list_of_list(prompt) and check_list_of_list(src_image_list) and check_list_of_list(src_mask_list)
+        assert len(src_image_list) == len(src_mask_list) == len(prompt)
         assert self.cond_stage_model is not None
         # gc_seg is unused
         kwargs.pop("gc_seg", -1)
         prompt, n_prompt, image, image_mask, edit_image, edit_image_mask = self.limit_batch_data(
-            [prompt, n_prompt, image, image_mask, edit_image, edit_image_mask], log_num)
+            [prompt, n_prompt, image, image_mask, src_image_list, src_mask_list], log_num)
 
         prompt = [[pp] if isinstance(pp, str) else pp for pp in prompt]
 

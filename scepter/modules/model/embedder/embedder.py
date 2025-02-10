@@ -36,7 +36,8 @@ except Exception as e:
 
 def autocast(f, enabled=True):
     def do_autocast(*args, **kwargs):
-        with torch.cuda.amp.autocast(
+        with torch.amp.autocast(
+                "cuda",
                 enabled=enabled,
                 dtype=torch.get_autocast_gpu_dtype(),
                 cache_enabled=torch.is_autocast_cache_enabled(),
@@ -239,7 +240,7 @@ class FrozenOpenCLIPEmbedder(BaseEmbedder):
         if cfg.PRETRAINED_MODEL is not None:
             with FS.get_from(cfg.PRETRAINED_MODEL,
                              wait_finish=True) as local_path:
-                model.load_state_dict(torch.load(local_path), strict=False)
+                model.load_state_dict(torch.load(local_path, weights_only=True), strict=False)
         self.model = model
 
         self.use_grad = cfg.get('USE_GRAD', False)
@@ -538,7 +539,7 @@ class IPAdapterPlusEmbedder(BaseEmbedder):
         )
 
         with FS.get_from(cfg.PRETRAINED_MODEL, wait_finish=True) as local_path:
-            ckpt = torch.load(local_path, map_location='cpu')
+            ckpt = torch.load(local_path, map_location='cpu', weights_only=True)
             self.image_proj_model.load_state_dict(ckpt['image_proj'],
                                                   strict=True)
 
@@ -645,7 +646,7 @@ class GeneralConditioner(BaseEmbedder):
             from safetensors.torch import load_file as load_safetensors
             sd = load_safetensors(path)
         else:
-            sd = torch.load(path, map_location='cpu')
+            sd = torch.load(path, map_location='cpu', weights_only=True)
         new_sd = OrderedDict()
         for k, v in sd.items():
             ignored = False

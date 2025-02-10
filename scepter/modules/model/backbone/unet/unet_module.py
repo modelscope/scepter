@@ -459,7 +459,7 @@ class DiffusionUNet(BaseModel):
             from safetensors.torch import load_file as load_safetensors
             sd = load_safetensors(path)
         else:
-            sd = torch.load(path, map_location='cpu')
+            sd = torch.load(path, map_location='cpu', weights_only=True)
 
         new_sd = OrderedDict()
         for k, v in sd.items():
@@ -1231,7 +1231,7 @@ class LargenUNetXL(DiffusionUNetXL):
             from safetensors.torch import load_file as load_safetensors
             sd = load_safetensors(path)
         else:
-            sd = torch.load(path, map_location='cpu')
+            sd = torch.load(path, map_location='cpu', weights_only=True)
 
         new_sd = OrderedDict()
         for k, v in sd.items():

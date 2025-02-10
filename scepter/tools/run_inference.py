@@ -26,7 +26,7 @@ if os.path.exists('__init__.py'):
 
 
 def run_task(cfg):
-    import torch.cuda.amp as amp
+    import torch.amp as amp
     std_logger = get_logger(name='scepter')
     solver = SOLVERS.build(cfg.SOLVER, logger=std_logger)
     solver.set_up()
@@ -34,7 +34,7 @@ def run_task(cfg):
         with FS.get_from(cfg.args.pretrained_model,
                          wait_finish=True) as local_path:
             solver.model.load_state_dict(
-                torch.load(local_path, map_location='cuda')['model'])
+                torch.load(local_path, map_location='cuda', weights_only=True)['model'])
     solver.test_mode()
     num_samples = cfg.args.num_samples
     prompt = [cfg.args.prompt] * num_samples
@@ -68,7 +68,7 @@ def run_task(cfg):
     })
 
     dtype = getattr(torch, cfg.SOLVER.DTYPE)
-    with amp.autocast(enabled=True, dtype=dtype):
+    with amp.autocast("cuda", enabled=True, dtype=dtype):
         batch_data = transfer_data_to_cuda(batch_data)
         ret = solver.run_step_test(batch_data)
     save_folder = os.path.join(solver.work_dir, cfg.args.save_folder)
@@ -92,7 +92,7 @@ def run_task_control(cfg):
     if not cfg.args.pretrained_model == '':
         with FS.get_from(cfg.args.pretrained_model,
                          wait_finish=True) as local_path:
-            state = torch.load(local_path, map_location='cuda')
+            state = torch.load(local_path, map_location='cuda', weights_only=True)
             state = state['model'] if 'model' in state else state
             missing, unexpected = solver.model.model.control_blocks[
                 0].load_state_dict(state, strict=False)
@@ -150,7 +150,7 @@ def run_task_control(cfg):
     })
 
     dtype = getattr(torch, cfg.SOLVER.DTYPE)
-    with amp.autocast(enabled=True, dtype=dtype):
+    with amp.autocast("cuda", enabled=True, dtype=dtype):
         batch_data = transfer_data_to_cuda(batch_data)
         ret = solver.run_step_test(batch_data)
     save_folder = os.path.join(solver.work_dir, cfg.args.save_folder)

@@ -18,8 +18,12 @@ def build_lr_scheduler(cfg, registry, logger=None, *args, **kwargs):
     cfg = deep_copy(cfg)
     assert kwargs is not None and 'optimizer' in kwargs
     optimizer = kwargs['optimizer']
-
     req_type = cfg.get('NAME')
+
+    from scepter.modules.utils.import_utils import LazyImportModule
+    sig = (registry.name.upper(), req_type)
+    LazyImportModule.import_module(sig)
+
     if isinstance(req_type, str):
         req_type_entry = registry.get(req_type)
         if req_type_entry is None:

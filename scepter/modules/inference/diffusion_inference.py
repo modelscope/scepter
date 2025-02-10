@@ -97,7 +97,7 @@ class DiffusionInference():
                     if 'weights_only' in torch.load.__code__.co_varnames:
                         sd = torch.load(local_path, map_location='cpu', weights_only=True)
                     else:
-                        sd = torch.load(local_path, map_location='cpu')
+                        sd = torch.load(local_path, map_location='cpu', weights_only=True)
                 first_stage_model_path = os.path.join(
                     os.path.dirname(local_path), 'first_stage_model.pth')
                 cond_stage_model_path = os.path.join(
@@ -203,7 +203,7 @@ class DiffusionInference():
             from safetensors.torch import load_file as load_safetensors
             sd = load_safetensors(path)
         else:
-            sd = torch.load(path, map_location='cpu')
+            sd = torch.load(path, map_location='cpu', weights_only=True)
 
         new_sd = OrderedDict()
         for k, v in sd.items():
@@ -230,16 +230,22 @@ class DiffusionInference():
 
     def load(self, module):
         if module['device'] == 'offline':
-            if module['cfg'].NAME in MODELS.class_map:
+            from scepter.modules.utils.import_utils import LazyImportModule
+            if (LazyImportModule.get_module_type(('MODELS', module['cfg'].NAME)) or
+                    module['cfg'].NAME in MODELS.class_map):
                 model = MODELS.build(module['cfg'], logger=self.logger).eval()
-            elif module['cfg'].NAME in BACKBONES.class_map:
+            elif (LazyImportModule.get_module_type(('BACKBONES', module['cfg'].NAME)) or
+                    module['cfg'].NAME in BACKBONES.class_map):
                 model = BACKBONES.build(module['cfg'],
                                         logger=self.logger).eval()
-            elif module['cfg'].NAME in EMBEDDERS.class_map:
+            elif (LazyImportModule.get_module_type(('EMBEDDERS', module['cfg'].NAME)) or
+                    module['cfg'].NAME in EMBEDDERS.class_map):
                 model = EMBEDDERS.build(module['cfg'],
                                         logger=self.logger).eval()
             else:
                 raise NotImplementedError
+            if 'DTYPE' in module['cfg'] and module['cfg']['DTYPE'] is not None:
+                model = model.to(getattr(torch, module['cfg'].DTYPE))
             if module['cfg'].get('RELOAD_MODEL', None):
                 self.init_from_ckpt(module['cfg'].RELOAD_MODEL, model)
             module['model'] = model
@@ -268,8 +274,9 @@ class DiffusionInference():
                 module['device'] = 'cpu'
             else:
                 module['device'] = 'offline'
-        torch.cuda.empty_cache()
-        torch.cuda.ipc_collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
         return module
 
     def dynamic_load(self, module=None, name=''):

@@ -4,6 +4,7 @@ import glob
 import os
 
 import setuptools
+from setuptools import find_namespace_packages
 
 
 def get_long_description():
@@ -146,7 +147,7 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='',
     packages=[
-        pkg for pkg in setuptools.find_packages()
+        pkg for pkg in setuptools.find_namespace_packages()
         if '__pycache__' not in pkg and 'scepter' in pkg
     ],
     include_package_data=True,

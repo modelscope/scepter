@@ -6,6 +6,8 @@ from .parameter_node import ParameterNode
 from .mantras_node import MantrasNode
 from .tuner_node import TunerNode
 from .control_node import ControlNode
+from .ace_plus_processor_node import ACEPlusProcessorNode
+
 
 NODE_MAPPINGS = {
     'ModelNode': ('🪄 ScepterModel~', ModelNode),
@@ -13,10 +15,11 @@ NODE_MAPPINGS = {
     'ParameterNode': ('🪄 ScepterParameter~', ParameterNode),
     'MantrasNode': ('🪄 ScepterMantra~', MantrasNode),
     'TunerNode': ('🪄 ScepterTuner~', TunerNode),
-    'ControlNode': ('🪄 ScepterControl~', ControlNode)
+    'ControlNode': ('🪄 ScepterControl~', ControlNode),
+    'ACEPlusProcessorNode': ('🪄 ScepterACEPlusImageProcessor~', ACEPlusProcessorNode)
 }
 
-NODE_CLASS_MAPPINGS = {k : v[1] for k, v in NODE_MAPPINGS.items()}
-NODE_DISPLAY_NAME_MAPPINGS = {k : v[0] for k, v in NODE_MAPPINGS.items()}
+NODE_CLASS_MAPPINGS = {k: v[1] for k, v in NODE_MAPPINGS.items()}
+NODE_DISPLAY_NAME_MAPPINGS = {k: v[0] for k, v in NODE_MAPPINGS.items()}
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

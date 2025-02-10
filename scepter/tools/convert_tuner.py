@@ -46,7 +46,7 @@ def scepter_to_civitai(cfg):
         for sub_name in FS.walk_dir(path):
             if '.bin' in sub_name:
                 checkpoint_path = os.path.join(local_source, name, sub_name)
-                checkpoint = torch.load(checkpoint_path, map_location='cpu')
+                checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=True)
                 scepter_checkpoint.update(checkpoint)
     unet_config = create_unet_diffusers_config(v2=False)
     ckpt_unet = convert_ldm_unet_tuner_checkpoint(

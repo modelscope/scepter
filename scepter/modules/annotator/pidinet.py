@@ -882,7 +882,7 @@ class PiDiAnnotator(BaseAnnotator, metaclass=ABCMeta):
         if pretrained_model:
             with FS.get_from(pretrained_model, wait_finish=True) as local_path:
                 state = torch.load(local_path,
-                                   map_location='cpu')['state_dict']
+                                   map_location='cpu', weights_only=True)['state_dict']
                 if vanilla_cnn:
                     state = convert_pidinet(state, 'carv4')
                 state = {

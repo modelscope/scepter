@@ -151,3 +151,4 @@ MODEL:
     LENGTH: 226
     CLEAN:
     USE_GRAD: False
+    T5_DTYPE: bfloat16

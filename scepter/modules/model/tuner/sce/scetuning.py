@@ -153,7 +153,7 @@ class CSCTuners(BaseTuner):
 
     def init_from_ckpt(self, path):
         model_new = OrderedDict()
-        model = torch.load(path, map_location='cpu')
+        model = torch.load(path, map_location='cpu', weights_only=True)
         for k, v in model.items():
             if k.startswith('model.'):
                 k = k[len('model.'):]

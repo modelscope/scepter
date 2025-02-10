@@ -423,7 +423,7 @@ class Hand(object):
         self.model = handpose_model()
         if torch.cuda.is_available():
             self.model = self.model.to(device)
-        model_dict = transfer(self.model, torch.load(model_path))
+        model_dict = transfer(self.model, torch.load(model_path, weights_only=True))
         self.model.load_state_dict(model_dict)
         self.model.eval()
         self.device = device
@@ -503,7 +503,7 @@ class Body(object):
         self.model = bodypose_model()
         if torch.cuda.is_available():
             self.model = self.model.to(device)
-        model_dict = transfer(self.model, torch.load(model_path))
+        model_dict = transfer(self.model, torch.load(model_path, weights_only=True))
         self.model.load_state_dict(model_dict)
         self.model.eval()
         self.device = device

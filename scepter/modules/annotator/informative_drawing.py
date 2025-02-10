@@ -120,7 +120,7 @@ class InfoDrawContourAnnotator(BaseAnnotator, metaclass=ABCMeta):
         self.model = ContourInference(input_nc, output_nc, n_residual_blocks,
                                       sigmoid)
         with FS.get_from(pretrained_model, wait_finish=True) as local_path:
-            self.model.load_state_dict(torch.load(local_path))
+            self.model.load_state_dict(torch.load(local_path, weights_only=True))
         self.model = self.model.eval().requires_grad_(False).to(we.device_id)
 
     @torch.no_grad()

@@ -1,4 +1,5 @@
 WORK_DIR: "inference"
+SKIP_EXAMPLES: True
 DIFFUSION_PARAS:
   SAMPLE:
     VALUES: ['ddim', 'euler', 'euler_ancestral', 'heun', 'dpm2',

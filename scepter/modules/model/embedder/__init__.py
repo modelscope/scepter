@@ -1,8 +1,30 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+from typing import TYPE_CHECKING
+from scepter.modules.utils.import_utils import LazyImportModule
 
-from scepter.modules.model.embedder.embedder import (
-    ConcatTimestepEmbedderND, FrozenCLIPEmbedder, FrozenCLIPEmbedder2,
-    FrozenOpenCLIPEmbedder, FrozenOpenCLIPEmbedder2, GeneralConditioner,
-    IPAdapterPlusEmbedder, RefCrossEmbedder, SD3TextEmbedder, T5EmbedderHF)
-from scepter.modules.model.embedder.flux_embedder import HFEmbedder
+
+if TYPE_CHECKING:
+    from scepter.modules.model.embedder.embedder import (
+        ConcatTimestepEmbedderND, FrozenCLIPEmbedder, FrozenCLIPEmbedder2,
+        FrozenOpenCLIPEmbedder, FrozenOpenCLIPEmbedder2, GeneralConditioner,
+        IPAdapterPlusEmbedder, RefCrossEmbedder, SD3TextEmbedder, T5EmbedderHF)
+    from scepter.modules.model.embedder.flux_embedder import HFEmbedder
+else:
+    _import_structure = {
+        'embedder': ['ConcatTimestepEmbedderND', 'FrozenCLIPEmbedder',
+                     'FrozenCLIPEmbedder2', 'FrozenOpenCLIPEmbedder',
+                     'FrozenOpenCLIPEmbedder2', 'GeneralConditioner',
+                     'IPAdapterPlusEmbedder', 'RefCrossEmbedder',
+                     'SD3TextEmbedder', 'T5EmbedderHF'],
+        'flux_embedder': ['HFEmbedder']
+    }
+
+    import sys
+    sys.modules[__name__] = LazyImportModule(
+        __name__,
+        globals()['__file__'],
+        _import_structure,
+        module_spec=__spec__,
+        extra_objects={},
+    )

@@ -178,6 +178,7 @@ class CogVideoXPatchEmbed(nn.Module):
     def __init__(
         self,
         patch_size: int = 2,
+        patch_size_t: Optional[int] = None,
         in_channels: int = 16,
         embed_dim: int = 1920,
         text_embed_dim: int = 4096,
@@ -195,6 +196,7 @@ class CogVideoXPatchEmbed(nn.Module):
         super().__init__()
 
         self.patch_size = patch_size
+        self.patch_size_t = patch_size_t
         self.embed_dim = embed_dim
         self.sample_height = sample_height
         self.sample_width = sample_width
@@ -206,9 +208,15 @@ class CogVideoXPatchEmbed(nn.Module):
         self.use_positional_embeddings = use_positional_embeddings
         self.use_learned_positional_embeddings = use_learned_positional_embeddings
 
-        self.proj = nn.Conv2d(
-            in_channels, embed_dim, kernel_size=(patch_size, patch_size), stride=patch_size, bias=bias
-        )
+        if patch_size_t is None:
+            # CogVideoX 1.0 checkpoints
+            self.proj = nn.Conv2d(
+                in_channels, embed_dim, kernel_size=(patch_size, patch_size), stride=patch_size, bias=bias
+            )
+        else:
+            # CogVideoX 1.5 checkpoints
+            self.proj = nn.Linear(in_channels * patch_size * patch_size * patch_size_t, embed_dim)
+
         self.text_proj = nn.Linear(text_embed_dim, embed_dim)
 
         if use_positional_embeddings or use_learned_positional_embeddings:
@@ -247,12 +255,24 @@ class CogVideoXPatchEmbed(nn.Module):
         """
         text_embeds = self.text_proj(text_embeds)
 
-        batch, num_frames, channels, height, width = image_embeds.shape
-        image_embeds = image_embeds.reshape(-1, channels, height, width)
-        image_embeds = self.proj(image_embeds)
-        image_embeds = image_embeds.view(batch, num_frames, *image_embeds.shape[1:])
-        image_embeds = image_embeds.flatten(3).transpose(2, 3)  # [batch, num_frames, height x width, channels]
-        image_embeds = image_embeds.flatten(1, 2)  # [batch, num_frames x height x width, channels]
+        batch_size, num_frames, channels, height, width = image_embeds.shape
+
+        if self.patch_size_t is None:
+            image_embeds = image_embeds.reshape(-1, channels, height, width)
+            image_embeds = self.proj(image_embeds)
+            image_embeds = image_embeds.view(batch_size, num_frames, *image_embeds.shape[1:])
+            image_embeds = image_embeds.flatten(3).transpose(2, 3)  # [batch, num_frames, height x width, channels]
+            image_embeds = image_embeds.flatten(1, 2)  # [batch, num_frames x height x width, channels]
+        else:
+            p = self.patch_size
+            p_t = self.patch_size_t
+
+            image_embeds = image_embeds.permute(0, 1, 3, 4, 2)
+            image_embeds = image_embeds.reshape(
+                batch_size, num_frames // p_t, p_t, height // p, p, width // p, p, channels
+            )
+            image_embeds = image_embeds.permute(0, 1, 3, 5, 7, 2, 4, 6).flatten(4, 7).flatten(1, 3)
+            image_embeds = self.proj(image_embeds)
 
         embeds = torch.cat(
             [text_embeds, image_embeds], dim=1

@@ -26,8 +26,8 @@ from scepter.modules.inference.ace_inference import ACEInference
 from scepter.modules.utils.config import Config
 from scepter.modules.utils.directory import get_md5
 from scepter.modules.utils.file_system import FS
+from scepter.modules.utils.import_utils import get_dirname
 from scepter.studio.utils.env import init_env
-import scepter
 from importlib.metadata import version
 
 from .example import get_examples
@@ -68,8 +68,7 @@ class ChatBotUI(object):
         self.chatbot_examples = get_examples(self.cache_dir) if not cfg.get('SKIP_EXAMPLES', False) else []
         self.model_cfg_dir = cfg.MODEL.EDIT_MODEL.MODEL_CFG_DIR
         self.model_yamls = glob.glob(os.path.join(
-                            os.path.dirname(scepter.dirname), self.model_cfg_dir,
-                                                  '*.yaml'))
+                            os.path.dirname(get_dirname()), self.model_cfg_dir, '*.yaml'))
         self.model_choices = dict()
         self.default_model_name = ''
         for i in self.model_yamls:
@@ -678,7 +677,7 @@ class ChatBotUI(object):
                     history), gr.update(), gr.update(visible=False)
 
             img_id = img_ids[0]
-            prompt = re.sub(f'@{img_id}\s+', '', message)
+            prompt = re.sub(fr'@{img_id}\s+', '', message)
 
             if extend_prompt:
                 messages = copy.deepcopy(self.enhance_ctx)

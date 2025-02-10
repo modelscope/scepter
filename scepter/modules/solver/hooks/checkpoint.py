@@ -96,7 +96,7 @@ class CheckpointHook(Hook):
         with FS.get_from(solver.resume_from, wait_finish=True) as local_file:
             solver.logger.info(f'Loading checkpoint from {solver.resume_from}')
             checkpoint = torch.load(local_file,
-                                    map_location=torch.device('cpu'))
+                                    map_location=torch.device('cpu'), weights_only=True)
 
         solver.load_checkpoint(checkpoint)
         if self.save_best and '_CheckpointHook_best' in checkpoint:

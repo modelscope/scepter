@@ -152,9 +152,9 @@ def heavy_clean(text):
     text = re.sub(r'[\"\']{2,}', r'"', text)  # """AUSVERKAUFT"""
     text = re.sub(r'[\.]{2,}', r' ', text)  # """AUSVERKAUFT"""
     text = re.sub(
-        re.compile(r'[' + '#®•©™&@·º½¾¿¡§~' + '\)' + '\(' + '\]' +  # noqa
-                   '\[' +  # noqa
-                   '\}' + '\{' + '\|' + '\\' + '\/' + '\*' +  # noqa
+        re.compile(r'[' + '#®•©™&@·º½¾¿¡§~' + r'\)' + r'\(' + r'\]' +  # noqa
+                   r'\[' +  # noqa
+                   r'\}' + r'\{' + r'\|' + '\\' + r'\/' + r'\*' +  # noqa
                    r']{1,}'),  # noqa
         r' ',
         text)  # ***AUSVERKAUFT***, #AUSVERKAUFT

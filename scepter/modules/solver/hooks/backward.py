@@ -112,10 +112,15 @@ class BackwardHook(Hook):
                     f'Profiler stop after {self.profile_step} steps')
                 FS.put_dir_from_local_dir(self._local_log_dir, self.log_dir)
 
-    def grad_clip(self, parameters):
-        torch.nn.utils.clip_grad_norm_(parameters=parameters,
-                                       max_norm=self.gradient_clip,
-                                       norm_type=2)
+    def grad_clip(self, optimizer):
+        for params_group in optimizer.param_groups:
+            train_params = []
+            for param in params_group['params']:
+                if param.requires_grad:
+                    train_params.append(param)
+            # print(len(train_params), self.gradient_clip)
+            torch.nn.utils.clip_grad_norm_(parameters=train_params,
+                                       max_norm=self.gradient_clip)
 
     def after_iter(self, solver):
         if solver.optimizer is not None and solver.is_train_mode:
@@ -131,9 +136,9 @@ class BackwardHook(Hook):
                 # Suppose profiler run after backward, so we need to set backward_prev_step
                 # as the previous one step before the backward step
                 if self.current_step % self.accumulate_step == 0:
+                    solver.scaler.unscale_(solver.optimizer)
                     if self.gradient_clip > 0:
-                        solver.scaler.unscale_(solver.optimizer)
-                        self.grad_clip(solver.train_parameters())
+                        self.grad_clip(solver.optimizer)
                     self.profile(solver)
                     solver.scaler.step(solver.optimizer)
                     solver.scaler.update()
@@ -145,7 +150,7 @@ class BackwardHook(Hook):
                 # as the previous one step before the backward step
                 if self.current_step % self.accumulate_step == 0:
                     if self.gradient_clip > 0:
-                        self.grad_clip(solver.train_parameters())
+                        self.grad_clip(solver.optimizer)
                     self.profile(solver)
                     solver.optimizer.step()
                     solver.optimizer.zero_grad()

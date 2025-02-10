@@ -249,79 +249,82 @@ class TunerUIName():
 
 
 class ControlUIName():
-    def __init__(self, language='en'):
-        self.examples = [
-            [
-                'Canny',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/canny_turtle.jpeg'  # noqa
-                ),
-                'sea turtle'
-            ],
-            [
-                'Canny',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/canny_starwar.jpeg'  # noqa
-                ),
-                'star wars stormtrooper with weapons'
-            ],
-            [
-                'Hed',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/hed_kingfisher.jpeg'  # noqa
-                ),
-                'a kingfisher coming out of the water, photorealistic hyperrealistic'
-            ],
-            [
-                'Hed',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/hed_lemon.jpeg'  # noqa
-                ),
-                'lemon and branches, simple background'
-            ],
-            [
-                'Openpose',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/pose_panda.jpeg'  # noqa
-                ),
-                'panda wearing pink suite sitting on iron throne with a sword'
-            ],
-            [
-                'Openpose',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/pose_girl.jpeg'  # noqa
-                ),
-                'a beautiful little girl walking on the grass, pixar style characters'
-            ],
-            [
-                'Midas',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/depth_rose.jpeg'  # noqa
-                ),
-                'beautiful red rose'
-            ],
-            [
-                'Midas',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/depth_c.jpg'  # noqa
-                ),
-                'three-dimensional letter C with fire'
-            ],
-            [
-                'Color',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/color_lilypad.jpeg'  # noqa
-                ),
-                'lilypad flower floating on a tiny pond surrounded by ferns morning'
-            ],
-            [
-                'Color',
-                download_image(
-                    'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/color_gooseberry.jpeg'  # noqa
-                ),
-                'gooseberry watercolor isolated'
+    def __init__(self, language='en', skip=False):
+        if not skip:
+            self.examples = [
+                [
+                    'Canny',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/canny_turtle.jpeg'  # noqa
+                    ),
+                    'sea turtle'
+                ],
+                [
+                    'Canny',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/canny_starwar.jpeg'  # noqa
+                    ),
+                    'star wars stormtrooper with weapons'
+                ],
+                [
+                    'Hed',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/hed_kingfisher.jpeg'  # noqa
+                    ),
+                    'a kingfisher coming out of the water, photorealistic hyperrealistic'
+                ],
+                [
+                    'Hed',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/hed_lemon.jpeg'  # noqa
+                    ),
+                    'lemon and branches, simple background'
+                ],
+                [
+                    'Openpose',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/pose_panda.jpeg'  # noqa
+                    ),
+                    'panda wearing pink suite sitting on iron throne with a sword'
+                ],
+                [
+                    'Openpose',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/pose_girl.jpeg'  # noqa
+                    ),
+                    'a beautiful little girl walking on the grass, pixar style characters'
+                ],
+                [
+                    'Midas',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/depth_rose.jpeg'  # noqa
+                    ),
+                    'beautiful red rose'
+                ],
+                [
+                    'Midas',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/depth_c.jpg'  # noqa
+                    ),
+                    'three-dimensional letter C with fire'
+                ],
+                [
+                    'Color',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/color_lilypad.jpeg'  # noqa
+                    ),
+                    'lilypad flower floating on a tiny pond surrounded by ferns morning'
+                ],
+                [
+                    'Color',
+                    download_image(
+                        'https://modelscope.cn/api/v1/models/iic/scepter/repo?Revision=master&FilePath=examples/control/color_gooseberry.jpeg'  # noqa
+                    ),
+                    'gooseberry watercolor isolated'
+                ]
             ]
-        ]
+        else:
+            self.examples = []
 
         if language == 'en':
 

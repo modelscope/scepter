@@ -1591,7 +1591,7 @@ class AutoencoderKLCogVideoX(TrainModule):
                     from safetensors.torch import load_file as load_safetensors
                     ckpt = load_safetensors(local_model)
                 else:
-                    ckpt = torch.load(local_model, map_location='cpu')
+                    ckpt = torch.load(local_model, map_location='cpu', weights_only=True)
             missing, unexpected = self.load_state_dict(ckpt, strict=False)
             if we.rank == 0:
                 self.logger.info(

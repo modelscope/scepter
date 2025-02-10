@@ -1,4 +1,21 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
+from typing import TYPE_CHECKING
+from scepter.modules.utils.import_utils import LazyImportModule
 
-from scepter.modules.data import dataset, sampler
+
+if TYPE_CHECKING:
+    from scepter.modules.data import dataset, sampler
+else:
+    _import_structure = {
+        'data': ['dataset', 'sampler']
+    }
+
+    import sys
+    sys.modules[__name__] = LazyImportModule(
+        __name__,
+        globals()['__file__'],
+        _import_structure,
+        module_spec=__spec__,
+        extra_objects={},
+    )

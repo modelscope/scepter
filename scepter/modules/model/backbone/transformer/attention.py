@@ -10,7 +10,7 @@ import warnings
 
 import torch
 import torch.nn as nn
-from torch.cuda import amp
+from torch import amp
 from torch.nn import functional as F
 from torch.nn.utils.rnn import pad_sequence
 from tqdm import tqdm
@@ -440,7 +440,7 @@ def multi_head_varlen_attention(q_img,
         k = k.type(flash_dtype)
         v = v.type(flash_dtype)
 
-    with amp.autocast():
+    with amp.autocast("cuda"):
         x = flash_attn_varlen_func(q=q,
                                    k=k,
                                    v=v,

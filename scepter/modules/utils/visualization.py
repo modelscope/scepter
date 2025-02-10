@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import copy
-from enum import Enum
 import os
+from enum import Enum
 
 from scepter.modules.utils.file_system import FS
 
@@ -17,17 +17,15 @@ class Media(Enum):
 
 
 class HtmlVisualization(object):
-    def __init__(
-            self,
-            allow_annotation=False,
-            slice_size=1000,
-            align='center',
-            width_scale='60%',
-            title='Visualization',
-            height=600,
-            width=None,
-            text_cols=40
-    ):
+    def __init__(self,
+                 allow_annotation=False,
+                 slice_size=1000,
+                 align='center',
+                 width_scale='60%',
+                 title='Visualization',
+                 height=600,
+                 width=None,
+                 text_cols=40):
         self.content_list = []
         self.rows_meta = []
         self.allow_annotation = allow_annotation
@@ -37,9 +35,9 @@ class HtmlVisualization(object):
         self.title = title
         self.html_start = '<html>'
         self.html_head = f'<head><meta charset="utf-8"><title>{title}</title></head>'
-        self.height = height if height is not None else "600"
-        self.width = width if width is not None else "auto"
-        self.text_cols = text_cols if text_cols is not None else "auto"
+        self.height = height if height is not None else '600'
+        self.width = width if width is not None else 'auto'
+        self.text_cols = text_cols if text_cols is not None else 'auto'
         self.html_style = ('''
             <style> \n
                 .container {
@@ -88,12 +86,11 @@ class HtmlVisualization(object):
                     resize: none; \n
                     border: 1px solid #ccc; \n
                 } \n
-                .large-checkbox {transform: scale(2.5); margin-left: 20px; margin-bottom: 20px; vertical-align: middle;} \n
+                .large-checkbox {transform: scale(2.5); margin-left: 20px; margin-bottom: 20px; vertical-align: middle;} \n   # noqa
             </style> \n
             \n
-        '''.replace('{width_scale}',
-                    self.width_scale).replace('{align}', self.align)
-                           .replace('{pair_height}', f'{self.height}'))
+        '''.replace('{width_scale}', self.width_scale).replace(
+            '{align}', self.align).replace('{pair_height}', f'{self.height}'))
 
         self.html_body_script = '''
                 <script>\n
@@ -120,9 +117,6 @@ class HtmlVisualization(object):
 
                             let percentage = (clientX - left) / width * 100;\n
 
-
-                            // 限制百分比在0到100之间\n
-
                             percentage = Math.max(0, Math.min(100, percentage));\n
 
                             media2.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;\n
@@ -132,7 +126,6 @@ class HtmlVisualization(object):
                             console.info(slider.style.left);\n
 
                         });\n
-                        // 初始化滑块位置\n
                         slider.style.left = '50%';\n
                     });\n
                 </script>\n
@@ -165,17 +158,16 @@ class HtmlVisualization(object):
 
                 '''
         self.label_button = (
-                '<table><tr><td>' +
-                "<button style='height: 50px;' type=\"button\" onclick=\"saveSamples()\">Save Samples</button>"
-                + '</td></tr></table>')
+            '<table><tr><td>' +
+            "<button style='height: 50px;' type=\"button\" onclick=\"saveSamples()\">Save Samples</button>"
+            + '</td></tr></table>')
 
     def format_col(self,
                    content='',
                    label='',
                    type=Media.TEXT,
                    show_label=True,
-                   cols_span=1
-                   ):
+                   cols_span=1):
         if type == Media.TEXT:
             ret_str = '<textarea'  # noqa: E501
             if self.height is not None:
@@ -185,7 +177,7 @@ class HtmlVisualization(object):
                 cols = f"cols={self.text_cols * cols_span}"
                 ret_str += f" {cols}"
             ret_str += f'>"{content}"</textarea>'
-            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ""
+            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         elif type == Media.IMAGE:
             ret_str = f'<img src="{content}"'
             if self.height is not None:
@@ -195,7 +187,7 @@ class HtmlVisualization(object):
                 width = f'width="{self.width}"'
                 ret_str += f" {width}"
             ret_str += '  >'
-            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ""
+            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         elif type == Media.VIDEO:
             ret_str = '<video'  # noqa
             if self.height is not None:
@@ -206,34 +198,36 @@ class HtmlVisualization(object):
                 ret_str += f" {width}"
             ret_str += ' preload="none" autoplay muted loop>'
             ret_str += f'<source src="{content}" type="video/mp4"></video>'
-            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ""
+            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         elif type == Media.AUDIO:
             ret_str = f'<audio src="{content}" controls>'
-            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ""
+            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         elif type == Media.IMAGE_PAIR:
             assert isinstance(content, (list, tuple)) and len(content) == 2
-            ret_str = f'\n'
-            ret_str += f'       <div class="container"'
-            ret_str += (f'> \n'
-                        f'      <div class="image" id="media1">'
-                        f'          <img src="{content[1]}" alt="before">\n'
-                        f'      </div>\n'
-                        f'      <div class="image" id="media2" style="clip-path: inset(0 50% 0 0);">\n'
-                        f'            <img src="{content[0]}" alt="after">\n'
-                        f'      </div>\n'
-                        f'      <div class="slider" id="slider"></div>\n'
-                        f'')
-            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ""
+            ret_str = f'\n'  # noqa
+            ret_str += f'       <div class="container"'  # noqa
+            ret_str += (
+                f'> \n'
+                f'      <div class="image" id="media1">'  # noqa
+                f'          <img src="{content[1]}" alt="before">\n'  # noqa
+                f'      </div>\n'  # noqa
+                f'      <div class="image" id="media2" style="clip-path: inset(0 50% 0 0);">\n'  # noqa
+                f'            <img src="{content[0]}" alt="after">\n'  # noqa
+                f'      </div>\n'  # noqa
+                f'      <div class="slider" id="slider"></div>\n'  # noqa
+                f'')
+            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         elif type == Media.VIDEO_PAIR:
             assert isinstance(content, (list, tuple)) and len(content) == 2
-            ret_str = f'\n'
-            ret_str += f'       <div class="container"'
-            ret_str += (f'> \n'
-                        f'      <video autoplay muted loop class="video" id="media1"><source src="{content[1]}" type="video/mp4"></video>\n'
-                        f'      <video autoplay muted loop class="video" id="media2" style="clip-path: inset(0 50% 0 0);"><source src="{content[0]}" type="video/mp4"></video>\n'
-                        f'      <div class="slider" id="slider"></div>\n'
-                        f'</div>')
-            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ""
+            ret_str = f'\n'  # noqa
+            ret_str += f'       <div class="container"'  # noqa
+            ret_str += (
+                f'> \n'
+                f'      <video autoplay muted loop class="video" id="media1"><source src="{content[1]}" type="video/mp4"></video>\n'  # noqa
+                f'      <video autoplay muted loop class="video" id="media2" style="clip-path: inset(0 50% 0 0);"><source src="{content[0]}" type="video/mp4"></video>\n'  # noqa
+                f'      <div class="slider" id="slider"></div>\n'  # noqa
+                f'</div>')
+            sec_ret_str = f'<font size="3"><strong>{label}<strong></font>' if show_label else ''
         else:
             raise NotImplementedError
 
@@ -242,10 +236,10 @@ class HtmlVisualization(object):
 
         if cols_span > 1:
             ret_str = f'<th colspan="{cols_span}">{ret_str}</th>\n'
-            sec_ret_str = f'<th colspan="{cols_span}">{sec_ret_str}</th>\n' if not sec_ret_str == "" else sec_ret_str
+            sec_ret_str = f'<th colspan="{cols_span}">{sec_ret_str}</th>\n' if not sec_ret_str == '' else sec_ret_str
         else:
             ret_str = f'<td>{ret_str}</td>\n'
-            sec_ret_str = f'<td align="center">{sec_ret_str}</td>\n' if not sec_ret_str == "" else sec_ret_str
+            sec_ret_str = f'<td align="center">{sec_ret_str}</td>\n' if not sec_ret_str == '' else sec_ret_str
         return [ret_str, sec_ret_str]
 
     def format_row(self):
@@ -267,7 +261,10 @@ class HtmlVisualization(object):
                 if not self.allow_annotation:
                     one_row_str += '\n'.join([v[0] for v in one_content])
                 else:
-                    one_row_str += '\n'.join([v[0].replace('#sample_id#', f'{sample_id}')  for v in one_content])
+                    one_row_str += '\n'.join([
+                        v[0].replace('#sample_id#', f'{sample_id}')
+                        for v in one_content
+                    ])
                     row_meta = '#;#'.join(one_row_meta)
                     one_row_str += (
                         f'<td><input type="checkbox" class="large-checkbox" '
@@ -282,7 +279,8 @@ class HtmlVisualization(object):
                 #     one_row_str = f'<label for="sample{sample_id}">{one_row_str}</label>'
                 current_sample_html.append(one_row_str)
                 sample_id += 1
-            all_sample_html.append("<table>" + '\n'.join(current_sample_html) + "</table>")
+            all_sample_html.append('<table>' + '\n'.join(current_sample_html) +
+                                   '</table>')
 
         return all_sample_html
 
@@ -304,8 +302,11 @@ class HtmlVisualization(object):
         if col_id > len(self.content_list[row_id]):
             raise RuntimeError(
                 'col_id should be next number of the last col_id.')
-        format_col = self.format_col(content, f"{row_id}-{col_id}: {label}",
-                                     type, show_label=show_label, cols_span=cols_span)
+        format_col = self.format_col(content,
+                                     f"{row_id}-{col_id}: {label}",
+                                     type,
+                                     show_label=show_label,
+                                     cols_span=cols_span)
 
         annotation_meta = annotation_meta if annotation_meta else ''
         if col_id == len(self.content_list[row_id]):
@@ -320,8 +321,8 @@ class HtmlVisualization(object):
         if isinstance(html_body, list) and len(html_body) > 1:
             try:
                 os.makedirs(path, exist_ok=True)
-            except:
-                print("Create folder path failed.")
+            except:  # noqa
+                print('Create folder path failed.')
             for html_id, one_html in enumerate(html_body):
                 ret_html_list = [
                     self.html_start, self.html_head, self.html_style,
@@ -332,7 +333,8 @@ class HtmlVisualization(object):
                     ret_html_list.append(self.html_script)
                 ret_html_list.append(self.html_end)
                 ret_html = '\n'.join(ret_html_list)
-                FS.put_object(ret_html.encode(), os.path.join(path, f"{html_id}.html"))
+                FS.put_object(ret_html.encode(),
+                              os.path.join(path, f"{html_id}.html"))
         else:
             ret_html_list = [
                 self.html_start, self.html_head, self.html_style,

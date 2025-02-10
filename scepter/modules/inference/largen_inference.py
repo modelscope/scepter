@@ -43,7 +43,7 @@ class LargenInference(DiffusionInference):
                     if 'weights_only' in torch.load.__code__.co_varnames:
                         sd = torch.load(local_path, map_location='cpu', weights_only=True)
                     else:
-                        sd = torch.load(local_path, map_location='cpu')
+                        sd = torch.load(local_path, map_location='cpu', weights_only=True)
                 if 'model' in sd:
                     sd = sd['model']
 

@@ -239,7 +239,7 @@ class GaussianDiffusion(object):
                 percentile=None,
                 cat_uc=False,
                 **kwargs):
-        """
+        r"""
         Apply one step of denoising from the posterior distribution q(x_s | x_t, x0).
         Since x0 is not available, estimate the denoising results using the learned
         distribution p(x_s | x_t, \hat{x}_0 == f(x_t)). # noqa

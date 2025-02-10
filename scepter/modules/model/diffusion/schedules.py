@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import math
+import random
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -30,7 +31,7 @@ class ScheduleOutput(object):
 
 @NOISE_SCHEDULERS.register_class()
 class BaseNoiseScheduler(object):
-    '''
+    r'''
     In the diffusion model, the parameters related to the noise schedule are alpha, beta,
     and sigma. The following are the definitions of the above three parameters, which should
     be the basic property for the instance of noise scheduler.
@@ -483,6 +484,14 @@ class FlowMatchFluxShiftScheduler(FlowMatchUniformScheduler):
         'MAX_SHIFT': {
             'value': 1.15,
             'description': 'The max shift factor for the timestamp.'
+        },
+        'PRE_T_SAMPLE': {
+            'value': False,
+            'description': 'Use pre-sampled timesteps or not, default is False.'
+        },
+        'PRE_T_SAMPLE_FOLD': {
+            'value': 1,
+            'description': 'The folds of pre-sampled timesteps.'
         }
     }
 
@@ -492,6 +501,23 @@ class FlowMatchFluxShiftScheduler(FlowMatchUniformScheduler):
         self.sigmoid_scale = self.cfg.get('SIGMOID_SCALE', 1)
         self.base_shift = self.cfg.get('BASE_SHIFT', 0.5)
         self.max_shift = self.cfg.get('MAX_SHIFT', 1.15)
+        self.pre_t_sample = self.cfg.get('PRE_T_SAMPLE', False)
+        self.pre_t_sample_fold = self.cfg.get('PRE_T_SAMPLE_FOLD', 1)
+        if self.pre_t_sample:
+            t = torch.sigmoid(torch.randn((self.num_timesteps * self.pre_t_sample_fold,)))
+            # Scale and reverse the values to go from 1000 to 0
+            timesteps = ((1 - t) * 1000)
+            # Sort the timesteps in descending order
+            self.pre_sample_timesteps, _ = torch.sort(timesteps, descending=True)
+        else:
+            self.pre_sample_timesteps = None
+
+    @property
+    def pre_timesteps(self):
+        fold_id = random.randint(0, self.pre_t_sample_fold - 1)
+        # print("fold_id", fold_id)
+        return self.pre_sample_timesteps[fold_id::self.pre_t_sample_fold]
+
 
     def time_shift(self, mu: float, sigma_scale: float, t: Tensor):
         return math.exp(mu) / (math.exp(mu) + (1 / t - 1)**sigma_scale)
@@ -516,11 +542,22 @@ class FlowMatchFluxShiftScheduler(FlowMatchUniformScheduler):
             n, _, h, w = x_0.shape
             seq_len = (h // 2 * w // 2)
         if t is None:
-            logits_norm = torch.randn(x_0.shape[0], device=x_0.device)
-            logits_norm = logits_norm * self.sigmoid_scale  # larger scale for more uniform sampling
-            t = logits_norm.sigmoid() * self.num_timesteps
+            if self.pre_t_sample:
+                timestep_indices = torch.randint(
+                     1,
+                    self.num_timesteps - 1,
+                    (x_0.shape[0],)
+                )
+                timestep_indices = timestep_indices.long()
+                t = [self.pre_timesteps[x.item()].to(x_0.device) for x in timestep_indices]
+                t = torch.stack(t, dim=0)
+            else:
+                logits_norm = torch.randn(x_0.shape[0], device=x_0.device)
+                logits_norm = logits_norm * self.sigmoid_scale  # larger scale for more uniform sampling
+                t = logits_norm.sigmoid() * self.num_timesteps
         sigma = self.t_to_sigma(t, seq_len=seq_len)
         shape = (x_0.size(0), ) + (1, ) * (x_0.ndim - 1)
+        # print(sigma)
         x_t = (1 - sigma.view(shape)) * x_0 + sigma.view(shape) * noise
         return ScheduleOutput(x_0=x_0,
                               x_t=x_t,
