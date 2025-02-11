@@ -14,6 +14,6 @@ Repository = "https://github.com/modelscope/scepter"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "scepter"
 DisplayName = "scepter"
 Icon = ""
