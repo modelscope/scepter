@@ -12,4 +12,4 @@ Repository = "https://github.com/modelscope/scepter"
 [tool.comfy]
 PublisherId = "scepter"
 DisplayName = "scepter"
-Icon = "🪄"
+Icon = "https://github.com/modelscope/scepter/blob/main/asset/images/icon.png"
