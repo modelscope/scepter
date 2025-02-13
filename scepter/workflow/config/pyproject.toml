@@ -1,19 +1,15 @@
 [project]
 name = "scepter"
 description = "Custom nodes for various visual generation and editing tasks using Scepter."
+version = "1.0.0"
 license = {file = "LICENSE"}
-dynamic = ["version", "dependencies", "keywords", "classifiers"]
-authors = [{name = "Tongyi Lab"}]
-readme = {file = "README.md", content-type = "text/markdown"}
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements/framework.txt", "requirements/scepter_studio.txt"]}
+dependencies = ["-r requirements/framework.txt", "-r requirements/scepter_studio.txt"]
 
 [project.urls]
 Repository = "https://github.com/modelscope/scepter"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = "scepter"
+PublisherId = ""
 DisplayName = "scepter"
 Icon = ""
