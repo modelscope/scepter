@@ -6,7 +6,7 @@ on:
       - main
       - master
     paths:
-      - "scepter/workflow/config/pyproject.toml"
+      - "scepter/workflow/pyproject.toml"
 
 jobs:
   publish-node:
