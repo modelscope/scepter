@@ -143,3 +143,14 @@ BASE_PARAMETERS:
       - 1600
       - 1664
       - 1728
+
+CALCULATOR:
+  TYPE:
+    - add
+    - sub
+    - mul
+    - div
+  ROUND:
+    - ceil
+    - floor
+    - round
