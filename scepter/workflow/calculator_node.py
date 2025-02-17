@@ -16,7 +16,7 @@ class CalculatorNode:
             'required': {
                 'parameter': ('INT',),
                 'type': (list(s().cfg['CALCULATOR']['TYPE']),),
-                'value': ('FLOAT',),
+                'value': ('INT',),
                 'round_method': (list(s().cfg['CALCULATOR']['ROUND']),)
             }
         }
