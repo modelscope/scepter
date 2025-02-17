@@ -1,5 +1,5 @@
 [project]
-name = "scepter"
+name = "ComfyUI-Scepter"
 description = "Custom nodes for various visual generation and editing tasks using Scepter."
 version = "1.4.0"
 license = {file = "LICENSE"}
@@ -11,5 +11,5 @@ Repository = "https://github.com/modelscope/scepter"
 
 [tool.comfy]
 PublisherId = "scepter"
-DisplayName = "scepter"
-Icon = "https://github.com/modelscope/scepter/blob/main/asset/images/icon.png"
+DisplayName = "ComfyUI-Scepter"
+Icon = "https://raw.githubusercontent.com/modelscope/scepter/main/asset/images/icon.png"
