@@ -1,6 +1,5 @@
 albumentations
 beautifulsoup4
-bezier
 einops
 modelscope[framework]
 ms-swift

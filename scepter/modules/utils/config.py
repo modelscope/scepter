@@ -12,7 +12,6 @@ import yaml
 
 from scepter.modules.utils.logger import StdMsg
 
-
 _SECURE_KEYWORDS = [
     'ENDPOINT', 'BUCKET', 'OSS_AK', 'OSS_SK', 'OSS', 'TOKEN', 'APPKEY'
     'SECRET', 'ACCESS_ID', 'ACCESS_KEY', 'PASSWORD', 'TEMP_DIR'
@@ -21,7 +20,11 @@ _SECURE_KEYWORDS = [
 _SECURE_VALUEWORDS = ['oss://', 'oss-']  # -> "#####"
 
 
-def dict_to_yaml(module_name, name, json_config, set_name=False, exclude_keys=[]):
+def dict_to_yaml(module_name,
+                 name,
+                 json_config,
+                 set_name=False,
+                 exclude_keys=[]):
     '''
     { "ENV" :
         { "description" : "",
@@ -227,6 +230,23 @@ yaml.SafeLoader.add_constructor('$', env_var_constructor)
 yaml.SafeLoader.add_implicit_resolver('$', pattern, None)
 
 
+def check_surppor_type(v):
+    if isinstance(v, str) or isinstance(v, numbers.Number):
+        return True
+    elif isinstance(v, dict):
+        for k, v in v.items():
+            if not check_surppor_type(v):
+                return False
+        return True
+    elif isinstance(v, list):
+        for v in v:
+            if not check_surppor_type(v):
+                return False
+        return True
+    else:
+        return False
+
+
 def _parse_args(parser):
     if parser is None:
         parser = argparse.ArgumentParser(
@@ -353,13 +373,11 @@ class Config(object):
         if file_name.endswith('.json'):
             self.cfg_dict = self._load_json(file_name)
             self.logger.info(
-                f'Loading config from [{file_name}] as json file.'
-            )
+                f'Loading config from [{file_name}] as json file.')
         elif file_name.endswith('.yaml'):
             self.cfg_dict = self._load_yaml(file_name)
             self.logger.info(
-                f'Loading config from [{file_name}] as yaml file.'
-            )
+                f'Loading config from [{file_name}] as yaml file.')
         else:
             self.logger.info(
                 f'No config file found! Because we do not find json or yaml in --cfg {file_name}'
@@ -394,8 +412,43 @@ class Config(object):
                     elem = float(elem)
                 return key, elem
 
+        def recur_raw(key, elem):
+            if type(elem) is dict:
+                new_elem = {}
+                for k, v in elem.items():
+                    k, v = recur_raw(k, v)
+                    new_elem[k] = v
+                return key, new_elem
+            elif type(elem) is list:
+                new_elem = []
+                for idx, ele in enumerate(elem):
+                    if type(ele) is str and ele[1:3] == 'e-':
+                        ele = float(ele)
+                        new_elem.append(ele)
+                    elif type(ele) is str:
+                        new_elem.append(ele)
+                    elif type(ele) is dict:
+                        new_ele = {}
+                        for k, v in ele.items():
+                            k, v = recur_raw(k, v)
+                            new_ele[k] = v
+                        new_elem.append(new_ele)
+                    elif type(ele) is list:
+                        new_ele = []
+                        for ele_ in ele:
+                            new_ele.append(recur_raw('', ele_)[1])
+                        new_elem.append(new_ele)
+                    else:
+                        new_elem.append(ele)
+                return key, new_elem
+            else:
+                if type(elem) is str and elem[1:3] == 'e-':
+                    elem = float(elem)
+                return key, elem
+
         dic = dict(recur(k, v) for k, v in cfg_dict.items())
         self.__dict__.update(dic)
+        self.cfg_dict = dict(recur_raw(k, v) for k, v in cfg_dict.items())
 
     def _load_json(self, cfg_file):
         '''
@@ -586,13 +639,12 @@ class Config(object):
 
     def __setattr__(self, key, value):
         super().__setattr__(key, value)
-        if hasattr(self, 'cfg_dict') and key in self.cfg_dict:
-            if isinstance(value, Config):
-                value = value.cfg_dict
-            self.cfg_dict[key] = value
+        if check_surppor_type(value) and key not in ['cfg_dict', 'logger']:
+            if hasattr(self, 'cfg_dict'):
+                self.cfg_dict[key] = value
+                self._update_dict(self.cfg_dict)
 
     def __setitem__(self, key, value):
-        self.__dict__[key] = value
         self.__setattr__(key, value)
 
     def __iter__(self):
@@ -602,6 +654,7 @@ class Config(object):
         new_dict = {name: value}
         self.__dict__.update(new_dict)
         self.__setattr__(name, value)
+        self.cfg_dict.update(new_dict)
 
     def get_dict(self):
         return self.cfg_dict

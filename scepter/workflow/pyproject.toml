@@ -1,0 +1,15 @@
+[project]
+name = "ComfyUI-Scepter"
+description = "Custom nodes for various visual generation and editing tasks using Scepter."
+version = "1.4.0"
+license = {file = "LICENSE"}
+dependencies = ["-r requirements/framework.txt", "-r requirements/scepter_studio.txt"]
+
+[project.urls]
+Repository = "https://github.com/modelscope/scepter"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = "scepter"
+DisplayName = "ComfyUI-Scepter"
+Icon = "https://raw.githubusercontent.com/modelscope/scepter/main/asset/images/icon.png"
