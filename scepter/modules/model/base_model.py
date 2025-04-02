@@ -3,8 +3,10 @@
 import copy
 
 import torch.nn as nn
+
 from scepter.modules.utils.config import dict_to_yaml
 from scepter.modules.utils.distribute import gather_data, we
+from scepter.modules.utils.model import get_parameter_dtype
 from scepter.modules.utils.probe import (ProbeData, merge_gathered_probe,
                                          register_data)
 
@@ -43,13 +45,15 @@ class BaseModel(nn.Module):
                         self._dist_data[key][k] += v
                     else:
                         self._dist_data[key][k] = v
+
     def collect_probe(self):
         probe_data_dict = self._probe_data
         for k, v in self._modules.items():
             if isinstance(getattr(self, k), BaseModel):
                 for kk, vv in getattr(self, k).collect_probe().items():
-                     probe_data_dict[f'{k}/{kk}'] = vv
+                    probe_data_dict[f'{k}/{kk}'] = vv
         return probe_data_dict
+
     def probe_data(self):
         gather_probe_data = gather_data(self._probe_data)
         _dist_data_list = gather_data([self._dist_data])
@@ -96,6 +100,13 @@ class BaseModel(nn.Module):
         ret_data = copy.deepcopy(self._probe_data)
         self._probe_data = {}
         return ret_data
+
+    @property
+    def model_dtype(self):
+        """
+        `torch.dtype`: The dtype of the module (assuming that all the module parameters have the same dtype).
+        """
+        return get_parameter_dtype(self)
 
     def clear_probe(self):
         self._probe_data.clear()

@@ -196,6 +196,7 @@ class LatentDiffusionSolver(BaseSolver):
             self.logger.info('Use fsdp as the backend of ddp.')
         else:
             self.logger.info('Use default backend.')
+        self.find_unused_parameters = cfg.get('FIND_UNUSED_PARAMETERS', False)
         self.use_scaler = cfg.get('USE_SCALER', True)
         self.enable_gradscaler = cfg.get('ENABLE_GRADSCALER', False)
         self.use_orig_params = cfg.get('USE_ORIG_PARAMS', False)
@@ -408,7 +409,7 @@ class LatentDiffusionSolver(BaseSolver):
                     self.model,
                     device_ids=[torch.cuda.current_device()],
                     output_device=torch.cuda.current_device(),
-                    find_unused_parameters=False)
+                    find_unused_parameters=self.find_unused_parameters)
                 self.optimizer = OPTIMIZERS.build(
                     self.cfg.OPTIMIZER,
                     logger=self.logger,

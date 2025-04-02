@@ -1,5 +1,5 @@
 git+https://github.com/cocodataset/panopticapi.git
 torch==2.4.1
-torchvision==.19.1
+torchvision==0.19.1
 flash-attn==2.5.8
 xformers==0.0.28

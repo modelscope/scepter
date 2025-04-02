@@ -304,9 +304,10 @@ class DataObject(object):
         delimiter = sampler_config.get('DELIMITER', ',')
         path_prefix = sampler_config.get('PATH_PREFIX', '')
         prompt_prefix = sampler_config.get('PROMPT_PREFIX', '')
+        oss_prefix = sampler_config.get('OSS_PREFIX', '')
         return MultiLevelBatchSampler(batch_size, index_file, image_size,
                                       fields, delimiter, path_prefix,
-                                      prompt_prefix, rank, seed)
+                                      prompt_prefix, oss_prefix, rank, seed)
 
 
 def build_dataset_config(cfg, registry, logger=None, *args, **kwargs):
