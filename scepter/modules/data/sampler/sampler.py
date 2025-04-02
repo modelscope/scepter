@@ -79,6 +79,7 @@ class MultiLevelBatchSamplerMultiSource(BaseSampler):
         self.num_fields = len(self.fields)
         self.delimiter = cfg.get('DELIMITER', ',')
         self.path_prefix = cfg.get('PATH_PREFIX', '')
+        oss_prefix = cfg.get('OSS_PREFIX', '')
         common_prob = cfg.get('PROB', 1)
         sub_data_weights = cfg.get('SUB_DATA_WEIGHTS', None)
         sub_data_weights = {} if sub_data_weights is None else sub_data_weights.get_dict(
@@ -137,7 +138,7 @@ class MultiLevelBatchSamplerMultiSource(BaseSampler):
                 f"{p * common_prob} and samples'num: {sub_data['total']} in this cluster."
             )
         self.rng = np.random.default_rng(self.seed + we.rank)
-        self.oss_prefix = '/'.join(index_file.split('/')[:3])
+        self.oss_prefix = '/'.join(index_file.split('/')[:3]) if (oss_prefix is None or oss_prefix == '') and index_file.startswith('oss') else oss_prefix
         self.index_dir = os.path.dirname(index_file)
 
     def __iter__(self):
@@ -434,6 +435,7 @@ class MultiLevelBatchSampler(BaseSampler):
                  delimiter=',',
                  path_prefix='',
                  prompt_prefix='',
+                 oss_prefix='',
                  rank=0,
                  seed=8888):
         self.batch_size = batch_size
@@ -457,7 +459,7 @@ class MultiLevelBatchSampler(BaseSampler):
                     'index_level': 1,
                     'num_fields': self.num_fields
                 }
-        self.oss_prefix = '/'.join(index_file.split('/')[:3])
+        self.oss_prefix = '/'.join(index_file.split('/')[:3]) if (oss_prefix is None or oss_prefix == '') and index_file.startswith('oss') else oss_prefix
         self.index_dir = os.path.dirname(index_file)
 
     def __iter__(self):

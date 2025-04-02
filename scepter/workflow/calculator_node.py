@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import math
+
 from .constant import WORKFLOW_CONFIG
 
 
@@ -14,16 +15,16 @@ class CalculatorNode:
     def INPUT_TYPES(s):
         return {
             'required': {
-                'parameter': ('INT',),
-                'type': (list(s().cfg['CALCULATOR']['TYPE']),),
-                'value': ('INT',),
-                'round_method': (list(s().cfg['CALCULATOR']['ROUND']),)
+                'parameter': ('INT', ),
+                'type': (list(s().cfg['CALCULATOR']['TYPE']), ),
+                'value': ('INT', ),
+                'round_method': (list(s().cfg['CALCULATOR']['ROUND']), )
             }
         }
 
     OUTPUT_NODE = True
-    RETURN_TYPES = ('INT',)
-    RETURN_NAMES = ('INT',)
+    RETURN_TYPES = ('INT', )
+    RETURN_NAMES = ('INT', )
     FUNCTION = 'execute'
 
     def execute(self, parameter, type, value, round_method):
@@ -41,10 +42,11 @@ class CalculatorNode:
         }
 
         def _raise_zero_division():
-            raise ValueError("Division by zero is not allowed.")
+            raise ValueError('Division by zero is not allowed.')
 
-        if not isinstance(parameter, (int, float)) or not isinstance(value, (int, float)):
-            raise TypeError("Parameters must be int or float.")
+        if not isinstance(parameter,
+                          (int, float)) or not isinstance(value, (int, float)):
+            raise TypeError('Parameters must be int or float.')
 
         try:
             operation = _OPERATIONS[type]
@@ -54,11 +56,12 @@ class CalculatorNode:
         try:
             res = operation(parameter, value)
         except ZeroDivisionError:
-            raise ValueError("Division by zero is not allowed") from None
+            raise ValueError('Division by zero is not allowed') from None
 
         try:
             round_func = _ROUND_METHODS[round_method]
         except KeyError:
-            raise ValueError(f"Invalid rounding method: {round_method}") from None
+            raise ValueError(
+                f"Invalid rounding method: {round_method}") from None
 
-        return (round_func(res),)
+        return (round_func(res), )

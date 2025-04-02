@@ -25,6 +25,8 @@ if TYPE_CHECKING:
     from scepter.modules.annotator.segmentation import ESAMAnnotator
     from scepter.modules.annotator.sketch import SketchAnnotator
     from scepter.modules.annotator.lama import LamaAnnotator
+    from scepter.modules.annotator.mask_aug import MaskAugAnnotator, MaskDrawAnnotator, MaskLayoutAnnotator
+    from scepter.modules.annotator.raft import RAFTAnnotator, RAFTVisAnnotator
 else:
     _import_structure = {
         'base_annotator': ['GeneralAnnotator'],
@@ -48,6 +50,8 @@ else:
         'segmentation': ['ESAMAnnotator'],
         'sketch': ['SketchAnnotator'],
         'lama': ['LamaAnnotator'],
+        'mask_aug': ['MaskAugAnnotator', 'MaskDrawAnnotator', 'MaskLayoutAnnotator'],
+        'raft': ['RAFTAnnotator', 'RAFTVisAnnotator'],
     }
 
     import sys

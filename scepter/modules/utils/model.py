@@ -3,9 +3,11 @@
 import os
 import re
 from collections import OrderedDict
+from typing import List, Tuple, Union
 
 import torch
 import torch.nn as nn
+from torch import Tensor
 from torch.utils.model_zoo import load_url as load_state_dict_from_url
 
 
@@ -147,3 +149,43 @@ def init_weights(module):
         module.weight.data.fill_(1.0)
     if isinstance(module, nn.Linear) and module.bias is not None:
         module.bias.data.zero_()
+
+
+# copy from transformers.modeling_utils
+def get_parameter_dtype(parameter: Union[nn.Module, 'ModuleUtilsMixin']):
+    """
+    Returns the first found floating dtype in parameters if there is one, otherwise returns the last dtype it found.
+    """
+    last_dtype = None
+    for t in parameter.parameters():
+        last_dtype = t.dtype
+        if t.is_floating_point():
+            return t.dtype
+
+    if last_dtype is not None:
+        # if no floating dtype was found return whatever the first dtype is
+        return last_dtype
+
+    # For nn.DataParallel compatibility in PyTorch > 1.5
+    def find_tensor_attributes(module: nn.Module) -> List[Tuple[str, Tensor]]:
+        tuples = [(k, v) for k, v in module.__dict__.items()
+                  if torch.is_tensor(v)]
+        return tuples
+
+    gen = parameter._named_members(get_members_fn=find_tensor_attributes)
+    last_tuple = None
+    for tuple in gen:
+        last_tuple = tuple
+        if tuple[1].is_floating_point():
+            return tuple[1].dtype
+
+    if last_tuple is not None:
+        # fallback to the last dtype
+        return last_tuple[1].dtype
+
+    # fallback to buffer dtype
+    for t in parameter.buffers():
+        last_dtype = t.dtype
+        if t.is_floating_point():
+            return t.dtype
+    return last_dtype

@@ -135,13 +135,6 @@ SCEPTER offers 3 core components:
 
 ## 🛠️ Installation
 
-- Create new environment with `conda` command:
-
-```shell
-conda env create -f environment.yaml
-conda activate scepter
-```
-
 - Install with `pip` command:
 
 We recommend installing the specific version of PyTorch and accelerate toolbox [xFormers](https://pypi.org/project/xformers/). You can install these recommended version by pip:

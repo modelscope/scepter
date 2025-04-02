@@ -111,8 +111,10 @@ def pack_imagelist_into_tensor(image_list):
         image_tensor.append(img.view(c, h * w).transpose(1, 0))  # h*w, c
         shapes.append((h, w))
 
-    image_tensor = pad_sequence(image_tensor, batch_first=True).permute(0, 2, 1)  # b, c, l
+    image_tensor = pad_sequence(image_tensor,
+                                batch_first=True).permute(0, 2, 1)  # b, c, l
     return image_tensor, shapes
+
 
 def limit_batch_data(batch_data_list, log_num):
     if log_num and log_num > 0:

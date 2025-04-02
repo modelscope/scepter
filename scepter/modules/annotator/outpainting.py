@@ -98,9 +98,15 @@ class OutpaintingAnnotator(BaseAnnotator, metaclass=ABCMeta):
             draw.rectangle(
                 (left + (self.mask_blur * 2 if left > 0 else 0), up +
                  (self.mask_blur * 2 if up > 0 else 0), mask.width - right -
-                 (self.mask_blur * 2 if right > 0 else 0), mask.height - down -
-                 (self.mask_blur * 2 if down > 0 else 0)),
+                 (self.mask_blur * 2 if right > 0 else 0) - 1, mask.height - down -
+                 (self.mask_blur * 2 if down > 0 else 0) - 1),
                 fill='black')
+            # draw.rectangle(
+            #     (left + (self.mask_blur * 2 if left > 0 else 0), up +
+            #      (self.mask_blur * 2 if up > 0 else 0), left + src_width -
+            #      (self.mask_blur * 2 if right > 0 else 0), up + src_height -
+            #      (self.mask_blur * 2 if down > 0 else 0)),
+            #     fill='black')
         else:
             bbox = self.get_box(np.array(mask))
             if bbox is None:
