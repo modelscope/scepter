@@ -2,14 +2,14 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 
-WORKFLOW_PREFIX = 'custom_nodes/ComfyUI-Scepter/'
-WORKFLOW_MODEL_PREFIX = 'models/scepter/'
-WORKFLOW_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/scepter_workflow.yaml')
-MANTRA_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/mantra.yaml')
-TUNER_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/tuner_model.yaml')
-CONTROL_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/control_model.yaml')
-ANNOTATOR_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config/annotator.yaml')
-ACE_PLUS_PROCESSOR_PATH = os.path.join(WORKFLOW_PREFIX, 'config/ace_plus_processor.yaml')
+WORKFLOW_PREFIX = os.path.dirname(os.path.abspath(__file__))
+WORKFLOW_MODEL_PREFIX = os.path.join('models', 'scepter')
+WORKFLOW_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config', 'scepter_workflow.yaml')
+MANTRA_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config', 'mantra.yaml')
+TUNER_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config', 'tuner_model.yaml')
+CONTROL_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config', 'control_model.yaml')
+ANNOTATOR_CONFIG_PATH = os.path.join(WORKFLOW_PREFIX, 'config', 'annotator.yaml')
+ACE_PLUS_PROCESSOR_PATH = os.path.join(WORKFLOW_PREFIX, 'config', 'ace_plus_processor.yaml')
 
 
 class WorkflowConfig(object):
